@@ -273,6 +273,42 @@ fn suffix_compare_seq_to_genome_matches_forward_reverse_and_spacer_rules() {
 }
 
 #[test]
+fn suffix_compare_seq_to_genome_accepts_prefix_longer_than_search_span() {
+    let genome = Genome {
+        g: vec![0, 1, 2, 3, 4, 5],
+        sa: vec![1, 2, 0b1_0000 | 1],
+        n_genome: 6,
+        gstrand_bit: 4,
+        gstrand_mask: 0b1111,
+        ..Default::default()
+    };
+    let fwd = [9u8, 1, 2, 3, 9];
+    let rev = [9u8, 4, 3, 2, 9];
+
+    let mut comp = false;
+    assert_eq!(
+        suffixarrayfuns_l10_compareseqtogenome(&genome, [&fwd, &rev], 1, 3, 4, 0, true, &mut comp),
+        3
+    );
+
+    let mut comp1 = 0;
+    assert_eq!(
+        suffixarrayfuns_l221_compareseqtogenome1(
+            &genome,
+            [&fwd, &rev],
+            1,
+            3,
+            4,
+            0,
+            true,
+            u64::MAX,
+            &mut comp1,
+        ),
+        3
+    );
+}
+
+#[test]
 fn suffix_array_search1_returns_exact_or_first_greater_suffix_index() {
     let genome = Genome {
         g: vec![0, 1, 2, 3],
@@ -425,14 +461,14 @@ fn genome_sa_index_find_next_index_preserves_cpp_end_jump_behavior() {
 
 #[test]
 fn genome_sa_index_chunk_writes_present_absent_and_tail_entries() {
-    let absent = 1 << 6;
+    let absent = 1u64 << 6;
     let genome = Genome {
         n_sa: 6,
         n_genome: 7,
         gstrand_bit: 31,
         gstrand_mask: u32::MAX,
         genome_sa_index_start: vec![0, 4, 20],
-        sai_mark_absent_mask_c: absent,
+        sai_mark_absent_mask_c: absent as u32,
         sai_mark_nmask_c: 1 << 5,
         p_ge: ParametersGenome {
             g_saindex_nbases: 2,
@@ -442,7 +478,7 @@ fn genome_sa_index_chunk_writes_present_absent_and_tail_entries() {
     };
     let g = [0u8, 0, 0, 1, 1, 2, 3];
     let sa = [0u64, 1, 2, 3, 4, 5];
-    let mut sai = vec![0u32; 20];
+    let mut sai = vec![0u64; 20];
 
     genomesaindex_l117_genomesaindexchunk(&g, &sa, &mut sai, 0, 5, &genome).unwrap();
 
@@ -475,16 +511,16 @@ fn genome_sa_index_chunk_writes_present_absent_and_tail_entries() {
 
 #[test]
 fn genome_sa_index_chunk_marks_previous_entry_when_suffix_contains_n() {
-    let absent = 1 << 6;
-    let n_mask = 1 << 5;
+    let absent = 1u64 << 6;
+    let n_mask = 1u64 << 5;
     let genome = Genome {
         n_sa: 4,
         n_genome: 6,
         gstrand_bit: 31,
         gstrand_mask: u32::MAX,
         genome_sa_index_start: vec![0, 4, 20],
-        sai_mark_absent_mask_c: absent,
-        sai_mark_nmask_c: n_mask,
+        sai_mark_absent_mask_c: absent as u32,
+        sai_mark_nmask_c: n_mask as u32,
         p_ge: ParametersGenome {
             g_saindex_nbases: 2,
             ..Default::default()
@@ -493,7 +529,7 @@ fn genome_sa_index_chunk_marks_previous_entry_when_suffix_contains_n() {
     };
     let g = [0u8, 0, 0, 4, 0, 1];
     let sa = [0u64, 1, 2, 4];
-    let mut sai = vec![0u32; 20];
+    let mut sai = vec![0u64; 20];
 
     genomesaindex_l117_genomesaindexchunk(&g, &sa, &mut sai, 0, 3, &genome).unwrap();
 
@@ -524,7 +560,14 @@ fn genome_sa_index_initializes_offsets_masks_and_table() {
     assert_eq!(genome.sai_mark_nmask_c, 1 << 5);
     assert_eq!(genome.sai_mark_nmask, !(1 << 5));
     assert_eq!(genome.sai_mark_absent_mask_c, 1 << 6);
-    assert_eq!(sai, genome.sai);
+    assert_eq!(
+        sai,
+        genome
+            .sai
+            .iter()
+            .map(|value| *value as u64)
+            .collect::<Vec<_>>()
+    );
     assert_eq!(sai[0], 0);
     assert_eq!(sai[1], 3);
     assert_eq!(sai[3], 6 | (1 << 6));

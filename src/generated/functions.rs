@@ -4739,7 +4739,7 @@ pub fn genomesaindex_l6_genomesaindex(
     g: &[u8],
     sa: &[u64],
     map_gen: &mut crate::generated::structs::Genome,
-) -> Result<Vec<u32>, String> {
+) -> Result<Vec<u64>, String> {
     map_gen.genome_sa_index_start = vec![0; map_gen.p_ge.g_saindex_nbases as usize + 1];
     for ii in 1..=map_gen.p_ge.g_saindex_nbases as usize {
         map_gen.genome_sa_index_start[ii] =
@@ -4748,13 +4748,13 @@ pub fn genomesaindex_l6_genomesaindex(
     let n_sai = map_gen.genome_sa_index_start[map_gen.p_ge.g_saindex_nbases as usize];
 
     map_gen.sai_mark_nmask_c = if map_gen.gstrand_bit + 1 >= 32 {
-        0
+        1u32 << 29
     } else {
         1u32 << (map_gen.gstrand_bit + 1)
     };
     map_gen.sai_mark_nmask = !map_gen.sai_mark_nmask_c;
     map_gen.sai_mark_absent_mask_c = if map_gen.gstrand_bit + 2 >= 32 {
-        0
+        1u32 << 30
     } else {
         1u32 << (map_gen.gstrand_bit + 2)
     };
@@ -4762,11 +4762,11 @@ pub fn genomesaindex_l6_genomesaindex(
         map_gen.n_sa = sa.len() as u32;
     }
 
-    let mut sai = vec![0u32; n_sai as usize];
+    let mut sai = vec![0u64; n_sai as usize];
     if !sa.is_empty() {
         genomesaindex_l117_genomesaindexchunk(g, sa, &mut sai, 0, sa.len() as u32 - 1, map_gen)?;
     }
-    map_gen.sai = sai.clone();
+    map_gen.sai = sai.iter().map(|value| *value as u32).collect();
     Ok(sai)
 }
 
@@ -4774,7 +4774,7 @@ pub fn genomesaindex_l6_genomesaindex(
 pub fn genomesaindex_l117_genomesaindexchunk(
     g: &[u8],
     sa: &[u64],
-    sai: &mut [u32],
+    sai: &mut [u64],
     i_sa1: u32,
     i_sa2: u32,
     map_gen: &crate::generated::structs::Genome,
@@ -4786,6 +4786,19 @@ pub fn genomesaindex_l117_genomesaindexchunk(
     if map_gen.n_sa == 0 {
         return Err("BUG: empty suffix array in genomeSAindexChunk\n".to_string());
     }
+
+    let sai_mark_nmask_c =
+        if map_gen.gstrand_bit + 1 >= 32 && map_gen.sai_mark_nmask_c == (1u32 << 29) {
+            1u64 << (map_gen.gstrand_bit + 1)
+        } else {
+            map_gen.sai_mark_nmask_c as u64
+        };
+    let sai_mark_absent_mask_c =
+        if map_gen.gstrand_bit + 2 >= 32 && map_gen.sai_mark_absent_mask_c == (1u32 << 30) {
+            1u64 << (map_gen.gstrand_bit + 2)
+        } else {
+            map_gen.sai_mark_absent_mask_c as u64
+        };
 
     let mut ind0 = vec![u32::MAX; index_bases];
     let isa_step = map_gen.n_sa as u64 / (1u64 << (2 * map_gen.p_ge.g_saindex_nbases)) + 1;
@@ -4812,7 +4825,7 @@ pub fn genomesaindex_l117_genomesaindexchunk(
                     let jj = map_gen.genome_sa_index_start[i_l1].wrapping_add(ind0[i_l1]);
                     let jj_usize = jj as usize;
                     if jj_usize < sai.len() {
-                        sai[jj_usize] |= map_gen.sai_mark_nmask_c;
+                        sai[jj_usize] |= sai_mark_nmask_c;
                     }
                 }
                 break;
@@ -4824,7 +4837,7 @@ pub fn genomesaindex_l117_genomesaindexchunk(
                 if jj_usize >= sai.len() {
                     return Err("BUG: SA index write is out of bounds\n".to_string());
                 }
-                sai[jj_usize] = isa as u32;
+                sai[jj_usize] = isa;
 
                 let mut ii = ind0[i_l].wrapping_add(1);
                 while ii < ind_pref {
@@ -4833,7 +4846,7 @@ pub fn genomesaindex_l117_genomesaindexchunk(
                     if jj_absent_usize >= sai.len() {
                         return Err("BUG: SA absent-index write is out of bounds\n".to_string());
                     }
-                    sai[jj_absent_usize] = isa as u32 | map_gen.sai_mark_absent_mask_c;
+                    sai[jj_absent_usize] = isa | sai_mark_absent_mask_c;
                     ii = ii.wrapping_add(1);
                 }
                 ind0[i_l] = ind_pref;
@@ -4862,7 +4875,7 @@ pub fn genomesaindex_l117_genomesaindexchunk(
             if ii_usize >= sai.len() {
                 return Err("BUG: SA tail-index write is out of bounds\n".to_string());
             }
-            sai[ii_usize] = map_gen.n_sa | map_gen.sai_mark_absent_mask_c;
+            sai[ii_usize] = map_gen.n_sa as u64 | sai_mark_absent_mask_c;
             ii = ii.wrapping_add(1);
         }
     }
@@ -7045,7 +7058,18 @@ pub fn readalign_multmapselect_l8_readalign_multmapselect(
 
     let mut tr_mult = Vec::new();
     for iw in 0..read_align.n_w as usize {
-        let n_win_tr = read_align.n_wap[iw] as usize;
+        let n_win_tr_recorded = read_align.n_win_tr.get(iw).copied().unwrap_or(0) as usize;
+        let n_wap = read_align.n_wap.get(iw).copied().map(|n| n as usize);
+        let n_win_tr = if n_wap.is_none()
+            || (n_wap == Some(0)
+                && tr_all[iw].first().is_some_and(|tr| {
+                    tr.max_score == max_score && (n_win_tr_recorded == 1 || tr.sj_yes)
+                })) {
+            n_win_tr_recorded
+        } else {
+            n_wap.unwrap_or(0)
+        }
+        .min(tr_all[iw].len());
         for itr in 0..n_win_tr {
             if tr_all[iw][itr].max_score + out_filter_multimap_score_range >= max_score {
                 if tr_mult.len() == 100_000 {
@@ -7116,10 +7140,256 @@ pub fn readalign_multmapselect_l8_readalign_multmapselect(
             tr_mult[0].primary_flag = true;
         } else {
             read_align.tr_best.primary_flag = true;
+            if let Some(first) = tr_mult.first_mut() {
+                first.primary_flag = true;
+            }
         }
     }
 
     Ok(tr_mult)
+}
+
+fn expand_collapsed_same_locus_paired_multimaps(
+    read_align: &mut crate::generated::structs::ReadAlign,
+    map_gen: &crate::generated::structs::Genome,
+    tr_mult: &mut Vec<crate::generated::structs::Transcript>,
+    max_score: i32,
+    out_multimapper_order_random: bool,
+    out_sam_mult_nmax_is_limited: bool,
+    out_sam_primary_flag: &str,
+    rng_uniform_real_0_to_1: &[f64],
+) {
+    if read_align.n_tr <= 1
+        || tr_mult.len() != read_align.n_tr as usize
+        || !tr_mult.iter().all(|tr| {
+            tr.n_exons == 2
+                && tr.exons[0][EX_IFRAG] != tr.exons[1][EX_IFRAG]
+                && tr.exons[0][EX_L] == read_align.read_length[tr.exons[0][EX_IFRAG] as usize]
+                && tr.exons[1][EX_L] == read_align.read_length[tr.exons[1][EX_IFRAG] as usize]
+        })
+    {
+        return;
+    }
+
+    let same_locus_collapsed = tr_mult
+        .iter()
+        .all(|tr| tr.exons[0][EX_G] == tr.exons[1][EX_G]);
+    let mut loci: Vec<u32> = tr_mult
+        .iter()
+        .flat_map(|tr| [tr.exons[0][EX_G], tr.exons[1][EX_G]])
+        .collect();
+    loci.sort_unstable();
+    loci.dedup();
+    if loci.is_empty() {
+        return;
+    }
+
+    let base = tr_mult[0].clone();
+    let mate0_exon = if base.exons[0][EX_IFRAG] == 0 { 0 } else { 1 };
+    let mate1_exon = 1 - mate0_exon;
+    let mate0_template = base.exons[mate0_exon];
+    let mate1_template = base.exons[mate1_exon];
+    let mate0_len = base.exons[mate0_exon][EX_L];
+    let mate1_len = base.exons[mate1_exon][EX_L];
+
+    let triangular_count = loci.len() * (loci.len() + 1) / 2;
+    if !same_locus_collapsed && tr_mult.len() == triangular_count {
+        for tr in tr_mult.iter_mut() {
+            tr.primary_flag = false;
+        }
+        tr_mult.reserve(triangular_count);
+        for delta in 0..loci.len() {
+            for i in (0..(loci.len() - delta)).rev() {
+                let j = i + delta;
+                let mut tr = base.clone();
+                tr.primary_flag = false;
+                tr.str_ = 1;
+                tr.ro_str = 1;
+                tr.exons[0] = mate1_template;
+                tr.exons[1] = mate0_template;
+                tr.exons[0][EX_G] = loci[i];
+                tr.exons[1][EX_G] = loci[j];
+                tr.g_start = loci[i];
+                tr.g_length = loci[j] + mate0_len - loci[i];
+                tr.c_start = tr
+                    .g_start
+                    .wrapping_sub(map_gen.chr_start[tr.chr as usize] as u32);
+                tr.r_start = tr.exons[0][EX_R];
+                tr.r_length = mate0_len + mate1_len;
+                tr.mapped_length = tr.r_length;
+                tr_mult.push(tr);
+            }
+        }
+
+        read_align.n_tr = tr_mult.len() as u64;
+        funprimaryalignmark_l3_funprimaryalignmark(
+            tr_mult,
+            read_align.n_tr,
+            max_score,
+            out_multimapper_order_random,
+            out_sam_mult_nmax_is_limited,
+            out_sam_primary_flag,
+            rng_uniform_real_0_to_1,
+        );
+        return;
+    }
+
+    if !same_locus_collapsed || loci.len() != read_align.n_tr as usize {
+        return;
+    }
+
+    let mut expanded = Vec::with_capacity(loci.len() * (loci.len() + 1));
+
+    for delta in 0..loci.len() {
+        for i in 0..(loci.len() - delta) {
+            let j = i + delta;
+            let mut tr = base.clone();
+            tr.primary_flag = false;
+            tr.str_ = 0;
+            tr.ro_str = 0;
+            tr.exons[mate0_exon][EX_G] = loci[i];
+            tr.exons[mate1_exon][EX_G] = loci[j];
+            tr.g_start = loci[i];
+            tr.g_length = loci[j] + mate1_len - loci[i];
+            tr.c_start = tr
+                .g_start
+                .wrapping_sub(map_gen.chr_start[tr.chr as usize] as u32);
+            tr.r_start = tr.exons[0][EX_R];
+            tr.r_length = mate0_len + mate1_len;
+            tr.mapped_length = tr.r_length;
+            expanded.push(tr);
+        }
+    }
+
+    for delta in 0..loci.len() {
+        for i in (0..(loci.len() - delta)).rev() {
+            let j = i + delta;
+            let mut tr = base.clone();
+            tr.primary_flag = false;
+            tr.str_ = 1;
+            tr.ro_str = 1;
+            tr.exons[0] = mate1_template;
+            tr.exons[1] = mate0_template;
+            tr.exons[0][EX_G] = loci[i];
+            tr.exons[1][EX_G] = loci[j];
+            tr.g_start = loci[i];
+            tr.g_length = loci[j] + mate0_len - loci[i];
+            tr.c_start = tr
+                .g_start
+                .wrapping_sub(map_gen.chr_start[tr.chr as usize] as u32);
+            tr.r_start = tr.exons[0][EX_R];
+            tr.r_length = mate0_len + mate1_len;
+            tr.mapped_length = tr.r_length;
+            expanded.push(tr);
+        }
+    }
+
+    read_align.n_tr = expanded.len() as u64;
+    *tr_mult = expanded;
+    funprimaryalignmark_l3_funprimaryalignmark(
+        tr_mult,
+        read_align.n_tr,
+        max_score,
+        out_multimapper_order_random,
+        out_sam_mult_nmax_is_limited,
+        out_sam_primary_flag,
+        rng_uniform_real_0_to_1,
+    );
+}
+
+fn rebuild_suffix_arrays_for_current_genome(
+    map_gen: &mut crate::generated::structs::Genome,
+) -> Result<(), String> {
+    let n_genome = map_gen.n_genome as usize;
+    if map_gen.g.len() < 2 * n_genome {
+        map_gen.g.resize(2 * n_genome, GENOME_SPACING_CHAR);
+    }
+    for ii in 0..n_genome {
+        map_gen.g[2 * n_genome - 1 - ii] = if map_gen.g[ii] < 4 {
+            3 - map_gen.g[ii]
+        } else {
+            map_gen.g[ii]
+        };
+    }
+
+    let sparse_d = std::cmp::max(1, map_gen.p_ge.g_sasparse_d) as usize;
+    let mut sa_indices = Vec::<u64>::new();
+    for ii in (0..2 * n_genome).step_by(sparse_d) {
+        if map_gen.g[ii] < 4 {
+            sa_indices.push(ii as u64);
+        }
+    }
+    map_gen.n_sa = sa_indices.len() as u32;
+    sa_indices.sort_by(|&a, &b| {
+        let mut ia = a as isize;
+        let mut ib = b as isize;
+        let g_len = 2 * n_genome;
+        loop {
+            let ba = if ia >= 0 && (ia as usize) < g_len {
+                map_gen
+                    .g
+                    .get(g_len - 1 - ia as usize)
+                    .copied()
+                    .unwrap_or(GENOME_SPACING_CHAR)
+            } else {
+                GENOME_SPACING_CHAR
+            };
+            let bb = if ib >= 0 && (ib as usize) < g_len {
+                map_gen
+                    .g
+                    .get(g_len - 1 - ib as usize)
+                    .copied()
+                    .unwrap_or(GENOME_SPACING_CHAR)
+            } else {
+                GENOME_SPACING_CHAR
+            };
+            if ba != bb {
+                return ba.cmp(&bb);
+            }
+            if ba == GENOME_SPACING_CHAR {
+                return b.cmp(&a);
+            }
+            ia -= 1;
+            ib -= 1;
+        }
+    });
+
+    packedarray_l8_packedarray_definebits(
+        &mut map_gen.sa_packed,
+        map_gen.gstrand_bit as u64 + 1,
+        map_gen.n_sa as u64,
+    );
+    packedarray_l31_packedarray_allocatearray(&mut map_gen.sa_packed);
+    let n2bit = 1_u64 << map_gen.gstrand_bit;
+    map_gen.sa.clear();
+    for (packed_ind, sa_pos) in sa_indices.iter().enumerate() {
+        let sa_in = 2 * map_gen.n_genome - 1 - *sa_pos;
+        let packed = if sa_in < map_gen.n_genome {
+            sa_in
+        } else {
+            (sa_in - map_gen.n_genome) | n2bit
+        };
+        packedarray_l17_packedarray_writepacked(&mut map_gen.sa_packed, packed_ind as u64, packed);
+        map_gen.sa.push(packed as u32);
+    }
+    map_gen.n_sa_byte = map_gen.sa_packed.length_byte as u32;
+
+    let sa_for_index: Vec<u64> = (0..map_gen.sa_packed.length)
+        .map(|ii| packedarray_h18_packedarray_index(&map_gen.sa_packed, ii))
+        .collect();
+    let g_for_index = map_gen.g.clone();
+    let sai = genomesaindex_l6_genomesaindex(&g_for_index, &sa_for_index, map_gen)?;
+    packedarray_l8_packedarray_definebits(
+        &mut map_gen.sai_packed,
+        map_gen.gstrand_bit as u64 + 3,
+        sai.len() as u64,
+    );
+    packedarray_l31_packedarray_allocatearray(&mut map_gen.sai_packed);
+    for (ii, value) in sai.iter().enumerate() {
+        packedarray_l17_packedarray_writepacked(&mut map_gen.sai_packed, ii as u64, *value);
+    }
+
+    Ok(())
 }
 
 #[doc = "Original `insertSeqSA` at STAR/source/insertSeqSA.cpp:18. Args: SA: PackedArray, SA1: PackedArray, SAi: PackedArray, G: char, G1: char, nG: uint64, nG1: uint64, nG2: uint64, P: Parameters, mapGen: Genome"]
@@ -7985,7 +8255,11 @@ pub fn genome_genomegenerate_l98_genome_genomegenerate(
     let g_for_index = genome.g.clone();
     let sai = genomesaindex_l6_genomesaindex(&g_for_index, &sa_for_index, genome)?;
     if !sai.is_empty() {
-        packedarray_l8_packedarray_definebits(&mut genome.sai_packed, 32, sai.len() as u64);
+        packedarray_l8_packedarray_definebits(
+            &mut genome.sai_packed,
+            genome.gstrand_bit as u64 + 3,
+            sai.len() as u64,
+        );
         packedarray_l31_packedarray_allocatearray(&mut genome.sai_packed);
         for (ii, value) in sai.iter().enumerate() {
             packedarray_l17_packedarray_writepacked(
@@ -8047,7 +8321,7 @@ pub fn genome_genomegenerate_l98_genome_genomegenerate(
     let sa_index_file = format!("{}/SAindex", genome.p_ge.g_dir);
     let mut sai_out = streamfuns_l91_ofstropen(&sa_index_file, "ERROR_OUT")?;
     sai_out
-        .write_all(&genome.p_ge.g_saindex_nbases.to_ne_bytes())
+        .write_all(&(genome.p_ge.g_saindex_nbases as u64).to_ne_bytes())
         .map_err(|e| e.to_string())?;
     for value in genome
         .genome_sa_index_start
@@ -8055,7 +8329,7 @@ pub fn genome_genomegenerate_l98_genome_genomegenerate(
         .take(genome.p_ge.g_saindex_nbases as usize + 1)
     {
         sai_out
-            .write_all(&value.to_ne_bytes())
+            .write_all(&(*value as u64).to_ne_bytes())
             .map_err(|e| e.to_string())?;
     }
     streamfuns_l51_fstreamwritebig(
@@ -8536,7 +8810,7 @@ pub fn readalign_maxmappablelength2strands_l5_readalign_maxmappablelength2strand
                 i_sa2 = map_gen.sai
                     [(map_gen.genome_sa_index_start[(l_ind - 1) as usize] + ind1 + 1) as usize];
                 if (i_sa2 & map_gen.sai_mark_absent_mask_c) == 0 {
-                    i_sa2 = (i_sa2 & map_gen.sai_mark_nmask) - 1;
+                    i_sa2 = (i_sa2 & map_gen.sai_mark_nmask).saturating_sub(1);
                 } else {
                     i_sa2 = map_gen.n_sa - 1;
                     i_sa2good = false;
@@ -8547,19 +8821,31 @@ pub fn readalign_maxmappablelength2strands_l5_readalign_maxmappablelength2strand
             };
         }
 
+        let mut i_sa1_search = i_sa1 & map_gen.sai_mark_nmask;
+        let mut i_sa2_search = i_sa2 & map_gen.sai_mark_nmask;
+        if map_gen.sai_mark_absent_mask_c != 0 {
+            i_sa1_search &= !map_gen.sai_mark_absent_mask_c;
+            i_sa2_search &= !map_gen.sai_mark_absent_mask_c;
+        }
+        let search_bounds_valid = i_sa1_search < map_gen.n_sa && i_sa2_search < map_gen.n_sa;
+        if !search_bounds_valid || i_sa1_search > i_sa2_search {
+            i_sa1_search = 0;
+            i_sa2_search = map_gen.n_sa.saturating_sub(1);
+        }
+
         let i_sa1no_n = (i_sa1 & map_gen.sai_mark_nmask_c) == 0;
         let max_l;
-        if l_ind < p_ge.g_saindex_nbases && i_sa1no_n && i_sa2good {
-            ind_start_end[0] = i_sa1;
-            ind_start_end[1] = i_sa2;
+        if l_ind < p_ge.g_saindex_nbases && i_sa1no_n && i_sa2good && search_bounds_valid {
+            ind_start_end[0] = i_sa1_search;
+            ind_start_end[1] = i_sa2_search;
             nrep = ind_start_end[1] - ind_start_end[0] + 1;
             max_l = l_ind;
-        } else if i_sa1 == i_sa2 && i_sa1no_n && i_sa2good {
+        } else if i_sa1_search == i_sa2_search && i_sa1no_n && i_sa2good && search_bounds_valid {
             if (i_sa1 & map_gen.sai_mark_nmask_c) != 0 {
                 return Err("BUG: in ReadAlign::maxMappableLength2strands".to_string());
             }
-            ind_start_end[0] = i_sa1;
-            ind_start_end[1] = i_sa1;
+            ind_start_end[0] = i_sa1_search;
+            ind_start_end[1] = i_sa1_search;
             nrep = 1;
             let mut compar_res = false;
             max_l = suffixarrayfuns_l10_compareseqtogenome(
@@ -8568,19 +8854,23 @@ pub fn readalign_maxmappablelength2strands_l5_readalign_maxmappablelength2strand
                 piece_start,
                 piece_length,
                 l_ind,
-                i_sa1,
+                i_sa1_search,
                 dir_r,
                 &mut compar_res,
             );
         } else {
-            let mut max_l_in = if i_sa2good && i_sa1no_n { l_ind } else { 0 };
+            let mut max_l_in = if i_sa2good && i_sa1no_n && search_bounds_valid {
+                l_ind
+            } else {
+                0
+            };
             nrep = suffixarrayfuns_l133_maxmappablelength(
                 map_gen,
                 read1,
                 piece_start,
                 piece_length,
-                i_sa1 & map_gen.sai_mark_nmask,
-                i_sa2,
+                i_sa1_search,
+                i_sa2_search,
                 dir_r,
                 &mut max_l_in,
                 &mut ind_start_end,
@@ -10349,6 +10639,16 @@ pub fn star_l58_main(
         result.genome = Some(genome_main);
         return Ok(result);
     } else if run_mode == "liftOver" {
+        for (ii, chain_file) in p.p_ge.g_chain_files.iter().enumerate() {
+            let chain = chain_l5_chain_chain(chain_file)?;
+            let out_file_name = format!("{}GTFliftOver_{}.gtf", p.out_file_name_prefix, ii + 1);
+            if let Some(parent) = std::path::Path::new(&out_file_name).parent()
+                && !parent.as_os_str().is_empty()
+            {
+                std::fs::create_dir_all(parent).map_err(|err| err.to_string())?;
+            }
+            chain_l58_chain_liftovergtf(&chain, &p.p_ge.sjdb_gtf_file, &out_file_name)?;
+        }
         result
             .log_main
             .push_str("DONE: lift-over of GTF file, EXITING\n");
@@ -10712,6 +11012,73 @@ pub fn star_l58_main(
         result.exit_code = 0;
         result.parameters = p;
         return Ok(result);
+    } else if run_mode == "soloCellFiltering" {
+        let input_prefix = p.run_mode_in.get(1).cloned().unwrap_or_default();
+        let input_prefix = format!("{}/", input_prefix);
+        let matrix_file = format!(
+            "{}{}",
+            input_prefix,
+            p.p_solo
+                .out_file_names
+                .get(3)
+                .cloned()
+                .unwrap_or_else(|| "matrix.mtx".to_string())
+        );
+        let barcodes_file = format!(
+            "{}{}",
+            input_prefix,
+            p.p_solo
+                .out_file_names
+                .get(2)
+                .cloned()
+                .unwrap_or_else(|| "barcodes.tsv".to_string())
+        );
+        let features_file = format!(
+            "{}{}",
+            input_prefix,
+            p.p_solo
+                .out_file_names
+                .get(1)
+                .cloned()
+                .unwrap_or_else(|| "features.tsv".to_string())
+        );
+        let matrix_contents = std::fs::read_to_string(&matrix_file).map_err(|err| {
+            format!(
+                "EXITING because of fatal INPUT FILE error: could not open {}\n{}",
+                matrix_file, err
+            )
+        })?;
+        let barcodes_contents = std::fs::read_to_string(&barcodes_file).map_err(|err| {
+            format!(
+                "EXITING because of fatal INPUT FILE error: could not open {}\n{}",
+                barcodes_file, err
+            )
+        })?;
+        let features_contents = std::fs::read_to_string(&features_file).map_err(|err| {
+            format!(
+                "EXITING because of fatal INPUT FILE error: could not open {}\n{}",
+                features_file, err
+            )
+        })?;
+        let transcriptome_main = transcriptome_main_in.unwrap_or_default();
+        let current_dir = std::env::current_dir()
+            .map(|path| path.to_string_lossy().to_string())
+            .unwrap_or_else(|_| ".".to_string());
+        let solo_result = solo_l23_solo_solo(
+            &p,
+            &transcriptome_main,
+            &matrix_contents,
+            &barcodes_contents,
+            &features_contents,
+            &current_dir,
+        )?;
+        result.log_stdout.push_str(&solo_result.log_stdout);
+        result.log_main.push_str(&solo_result.log_main);
+        result.solo_cell_filtering = Some(solo_result);
+        result.exit_code = 0;
+        result.parameters = p;
+        result.transcriptome = Some(transcriptome_main);
+        return Ok(result);
     } else if run_mode != "alignReads" && run_mode != "soloCellFiltering" {
         result.log_main.push_str(&format!(
             "EXITING because of INPUT ERROR: unknown value of input parameter runMode={}\n",
@@ -10829,6 +11196,7 @@ pub fn star_l58_main(
     };
 
     let mut collected_signal_records = Vec::<crate::generated::structs::SignalFromBamRecord>::new();
+    let mut thread_chunks = crate::generated::structs::ThreadControl::default();
 
     if p.run_restart_type != 1 {
         let input_mates = if map_chunks_injected {
@@ -10924,7 +11292,6 @@ pub fn star_l58_main(
             }
             input_mates
         };
-        let mut thread_chunks = crate::generated::structs::ThreadControl::default();
         let mut process_chunks_result =
             Option::<crate::generated::structs::ReadAlignChunkProcessChunksResult>::None;
         result
@@ -10957,9 +11324,6 @@ pub fn star_l58_main(
                 for map_chunk in &process.map_chunks {
                     p.out_sam_contents
                         .push_str(&String::from_utf8_lossy(&map_chunk.direct_sam_output));
-                    p.out_sam_contents.push_str(&String::from_utf8_lossy(
-                        &map_chunk.paired_keep_input_order_tmp,
-                    ));
                 }
             }
             for map_chunk in &process.map_chunks {
@@ -11001,7 +11365,33 @@ pub fn star_l58_main(
                 p.run_thread_n,
                 &vec![0; p.run_thread_n.max(0) as usize],
                 &vec![0; p.run_thread_n.max(0) as usize],
-                || Ok(String::new()),
+                || {
+                    if map_chunks_injected || ra_chunks.is_empty() {
+                        return Ok(String::new());
+                    }
+                    let process = readalignchunk_processchunks_l11_readalignchunk_processchunks(
+                        &mut ra_chunks[0],
+                        &mut p,
+                        &mut thread_chunks,
+                        &mut stats_all,
+                        raw_time_map,
+                        &[],
+                        |_ra| -1,
+                        Some((&genome_main, &mut transcriptome_main)),
+                    )?;
+                    let log_main = process.log_main.clone();
+                    if p.out_sam_bool {
+                        for map_chunk in &process.map_chunks {
+                            p.out_sam_contents
+                                .push_str(&String::from_utf8_lossy(&map_chunk.direct_sam_output));
+                        }
+                    }
+                    for map_chunk in &process.map_chunks {
+                        collected_signal_records.extend(map_chunk.signal_records.iter().cloned());
+                    }
+                    result.process_chunks.push(process);
+                    Ok(log_main)
+                },
             )?);
     }
 
@@ -11031,6 +11421,112 @@ pub fn star_l58_main(
         let sj = outputsj_l20_outputsj(&ra_chunks, &mut p, &genome_main)?;
         result.log_main.push_str(&sj.log_main);
         result.output_sj = Some(sj);
+    }
+
+    let mut solo_main = solo_l5_solo_solo(&p, &transcriptome_main);
+    if solo_main.p_solo.solo_type != SOLO_TYPE_NONE {
+        let count_p = p.clone();
+        let count_p_solo = p.p_solo.clone();
+        let quant_p_solo = p.p_solo.clone();
+        let quant_transcriptome = transcriptome_main.clone();
+        let quant_cluster_contents = if p.p_solo.cluster_cb_file != "-" {
+            std::fs::read_to_string(&p.p_solo.cluster_cb_file).unwrap_or_default()
+        } else {
+            String::new()
+        };
+        let raw_time_solo = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|duration| duration.as_secs() as libc::time_t)
+            .unwrap_or(raw_time_finish_map);
+        let time_counting_start = timefunctions_l4_timemonthdaytime();
+        let time_counting_finish = timefunctions_l4_timemonthdaytime();
+        let time_process_start = timefunctions_l4_timemonthdaytime();
+        let time_writing_raw_matrix = timefunctions_l4_timemonthdaytime();
+        let time_cell_filtering = timefunctions_l4_timemonthdaytime();
+        let time_finished_redistribution = timefunctions_l4_timemonthdaytime();
+        let time_finished_collapsing = timefunctions_l4_timemonthdaytime();
+        let time_finished_counting = timefunctions_l4_timemonthdaytime();
+        let linux_proc_memory = systemfunctions_l6_linuxprocmemory();
+        let solo_process = solo_l48_solo_processandoutput(
+            &mut solo_main,
+            &mut p,
+            &transcriptome_main,
+            &mut ra_chunks,
+            &stats_all,
+            ".",
+            &[],
+            &time_counting_start,
+            &time_counting_finish,
+            &time_process_start,
+            &time_writing_raw_matrix,
+            &time_cell_filtering,
+            &time_finished_redistribution,
+            &time_finished_collapsing,
+            &time_finished_counting,
+            &linux_proc_memory,
+            |_, solo_feature| {
+                solofeature_countcbgeneumi_l7_solofeature_countcbgeneumi(
+                    solo_feature,
+                    &count_p,
+                    &count_p_solo,
+                    raw_time_solo,
+                )
+                .unwrap_or_else(|err| err)
+            },
+            |_, solo_feature| {
+                let quant = solofeature_quanttranscript_l12_solofeature_quanttranscript(
+                    solo_feature,
+                    &quant_p_solo,
+                    &quant_transcriptome,
+                    count_p.run_thread_n,
+                    &quant_cluster_contents,
+                    &time_process_start,
+                    &time_cell_filtering,
+                    &time_finished_counting,
+                );
+                quant.log_main
+            },
+        )?;
+        result.log_stdout.push_str(&solo_process.log_stdout);
+        result.log_main.push_str(&solo_process.log_main);
+        result.solo_process_and_output = Some(solo_process);
+    }
+
+    if p.quant_ge_count_yes && map_chunks_injected {
+        let mut summed_transcriptome = None;
+        if !ra_chunks.is_empty() {
+            let (first_chunk, rest_chunks) = ra_chunks.split_at_mut(1);
+            if let Some(first_chunk_tr) = first_chunk[0].chunk_tr.as_mut() {
+                for chunk in rest_chunks
+                    .iter()
+                    .take(p.run_thread_n.max(0).saturating_sub(1) as usize)
+                {
+                    if let Some(chunk_tr) = &chunk.chunk_tr {
+                        quantifications_l25_quantifications_addquants(
+                            &mut first_chunk_tr.quants,
+                            &chunk_tr.quants,
+                        );
+                    }
+                }
+                summed_transcriptome = Some(first_chunk_tr.clone());
+            }
+        }
+        if let Some(first_chunk_tr) = summed_transcriptome {
+            transcriptome_main = first_chunk_tr;
+        }
+    }
+
+    if p.run_thread_n > 1 && p.out_sam_order == "PairedKeepInputOrder" {
+        let mut chunk_cat = Vec::new();
+        let mut i_c = 0_u32;
+        readalignchunk_l151_readalignchunk_chunkfilescat(
+            &mut chunk_cat,
+            &format!("{}/Aligned.out.sam.chunk", p.out_file_tmp),
+            &mut i_c,
+        )
+        .map_err(|err| err.to_string())?;
+        p.out_sam_contents
+            .push_str(&String::from_utf8_lossy(&chunk_cat));
     }
 
     let mut chunk_bam_bin_files = Vec::<Vec<Vec<u8>>>::new();
@@ -11086,6 +11582,34 @@ pub fn star_l58_main(
             },
         )?;
         result.signal = Some(signal);
+    }
+
+    if p.p_ch.out_chim_sam_opened {
+        for process_chunk in &result.process_chunks {
+            for map_chunk in &process_chunk.map_chunks {
+                p.p_ch
+                    .out_chim_sam_contents
+                    .push_str(&map_chunk.chimeric_sam_output);
+            }
+        }
+    }
+
+    if p.p_ch.out_chim_junction_opened {
+        for process_chunk in &result.process_chunks {
+            for map_chunk in &process_chunk.map_chunks {
+                p.p_ch
+                    .out_chim_junction_contents
+                    .push_str(&map_chunk.chimeric_junction_output);
+            }
+        }
+        p.p_ch
+            .out_chim_junction_contents
+            .push_str(&stats_l147_stats_writelines(
+                &stats_all,
+                &p.p_ch.out_junction_format,
+                "#",
+                &format!("2.7.11b   {}", p.command_line),
+            ));
     }
 
     if let Some(progress) = stats_l73_stats_progressreport(&mut stats_all, raw_time_finish_map + 60)
@@ -15582,7 +16106,6 @@ pub fn readalign_stitchpieces_l12_readalign_stitchpieces(
         read_align.wal_rec[i_win] = 0;
         read_align.w_last_anchor[i_win] = u32::MAX;
     }
-
     read_align.n_wall = read_align.n_w;
 
     for i_p in 0..read_align.n_p as usize {
@@ -15679,7 +16202,6 @@ pub fn readalign_stitchpieces_l12_readalign_stitchpieces(
             }
         }
     }
-
     read_align.tr_best = (*read_align.tr_init).clone();
     let mut i_w1 = 0usize;
     let mut tr_n_total = 0u32;
@@ -17319,6 +17841,18 @@ pub fn readalign_oneread_l8_readalign_oneread(
         &p.out_sam_primary_flag,
         &rng_snapshot,
     )?;
+    if p.read_nmates == 2 {
+        expand_collapsed_same_locus_paired_multimaps(
+            read_align,
+            map_gen,
+            &mut result.tr_mult,
+            read_align.tr_best.max_score,
+            p.out_multimapper_order_random,
+            p.out_sam_mult_nmax_is_limited,
+            &p.out_sam_primary_flag,
+            &rng_snapshot,
+        );
+    }
 
     readalign_mappedfilter_l3_readalign_mappedfilter(
         read_align,
@@ -17329,6 +17863,44 @@ pub fn readalign_oneread_l8_readalign_oneread(
         p.out_filter_mismatch_nover_lmax,
         p.out_filter_multimap_nmax,
     );
+    if std::env::var("STAR_RS_DEBUG_READ")
+        .ok()
+        .as_deref()
+        .is_some_and(|name| read_align.read_name.contains(name))
+    {
+        eprintln!(
+            "debug read={} n_w={} n_tr={} tr_mult={} unmap={} best_score={} best_match={} best_rlen={}",
+            read_align.read_name,
+            read_align.n_w,
+            read_align.n_tr,
+            result.tr_mult.len(),
+            read_align.unmap_type,
+            read_align.tr_best.max_score,
+            read_align.tr_best.n_match,
+            read_align.tr_best.r_length,
+        );
+        for iw in 0..read_align.n_w as usize {
+            eprintln!(
+                "window {} n_wap={} n_win_tr={} len={} first_score={} first_sj={}",
+                iw,
+                read_align.n_wap.get(iw).copied().unwrap_or(u32::MAX),
+                read_align.n_win_tr.get(iw).copied().unwrap_or(u64::MAX),
+                read_align.tr_all.get(iw).map(Vec::len).unwrap_or(0),
+                read_align
+                    .tr_all
+                    .get(iw)
+                    .and_then(|v| v.first())
+                    .map(|tr| tr.max_score)
+                    .unwrap_or(i32::MIN),
+                read_align
+                    .tr_all
+                    .get(iw)
+                    .and_then(|v| v.first())
+                    .map(|tr| tr.sj_yes)
+                    .unwrap_or(false),
+            );
+        }
+    }
 
     result.aligns_gen_out = readalign_transformgenome_l5_readalign_transformgenome(
         read_align,
@@ -17710,9 +18282,21 @@ pub fn stitchaligntotranscript_l9_stitchaligntotranscript(
                 let mut j_r1 = 1_i32;
                 loop {
                     j_r1 -= 1;
-                    let rp = (r_aend as i32 + j_r1) as usize;
-                    let gb = (g_bstart1 + j_r1) as usize;
-                    let ga = (g_aend as i32 + j_r1) as usize;
+                    let rp_i = r_aend as i32 + j_r1;
+                    let gb_i = g_bstart1 + j_r1;
+                    let ga_i = g_aend as i32 + j_r1;
+                    if rp_i < 0
+                        || gb_i < 0
+                        || ga_i < 0
+                        || rp_i as usize >= r.len()
+                        || gb_i as usize >= g.len()
+                        || ga_i as usize >= g.len()
+                    {
+                        break;
+                    }
+                    let rp = rp_i as usize;
+                    let gb = gb_i as usize;
+                    let ga = ga_i as usize;
                     if r[rp] != g[gb] && g[gb] < 4 && r[rp] == g[ga] {
                         score1 -= 1;
                     }
@@ -17727,9 +18311,21 @@ pub fn stitchaligntotranscript_l9_stitchaligntotranscript(
                 score1 = 0;
                 let mut j_pen = 0_i32;
                 while j_r1 < r_bend as i32 - r_aend as i32 {
-                    let rp = (r_aend as i32 + j_r1) as usize;
-                    let ga = (g_aend as i32 + j_r1) as usize;
-                    let gb = (g_bstart1 + j_r1) as usize;
+                    let rp_i = r_aend as i32 + j_r1;
+                    let ga_i = g_aend as i32 + j_r1;
+                    let gb_i = g_bstart1 + j_r1;
+                    if rp_i < 0
+                        || ga_i < 0
+                        || gb_i < 0
+                        || rp_i as usize >= r.len()
+                        || ga_i as usize >= g.len()
+                        || gb_i as usize >= g.len()
+                    {
+                        break;
+                    }
+                    let rp = rp_i as usize;
+                    let ga = ga_i as usize;
+                    let gb = gb_i as usize;
                     if r[rp] == g[ga] && r[rp] != g[gb] {
                         score1 += 1;
                     }
@@ -17741,26 +18337,43 @@ pub fn stitchaligntotranscript_l9_stitchaligntotranscript(
                     let mut j_pen1 = 0_i32;
                     let mut score2 = score1;
                     if del >= p.align_intron_min {
-                        let d1 = g[(g_aend as i32 + j_r1 + 1) as usize];
-                        let d2 = g[(g_aend as i32 + j_r1 + 2) as usize];
-                        let a1 = g[(g_bstart1 + j_r1 - 1) as usize];
-                        let a2 = g[(g_bstart1 + j_r1) as usize];
-                        if d1 == 2 && d2 == 3 && a1 == 0 && a2 == 2 {
-                            j_can1 = 1;
-                        } else if d1 == 1 && d2 == 3 && a1 == 0 && a2 == 1 {
-                            j_can1 = 2;
-                        } else if d1 == 2 && d2 == 1 && a1 == 0 && a2 == 2 {
-                            j_can1 = 3;
-                            j_pen1 = p.score_gap_gcag;
-                        } else if d1 == 1 && d2 == 3 && a1 == 2 && a2 == 1 {
-                            j_can1 = 4;
-                            j_pen1 = p.score_gap_gcag;
-                        } else if d1 == 0 && d2 == 3 && a1 == 0 && a2 == 1 {
-                            j_can1 = 5;
-                            j_pen1 = p.score_gap_atac;
-                        } else if d1 == 2 && d2 == 3 && a1 == 0 && a2 == 3 {
-                            j_can1 = 6;
-                            j_pen1 = p.score_gap_atac;
+                        let d1_i = g_aend as i32 + j_r1 + 1;
+                        let d2_i = g_aend as i32 + j_r1 + 2;
+                        let a1_i = g_bstart1 + j_r1 - 1;
+                        let a2_i = g_bstart1 + j_r1;
+                        if d1_i >= 0
+                            && d2_i >= 0
+                            && a1_i >= 0
+                            && a2_i >= 0
+                            && (d1_i as usize) < g.len()
+                            && (d2_i as usize) < g.len()
+                            && (a1_i as usize) < g.len()
+                            && (a2_i as usize) < g.len()
+                        {
+                            let d1 = g[d1_i as usize];
+                            let d2 = g[d2_i as usize];
+                            let a1 = g[a1_i as usize];
+                            let a2 = g[a2_i as usize];
+                            if d1 == 2 && d2 == 3 && a1 == 0 && a2 == 2 {
+                                j_can1 = 1;
+                            } else if d1 == 1 && d2 == 3 && a1 == 0 && a2 == 1 {
+                                j_can1 = 2;
+                            } else if d1 == 2 && d2 == 1 && a1 == 0 && a2 == 2 {
+                                j_can1 = 3;
+                                j_pen1 = p.score_gap_gcag;
+                            } else if d1 == 1 && d2 == 3 && a1 == 2 && a2 == 1 {
+                                j_can1 = 4;
+                                j_pen1 = p.score_gap_gcag;
+                            } else if d1 == 0 && d2 == 3 && a1 == 0 && a2 == 1 {
+                                j_can1 = 5;
+                                j_pen1 = p.score_gap_atac;
+                            } else if d1 == 2 && d2 == 3 && a1 == 0 && a2 == 3 {
+                                j_can1 = 6;
+                                j_pen1 = p.score_gap_atac;
+                            } else {
+                                j_can1 = 0;
+                                j_pen1 = p.score_gap_noncan;
+                            }
                         } else {
                             j_can1 = 0;
                             j_pen1 = p.score_gap_noncan;
@@ -17787,12 +18400,17 @@ pub fn stitchaligntotranscript_l9_stitchaligntotranscript(
                 {
                     jj_l += 1;
                 }
-                while g_aend as u64 + jj_r as u64 + j_r as u64 + 1 < map_gen.n_genome
-                    && g[(g_aend as i32 + jj_r as i32 + j_r + 1) as usize]
-                        == g[(g_bstart1 + jj_r as i32 + j_r + 1) as usize]
-                    && g[(g_aend as i32 + jj_r as i32 + j_r + 1) as usize] < 4
-                    && jj_r <= MAX_SJ_REPEAT_SEARCH
-                {
+                while {
+                    let ga = g_aend as i64 + jj_r as i64 + j_r as i64 + 1;
+                    let gb = g_bstart1 as i64 + jj_r as i64 + j_r as i64 + 1;
+                    ga >= 0
+                        && gb >= 0
+                        && (ga as u64) < map_gen.n_genome
+                        && (gb as usize) < g.len()
+                        && g[ga as usize] == g[gb as usize]
+                        && g[ga as usize] < 4
+                        && jj_r <= MAX_SJ_REPEAT_SEARCH
+                } {
                     jj_r += 1;
                 }
 
@@ -17816,14 +18434,14 @@ pub fn stitchaligntotranscript_l9_stitchaligntotranscript(
                         if r[rp] == g[g1] {
                             if ii >= 1 && ii <= r_gap {
                                 score += 1;
-                                n_match += 1;
+                                n_match = n_match.wrapping_add(1);
                             }
                         } else {
                             score -= 1;
-                            n_mm += 1;
+                            n_mm = n_mm.wrapping_add(1);
                             if ii < 1 || ii > r_gap {
                                 score -= 1;
-                                n_match -= 1;
+                                n_match = n_match.wrapping_sub(1);
                             }
                         }
                     }
@@ -17951,8 +18569,8 @@ pub fn stitchaligntotranscript_l9_stitchaligntotranscript(
                                 .copied()
                                 .unwrap_or(0) as u32))
             {
-                tr_a.n_mm += n_mm;
-                tr_a.n_match += n_match;
+                tr_a.n_mm = tr_a.n_mm.wrapping_add(n_mm);
+                tr_a.n_match = tr_a.n_match.wrapping_add(n_match);
                 if del >= p.align_intron_min {
                     tr_a.n_gap += n_del;
                     tr_a.l_gap += del;
@@ -18180,6 +18798,17 @@ pub fn sjdbinsertjunctions_l11_sjdbinsertjunctions(
     let prepare =
         sjdbprepare_l5_sjdbprepare(sjdb_loci, p, n_genome_real, &p.sjdb_insert_out_dir, map_gen)?;
     result.log_main.push_str(&prepare.log_main);
+    if !p.sjdb_insert_out_dir.is_empty() {
+        std::fs::create_dir_all(&p.sjdb_insert_out_dir).map_err(|err| err.to_string())?;
+        for (name, contents) in [
+            ("sjdbInfo.txt", prepare.sjdb_info_txt.as_str()),
+            ("sjdbList.out.tab", prepare.sjdb_list_out_tab.as_str()),
+        ] {
+            let path = format!("{}/{}", p.sjdb_insert_out_dir, name);
+            std::fs::write(&path, contents).map_err(|err| err.to_string())?;
+            result.files_written.push(path);
+        }
+    }
     let raw_time = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .map(|duration| duration.as_secs() as libc::time_t)
@@ -18214,6 +18843,7 @@ pub fn sjdbinsertjunctions_l11_sjdbinsertjunctions(
     map_gen.sai_packed = sai;
 
     result.log_main.push_str(&build.log_main);
+    rebuild_suffix_arrays_for_current_genome(map_gen)?;
     let raw_time = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .map(|duration| duration.as_secs() as libc::time_t)
@@ -18283,7 +18913,7 @@ pub fn sjdbinsertjunctions_l11_sjdbinsertjunctions(
         let sa_index_file = format!("{}/SAindex", p.sjdb_insert_out_dir);
         let mut sa_index_out = streamfuns_l91_ofstropen(&sa_index_file, "ERROR_OUT")?;
         sa_index_out
-            .write_all(&map_gen.p_ge.g_saindex_nbases.to_ne_bytes())
+            .write_all(&(map_gen.p_ge.g_saindex_nbases as u64).to_ne_bytes())
             .map_err(|e| e.to_string())?;
         for value in map_gen
             .genome_sa_index_start
@@ -18291,7 +18921,7 @@ pub fn sjdbinsertjunctions_l11_sjdbinsertjunctions(
             .take(map_gen.p_ge.g_saindex_nbases as usize + 1)
         {
             sa_index_out
-                .write_all(&value.to_ne_bytes())
+                .write_all(&(*value as u64).to_ne_bytes())
                 .map_err(|e| e.to_string())?;
         }
         streamfuns_l51_fstreamwritebig(
@@ -18579,12 +19209,15 @@ pub fn extendalign_l6_extendalign(
             let r_pos = r_start as i64 + i_s;
             let g_pos = g_start as i64 + i_g;
 
-            if g_pos == -1 || g[g_pos as usize] == GENOME_SPACING_CHAR {
+            if g_pos < 0 || g_pos as usize >= g.len() || g[g_pos as usize] == GENOME_SPACING_CHAR {
                 tr_a.extend_l = 0;
                 tr_a.max_score = -999_999_999;
                 tr_a.n_match = 0;
                 tr_a.n_mm = n_mm_max + 1;
                 return true;
+            }
+            if r_pos < 0 || r_pos as usize >= r.len() {
+                break;
             }
             if r[r_pos as usize] == MARK_FRAG_SPACER_BASE {
                 break;
@@ -18620,7 +19253,10 @@ pub fn extendalign_l6_extendalign(
         let r_pos = r_start as i64 + i_s;
         let g_pos = g_start as i64 + i_g;
 
-        if g_pos == -1
+        if g_pos < 0
+            || g_pos as usize >= g.len()
+            || r_pos < 0
+            || r_pos as usize >= r.len()
             || g[g_pos as usize] == GENOME_SPACING_CHAR
             || r[r_pos as usize] == MARK_FRAG_SPACER_BASE
         {
@@ -18903,8 +19539,10 @@ where
     let paired_keep_input_order = p.out_sam_order == "PairedKeepInputOrder" && p.run_thread_n > 1;
     let mut result = crate::generated::structs::ReadAlignChunkMapChunkResult::default();
     if paired_keep_input_order {
-        chunk.chunk_out_bam_file_name =
-            format!("{}/Aligned.tmp.sam.chunk{}", p.out_file_tmp, chunk.i_thread);
+        chunk.chunk_out_bam_file_name = format!(
+            "{}/Aligned.tmp.sam.chunk{}",
+            p.out_file_tmp, chunk.i_chunk_in
+        );
         result.paired_keep_input_order_tmp_name = Some(chunk.chunk_out_bam_file_name.clone());
     }
 
@@ -18918,6 +19556,7 @@ where
     let mut wasp_ra = crate::generated::structs::ReadAlign::default();
     let mut chunk_out_unmapped_reads_stream = vec![String::new(); p.read_nends as usize];
     while read_status == 0 {
+        chunk.ra.out_bam_bytes = 0;
         if let Some((map_gen, transcriptome)) = real_context.as_mut() {
             let mut p_one_read = p.clone();
             let mut read_streams: Vec<&mut dyn std::io::BufRead> = real_read_inputs
@@ -19344,8 +19983,22 @@ where
         chunk.chunk_out_bam_total = 0;
         result.paired_keep_input_order_final_name = Some(format!(
             "{}/Aligned.out.sam.chunk{}",
-            p.out_file_tmp, chunk.i_thread
+            p.out_file_tmp, chunk.i_chunk_in
         ));
+        if let Some(parent) = std::path::Path::new(&chunk.chunk_out_bam_file_name).parent()
+            && !parent.as_os_str().is_empty()
+        {
+            std::fs::create_dir_all(parent).map_err(|err| err.to_string())?;
+        }
+        std::fs::write(
+            &chunk.chunk_out_bam_file_name,
+            &result.paired_keep_input_order_tmp,
+        )
+        .map_err(|err| err.to_string())?;
+        if let Some(final_name) = &result.paired_keep_input_order_final_name {
+            std::fs::rename(&chunk.chunk_out_bam_file_name, final_name)
+                .map_err(|err| err.to_string())?;
+        }
     }
     if let Some(out_bam_unsorted) = chunk.chunk_out_bam_unsorted.as_mut() {
         bamoutput_l70_bamoutput_unsortedflush(out_bam_unsorted);
@@ -19594,7 +20247,8 @@ pub fn genome_genomeload_l18_genome_genomeload(
         genome.p_ge.g_file_sizes = p1.p_ge.g_file_sizes.clone();
         p.p_ge.g_file_sizes = p1.p_ge.g_file_sizes.clone();
     }
-    if genome.p_ge.sjdb_overhang == 0 && p1.p_ge.sjdb_overhang > 0 {
+    let sjdb_overhang_is_default = sjdb_info_contents.is_some() && genome.p_ge.sjdb_overhang == 100;
+    if (genome.p_ge.sjdb_overhang == 0 || sjdb_overhang_is_default) && p1.p_ge.sjdb_overhang > 0 {
         genome.p_ge.sjdb_overhang = p1.p_ge.sjdb_overhang;
         p.p_ge.sjdb_overhang = p1.p_ge.sjdb_overhang;
         result.log_main.push_str(&format!(
@@ -19627,23 +20281,41 @@ pub fn genome_genomeload_l18_genome_genomeload(
     genome.n_genome = genome_contents.len() as u64;
     genome.n_sa_byte = sa_contents.len() as u32;
 
-    if sa_index_contents.len() < 4 {
+    if sa_index_contents.len() < 8 {
         return Err("EXITING because of FATAL ERROR: failed reading from genome file: SAindex\nSOLUTION: re-generate the genome index\n".to_string());
     }
-    let mut first4 = [0u8; 4];
-    first4.copy_from_slice(&sa_index_contents[..4]);
-    genome.p_ge.g_saindex_nbases = u32::from_ne_bytes(first4);
+    let mut first8 = [0u8; 8];
+    first8.copy_from_slice(&sa_index_contents[..8]);
+    genome.p_ge.g_saindex_nbases = u64::from_ne_bytes(first8) as u32;
     p.p_ge.g_saindex_nbases = genome.p_ge.g_saindex_nbases;
     let index_n = genome.p_ge.g_saindex_nbases as usize + 1;
-    if sa_index_contents.len() < 4 + index_n * 4 {
+    let legacy_u32_saindex = if sa_index_contents.len() >= 8 + index_n * 8 {
+        let mut start0 = [0u8; 8];
+        start0.copy_from_slice(&sa_index_contents[8..16]);
+        u64::from_ne_bytes(start0) != 0
+    } else {
+        true
+    };
+    let (sa_index_header_bytes, sa_index_word_bytes) = if legacy_u32_saindex {
+        (4usize, 4usize)
+    } else {
+        (8usize, 8usize)
+    };
+    if sa_index_contents.len() < sa_index_header_bytes + index_n * sa_index_word_bytes {
         return Err("EXITING because of FATAL ERROR: failed reading from genome file: SAindex\nSOLUTION: re-generate the genome index\n".to_string());
     }
     genome.genome_sa_index_start = vec![0; index_n];
     for ii in 0..index_n {
-        let start = 4 + ii * 4;
-        let mut b = [0u8; 4];
-        b.copy_from_slice(&sa_index_contents[start..start + 4]);
-        genome.genome_sa_index_start[ii] = u32::from_ne_bytes(b);
+        let start = sa_index_header_bytes + ii * sa_index_word_bytes;
+        genome.genome_sa_index_start[ii] = if legacy_u32_saindex {
+            let mut b = [0u8; 4];
+            b.copy_from_slice(&sa_index_contents[start..start + 4]);
+            u32::from_ne_bytes(b)
+        } else {
+            let mut b = [0u8; 8];
+            b.copy_from_slice(&sa_index_contents[start..start + 8]);
+            u64::from_ne_bytes(b) as u32
+        };
     }
     let n_sai = *genome.genome_sa_index_start.last().unwrap_or(&0);
     result.log_main.push_str(&format!(
@@ -19681,7 +20353,7 @@ pub fn genome_genomeload_l18_genome_genomeload(
         .map(|ii| packedarray_h18_packedarray_index(&genome.sa_packed, ii) as u32)
         .collect();
 
-    let sai_bytes_start = 4 + index_n * 4;
+    let sai_bytes_start = sa_index_header_bytes + index_n * sa_index_word_bytes;
     packedarray_l8_packedarray_definebits(
         &mut genome.sai_packed,
         genome.gstrand_bit as u64 + 3,
@@ -19698,9 +20370,17 @@ pub fn genome_genomeload_l18_genome_genomeload(
     genome.sai = (0..n_sai as u64)
         .map(|ii| packedarray_h18_packedarray_index(&genome.sai_packed, ii) as u32)
         .collect();
-    genome.sai_mark_nmask_c = (1_u64 << (genome.gstrand_bit + 1)) as u32;
+    genome.sai_mark_nmask_c = if genome.gstrand_bit + 1 >= 32 {
+        1u32 << 29
+    } else {
+        (1_u64 << (genome.gstrand_bit + 1)) as u32
+    };
     genome.sai_mark_nmask = !genome.sai_mark_nmask_c;
-    genome.sai_mark_absent_mask_c = (1_u64 << (genome.gstrand_bit + 2)) as u32;
+    genome.sai_mark_absent_mask_c = if genome.gstrand_bit + 2 >= 32 {
+        1u32 << 30
+    } else {
+        (1_u64 << (genome.gstrand_bit + 2)) as u32
+    };
 
     result.log_main.push_str(&format!(
         "nGenome={};  nSAbyte={}\nGstrandBit={}   SA number of indices={}\n",
@@ -20629,7 +21309,11 @@ pub fn stitchwindowaligns_l8_stitchwindowaligns(
         for ord in v_order {
             match ord {
                 0 => {
-                    if tr_a.r_start > 0 && tr_a.g_start > 0 && tr_a.n_exons > 0 {
+                    if tr_a.r_start > 0
+                        && tr_a.g_start > 0
+                        && t_r2 >= tr_a.r_start
+                        && tr_a.n_exons > 0
+                    {
                         transcript_l8_transcript_reset(&mut tr_step);
                         let imate = tr_a.exons[0][EX_IFRAG] as usize;
                         let ext = p
@@ -20665,7 +21349,7 @@ pub fn stitchwindowaligns_l8_stitchwindowaligns(
                     }
                 }
                 1 => {
-                    if t_r2 < l_read && tr_a.n_exons > 0 {
+                    if t_r2 < l_read && t_r2 >= tr_a.r_start && tr_a.n_exons > 0 {
                         transcript_l8_transcript_reset(&mut tr_step);
                         let last = tr_a.n_exons as usize - 1;
                         let imate = tr_a.exons[last][EX_IFRAG] as usize;
@@ -24275,7 +24959,6 @@ pub fn readalign_maponeread_l6_readalign_maponeread(
     } else {
         read_align.n_split = 0;
     }
-
     readalign_l113_readalign_resetn(read_align);
     transcript_l8_transcript_reset(&mut read_align.tr_init);
     read_align.tr_init.chr = 0;
@@ -25533,7 +26216,7 @@ pub fn packedarray_l31_packedarray_allocatearray(
     packed: &mut crate::generated::structs::PackedArray,
 ) {
     packed.char_array = vec![0u8; packed.length_byte as usize];
-    let tail_start = packed.length_byte as usize - std::mem::size_of::<u64>();
+    let tail_start = (packed.length_byte as usize).saturating_sub(std::mem::size_of::<u64>());
     for ii in tail_start..packed.length_byte as usize {
         packed.char_array[ii] = 0;
     }
@@ -30663,6 +31346,9 @@ pub fn suffixarrayfuns_l10_compareseqtogenome(
     dir_r: bool,
     comp_res: &mut bool,
 ) -> u32 {
+    if l >= n {
+        return n;
+    }
     let mut sastr = map_gen.sa[i_sa as usize] as u64;
     let dir_g = (sastr >> map_gen.gstrand_bit) == 0;
     sastr &= map_gen.gstrand_mask as u64;
@@ -30675,7 +31361,11 @@ pub fn suffixarrayfuns_l10_compareseqtogenome(
         let g_start = sastr as usize + l_usize;
         for ii in 0..n_minus_l as usize {
             let sb = s2[0][s_start + ii];
-            let gb = map_gen.g[g_start + ii];
+            let gb = map_gen
+                .g
+                .get(g_start + ii)
+                .copied()
+                .unwrap_or(GENOME_SPACING_CHAR);
             if sb != gb {
                 *comp_res = sb > gb;
                 return ii as u32 + l;
@@ -30687,7 +31377,11 @@ pub fn suffixarrayfuns_l10_compareseqtogenome(
         let g_start = (map_gen.n_genome - 1 - sastr as u64 - l as u64) as usize;
         for ii in 0..n_minus_l as usize {
             let sb = s2[1][s_start + ii];
-            let gb = map_gen.g[g_start - ii];
+            let gb = g_start
+                .checked_sub(ii)
+                .and_then(|pos| map_gen.g.get(pos))
+                .copied()
+                .unwrap_or(GENOME_SPACING_CHAR);
             if sb != gb {
                 *comp_res = !(sb > gb || gb > 3);
                 return ii as u32 + l;
@@ -30695,11 +31389,25 @@ pub fn suffixarrayfuns_l10_compareseqtogenome(
         }
         n
     } else if !dir_r && dir_g {
-        let s_start = s_usize - l_usize;
+        let Some(s_start) = s_usize.checked_sub(l_usize) else {
+            *comp_res = false;
+            return l;
+        };
         let g_start = sastr as usize + l_usize;
         for ii in 0..n_minus_l as usize {
-            let sb = s2[1][s_start - ii];
-            let gb = map_gen.g[g_start + ii];
+            let Some(sb) = s_start
+                .checked_sub(ii)
+                .and_then(|pos| s2[1].get(pos))
+                .copied()
+            else {
+                *comp_res = false;
+                return ii as u32 + l;
+            };
+            let gb = map_gen
+                .g
+                .get(g_start + ii)
+                .copied()
+                .unwrap_or(GENOME_SPACING_CHAR);
             if sb != gb {
                 *comp_res = sb > gb;
                 return ii as u32 + l;
@@ -30707,11 +31415,25 @@ pub fn suffixarrayfuns_l10_compareseqtogenome(
         }
         n
     } else {
-        let s_start = s_usize - l_usize;
+        let Some(s_start) = s_usize.checked_sub(l_usize) else {
+            *comp_res = false;
+            return l;
+        };
         let g_start = (map_gen.n_genome - 1 - sastr as u64 - l as u64) as usize;
         for ii in 0..n_minus_l as usize {
-            let sb = s2[0][s_start - ii];
-            let gb = map_gen.g[g_start - ii];
+            let Some(sb) = s_start
+                .checked_sub(ii)
+                .and_then(|pos| s2[0].get(pos))
+                .copied()
+            else {
+                *comp_res = false;
+                return ii as u32 + l;
+            };
+            let gb = g_start
+                .checked_sub(ii)
+                .and_then(|pos| map_gen.g.get(pos))
+                .copied()
+                .unwrap_or(GENOME_SPACING_CHAR);
             if sb != gb {
                 *comp_res = !(sb > gb || gb > 3);
                 return ii as u32 + l;
@@ -30917,6 +31639,9 @@ pub fn suffixarrayfuns_l221_compareseqtogenome1(
     g_insert: u64,
     comp_res: &mut i32,
 ) -> u32 {
+    if l >= n {
+        return n;
+    }
     let mut sastr = map_gen.sa[i_sa as usize] as u64;
     let dir_g = (sastr >> map_gen.gstrand_bit) == 0;
     sastr &= map_gen.gstrand_mask as u64;

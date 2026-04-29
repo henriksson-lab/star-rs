@@ -1135,6 +1135,7 @@ fn read_align_mult_map_select_filters_sets_coordinates_and_primary_flags() {
     let mut read_align = ReadAlign {
         n_w: 2,
         n_wap: vec![2, 2],
+        n_win_tr: vec![2, 2],
         l_read: 100,
         tr_best: Transcript {
             max_score: 40,
@@ -1244,6 +1245,7 @@ fn read_align_mult_map_select_preserves_old_primary_and_limit_paths() {
     let mut old_way = ReadAlign {
         n_w: 1,
         n_wap: vec![2],
+        n_win_tr: vec![2],
         l_read: 20,
         tr_best: Transcript {
             max_score: 10,
@@ -1263,12 +1265,13 @@ fn read_align_mult_map_select_preserves_old_primary_and_limit_paths() {
         &[],
     )
     .unwrap();
-    assert_eq!(selected.iter().filter(|tr| tr.primary_flag).count(), 0);
+    assert_eq!(selected.iter().filter(|tr| tr.primary_flag).count(), 1);
     assert!(old_way.tr_best.primary_flag);
 
     let mut too_multi = ReadAlign {
         n_w: 1,
         n_wap: vec![2],
+        n_win_tr: vec![2],
         l_read: 20,
         tr_best: Transcript {
             max_score: 10,
@@ -1292,6 +1295,49 @@ fn read_align_mult_map_select_preserves_old_primary_and_limit_paths() {
     assert_eq!(limited.len(), 2);
     assert!(limited.iter().all(|tr| !tr.primary_flag));
     assert!(!too_multi.tr_best.primary_flag);
+}
+
+#[test]
+fn read_align_mult_map_select_uses_recorded_transcripts_not_anchor_counts() {
+    let genome = Genome {
+        chr_start: vec![0],
+        ..Default::default()
+    };
+    let tr_all = vec![vec![Transcript {
+        max_score: 12,
+        chr: 0,
+        r_length: 10,
+        g_start: 4,
+        ..Default::default()
+    }]];
+    let mut read_align = ReadAlign {
+        n_w: 1,
+        n_wap: vec![0],
+        n_win_tr: vec![1],
+        l_read: 20,
+        tr_best: Transcript {
+            max_score: 12,
+            ..Default::default()
+        },
+        ..Default::default()
+    };
+
+    let selected = readalign_multmapselect_l8_readalign_multmapselect(
+        &mut read_align,
+        &genome,
+        &tr_all,
+        0,
+        10,
+        false,
+        false,
+        "",
+        &[],
+    )
+    .unwrap();
+
+    assert_eq!(read_align.n_tr, 1);
+    assert_eq!(selected.len(), 1);
+    assert!(selected[0].primary_flag);
 }
 
 #[test]

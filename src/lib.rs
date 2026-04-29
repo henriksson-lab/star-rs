@@ -6,3 +6,4 @@ pub mod generated {
 }
 
 pub mod cli;
+pub mod direct;

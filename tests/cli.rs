@@ -1,5 +1,24 @@
 use star_rs::cli::{existing_read_files_from_args, run_cli};
-use star_rs::generated::structs::Parameters;
+use star_rs::generated::functions::{
+    SOLO_TYPE_CB_SAM_TAG_OUT, quantifications_l3_quantifications_quantifications, star_l58_main,
+};
+use star_rs::generated::structs::{
+    Genome, Parameters, ParametersSolo, ReadAlign, ReadAlignChunk, SoloRead, SoloReadBarcode,
+    SoloReadBarcodeStats, Transcriptome,
+};
+use std::collections::BTreeSet;
+use std::io::Read;
+
+fn bam_payload(bytes: &[u8]) -> Vec<u8> {
+    if bytes.starts_with(b"BAM\x01") {
+        bytes.to_vec()
+    } else {
+        let mut out = Vec::new();
+        let mut decoder = flate2::read::MultiGzDecoder::new(bytes);
+        decoder.read_to_end(&mut out).unwrap();
+        out
+    }
+}
 
 #[test]
 fn cli_help_uses_translated_star_usage() {
@@ -160,6 +179,128 @@ fn cli_rejects_twopass_with_shared_genome_like_star() {
     .unwrap_err();
 
     assert!(err.contains("2-pass method is not compatible with --genomeLoad LoadAndKeep"));
+}
+
+#[test]
+fn cli_liftover_writes_lifted_gtf_for_each_chain_file() {
+    let unique = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_nanos();
+    let dir = std::env::temp_dir().join(format!(
+        "star_rs_cli_liftover_test_{}_{}",
+        std::process::id(),
+        unique
+    ));
+    let out_prefix = dir.join("lift/");
+    std::fs::create_dir_all(&dir).unwrap();
+    let chain1 = dir.join("one.chain");
+    let chain2 = dir.join("two.chain");
+    let gtf = dir.join("input.gtf");
+    let chain_contents = "chain 100 chr1 1000 + 10 80 chrA 2000 + 20 90 1\n\
+                          25 3 4\n\
+                          30 5 6\n\
+                          12\n";
+    std::fs::write(&chain1, chain_contents).unwrap();
+    std::fs::write(&chain2, chain_contents.replace("chrA", "chrB")).unwrap();
+    std::fs::write(
+        &gtf,
+        "chr1\tsrc\texon\t12\t20\t.\t+\t.\tgene_id \"a\";\n\
+         chr1\tsrc\texon\t90\t95\t.\t+\t.\tgene_id \"bad\";\n",
+    )
+    .unwrap();
+
+    let result = run_cli(&[
+        "STAR".to_string(),
+        "--runMode".to_string(),
+        "liftOver".to_string(),
+        "--genomeChainFiles".to_string(),
+        chain1.to_str().unwrap().to_string(),
+        chain2.to_str().unwrap().to_string(),
+        "--sjdbGTFfile".to_string(),
+        gtf.to_str().unwrap().to_string(),
+        "--outFileNamePrefix".to_string(),
+        out_prefix.to_str().unwrap().to_string(),
+    ])
+    .unwrap();
+
+    assert_eq!(result.exit_code, 0);
+    assert!(
+        result
+            .log_main
+            .contains("DONE: lift-over of GTF file, EXITING")
+    );
+    assert_eq!(
+        std::fs::read_to_string(dir.join("lift/GTFliftOver_1.gtf")).unwrap(),
+        "chrA\tsrc\texon\t22\t30\t.\t+\t.\tgene_id \"a\";\n"
+    );
+    assert_eq!(
+        std::fs::read_to_string(dir.join("lift/GTFliftOver_2.gtf")).unwrap(),
+        "chrB\tsrc\texon\t22\t30\t.\t+\t.\tgene_id \"a\";\n"
+    );
+    assert_eq!(
+        std::fs::read_to_string(dir.join("lift/GTFliftOver_1.gtf.unlifted")).unwrap(),
+        "chr1\tsrc\texon\t90\t95\t.\t+\t.\tgene_id \"bad\";\n"
+    );
+
+    std::fs::remove_dir_all(dir).unwrap();
+}
+
+#[test]
+fn cli_solo_cell_filtering_loads_raw_matrix_and_writes_filtered_output() {
+    let unique = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_nanos();
+    let dir = std::env::temp_dir().join(format!(
+        "star_rs_cli_solo_filter_test_{}_{}",
+        std::process::id(),
+        unique
+    ));
+    let raw_dir = dir.join("raw");
+    let filtered_prefix = dir.join("filtered/");
+    let out_prefix = dir.join("star/");
+    std::fs::create_dir_all(&raw_dir).unwrap();
+    std::fs::write(&raw_dir.join("features.tsv"), "g1\tG1\ng2\tG2\n").unwrap();
+    std::fs::write(&raw_dir.join("barcodes.tsv"), "CB1\nCB2\n").unwrap();
+    std::fs::write(
+        raw_dir.join("matrix.mtx"),
+        "%%MatrixMarket matrix coordinate integer general\n%\n2 2 3\n1 1 5\n2 1 2\n2 2 1\n",
+    )
+    .unwrap();
+
+    let result = run_cli(&[
+        "STAR".to_string(),
+        "--runMode".to_string(),
+        "soloCellFiltering".to_string(),
+        raw_dir.to_str().unwrap().to_string(),
+        filtered_prefix.to_str().unwrap().to_string(),
+        "--soloCellFilter".to_string(),
+        "TopCells".to_string(),
+        "1".to_string(),
+        "--outFileNamePrefix".to_string(),
+        out_prefix.to_str().unwrap().to_string(),
+    ])
+    .unwrap();
+
+    assert_eq!(result.exit_code, 0);
+    assert!(result.solo_cell_filtering.as_ref().unwrap().exited);
+    assert!(result.log_stdout.contains("starting SoloCellFiltering"));
+    assert_eq!(
+        std::fs::read_to_string(filtered_prefix.join("matrix.mtx")).unwrap(),
+        "%%MatrixMarket matrix coordinate integer general\n%\n2 1 2\n1 1 5\n2 1 2\n"
+    );
+    assert_eq!(
+        std::fs::read_to_string(filtered_prefix.join("barcodes.tsv")).unwrap(),
+        "CB1\n"
+    );
+    assert!(
+        std::fs::read_to_string(out_prefix.join("Log.out"))
+            .unwrap()
+            .ends_with("ALL DONE!\n")
+    );
+
+    std::fs::remove_dir_all(dir).unwrap();
 }
 
 #[test]
@@ -447,6 +588,326 @@ fn cli_align_reads_loads_genome_and_processes_fastq_read() {
             .unwrap()
             .contains("Number of input reads |\t1")
     );
+
+    std::fs::remove_dir_all(dir).unwrap();
+}
+
+#[test]
+fn cli_align_reads_paired_keep_input_order_writes_chunk_file_output() {
+    let unique = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_nanos();
+    let dir = std::env::temp_dir().join(format!(
+        "star_rs_cli_paired_order_test_{}_{}",
+        std::process::id(),
+        unique
+    ));
+    let genome_dir = dir.join("genome");
+    let out_prefix = dir.join("paired_order/");
+    std::fs::create_dir_all(&genome_dir).unwrap();
+    let fasta = dir.join("tiny.fa");
+    let reads = dir.join("reads.fq");
+    std::fs::write(&fasta, ">chr1\nACGTACGTACGTACGT\n").unwrap();
+    std::fs::write(&reads, "@r1\nACGTACGT\n+\nFFFFFFFF\n").unwrap();
+
+    run_cli(&[
+        "STAR".to_string(),
+        "--runMode".to_string(),
+        "genomeGenerate".to_string(),
+        "--genomeDir".to_string(),
+        genome_dir.to_str().unwrap().to_string(),
+        "--genomeFastaFiles".to_string(),
+        fasta.to_str().unwrap().to_string(),
+        "--genomeSAindexNbases".to_string(),
+        "1".to_string(),
+        "--genomeChrBinNbits".to_string(),
+        "2".to_string(),
+        "--limitGenomeGenerateRAM".to_string(),
+        "1000000".to_string(),
+    ])
+    .unwrap();
+
+    let aligned = run_cli(&[
+        "STAR".to_string(),
+        "--genomeDir".to_string(),
+        genome_dir.to_str().unwrap().to_string(),
+        "--readFilesIn".to_string(),
+        reads.to_str().unwrap().to_string(),
+        "--runThreadN".to_string(),
+        "2".to_string(),
+        "--outSAMtype".to_string(),
+        "SAM".to_string(),
+        "--outSAMorder".to_string(),
+        "PairedKeepInputOrder".to_string(),
+        "--outFileNamePrefix".to_string(),
+        out_prefix.to_str().unwrap().to_string(),
+        "--seedSplitMin".to_string(),
+        "1".to_string(),
+        "--seedMapMin".to_string(),
+        "0".to_string(),
+        "--outFilterMatchNmin".to_string(),
+        "0".to_string(),
+        "--outFilterScoreMin".to_string(),
+        "0".to_string(),
+    ])
+    .unwrap();
+
+    assert_eq!(aligned.exit_code, 0);
+    assert_eq!(aligned.process_chunks.len(), 1);
+    let map_chunk = &aligned.process_chunks[0].map_chunks[0];
+    let expected_chunk = format!("{}/Aligned.out.sam.chunk0", aligned.parameters.out_file_tmp);
+    assert_eq!(
+        map_chunk.paired_keep_input_order_final_name.as_deref(),
+        Some(expected_chunk.as_str())
+    );
+    assert!(
+        !dir.join("paired_order/_STARtmp/Aligned.out.sam.chunk0")
+            .exists()
+    );
+    let sam = std::fs::read_to_string(dir.join("paired_order/Aligned.out.sam")).unwrap();
+    assert!(sam.contains("r1\t0\tchr1\t1\t"));
+
+    std::fs::remove_dir_all(dir).unwrap();
+}
+
+#[test]
+fn cli_align_reads_bysjout_runs_second_mapping_stage() {
+    let unique = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_nanos();
+    let dir = std::env::temp_dir().join(format!(
+        "star_rs_cli_bysjout_test_{}_{}",
+        std::process::id(),
+        unique
+    ));
+    let genome_dir = dir.join("genome");
+    let out_prefix = dir.join("bysjout/");
+    std::fs::create_dir_all(&genome_dir).unwrap();
+    let fasta = dir.join("tiny.fa");
+    let reads = dir.join("reads.fq");
+    std::fs::write(&fasta, ">chr1\nACGTACGTACGTACGT\n").unwrap();
+    std::fs::write(&reads, "@r1\nACGTACGT\n+\nFFFFFFFF\n").unwrap();
+
+    run_cli(&[
+        "STAR".to_string(),
+        "--runMode".to_string(),
+        "genomeGenerate".to_string(),
+        "--genomeDir".to_string(),
+        genome_dir.to_str().unwrap().to_string(),
+        "--genomeFastaFiles".to_string(),
+        fasta.to_str().unwrap().to_string(),
+        "--genomeSAindexNbases".to_string(),
+        "1".to_string(),
+        "--genomeChrBinNbits".to_string(),
+        "2".to_string(),
+        "--limitGenomeGenerateRAM".to_string(),
+        "1000000".to_string(),
+    ])
+    .unwrap();
+
+    let aligned = run_cli(&[
+        "STAR".to_string(),
+        "--genomeDir".to_string(),
+        genome_dir.to_str().unwrap().to_string(),
+        "--readFilesIn".to_string(),
+        reads.to_str().unwrap().to_string(),
+        "--outSAMtype".to_string(),
+        "SAM".to_string(),
+        "--outFilterType".to_string(),
+        "BySJout".to_string(),
+        "--outSJtype".to_string(),
+        "Standard".to_string(),
+        "--outFileNamePrefix".to_string(),
+        out_prefix.to_str().unwrap().to_string(),
+        "--seedSplitMin".to_string(),
+        "1".to_string(),
+        "--seedMapMin".to_string(),
+        "0".to_string(),
+        "--outFilterMatchNmin".to_string(),
+        "0".to_string(),
+        "--outFilterScoreMin".to_string(),
+        "0".to_string(),
+    ])
+    .unwrap();
+
+    assert_eq!(aligned.exit_code, 0);
+    assert!(
+        aligned
+            .log_main
+            .contains("Completed stage 1 mapping of outFilterBySJout mapping")
+    );
+    assert_eq!(aligned.process_chunks.len(), 2);
+    assert!(dir.join("bysjout/SJ.out.tab").exists());
+
+    std::fs::remove_dir_all(dir).unwrap();
+}
+
+#[test]
+fn star_main_align_reads_calls_solo_process_and_output() {
+    let p = Parameters {
+        run_mode_in: vec!["alignReads".to_string()],
+        run_thread_n: 1,
+        out_file_name_prefix: "out/".to_string(),
+        p_solo: ParametersSolo {
+            solo_type: SOLO_TYPE_CB_SAM_TAG_OUT,
+            out_file_names: vec!["Solo.out/".to_string()],
+            ..Default::default()
+        },
+        ..Default::default()
+    };
+    let chunks = vec![ReadAlignChunk {
+        ra: ReadAlign {
+            solo_read: SoloRead {
+                read_bar: Some(SoloReadBarcode {
+                    stats: SoloReadBarcodeStats {
+                        names: vec!["ok".to_string()],
+                        v: vec![7],
+                    },
+                    ..Default::default()
+                }),
+                ..Default::default()
+            },
+            ..Default::default()
+        },
+        ..Default::default()
+    }];
+
+    let result = star_l58_main(
+        &[
+            "STAR".to_string(),
+            "--runMode".to_string(),
+            "alignReads".to_string(),
+        ],
+        p,
+        b"",
+        Some(Genome::default()),
+        Some(Transcriptome::default()),
+        None,
+        Some(chunks),
+        &BTreeSet::new(),
+        &[],
+        &[],
+    )
+    .unwrap();
+
+    let solo = result.solo_process_and_output.unwrap();
+    assert!(solo.returned_after_barcode_output);
+    assert!(solo.files["out/Solo.out/Barcodes.stats"].contains("yesWLmatchExact"));
+}
+
+#[test]
+fn star_main_align_reads_sums_quant_gene_counts_from_chunks() {
+    let p = Parameters {
+        run_mode_in: vec!["alignReads".to_string()],
+        run_thread_n: 2,
+        quant_ge_count_yes: true,
+        ..Default::default()
+    };
+    let mut q0 = quantifications_l3_quantifications_quantifications(2);
+    q0.gene_counts.c_multi = 1;
+    q0.gene_counts.c_none = vec![2, 3, 4];
+    q0.gene_counts.c_ambig = vec![5, 6, 7];
+    q0.gene_counts.g_count = vec![vec![10, 11], vec![12, 13], vec![14, 15]];
+    let mut q1 = quantifications_l3_quantifications_quantifications(2);
+    q1.gene_counts.c_multi = 20;
+    q1.gene_counts.c_none = vec![30, 40, 50];
+    q1.gene_counts.c_ambig = vec![60, 70, 80];
+    q1.gene_counts.g_count = vec![vec![1, 2], vec![3, 4], vec![5, 6]];
+
+    let chunks = vec![
+        ReadAlignChunk {
+            chunk_tr: Some(Transcriptome {
+                n_ge: 2,
+                ge_id: vec!["g0".to_string(), "g1".to_string()],
+                quants: q0,
+                ..Default::default()
+            }),
+            ..Default::default()
+        },
+        ReadAlignChunk {
+            chunk_tr: Some(Transcriptome {
+                n_ge: 2,
+                ge_id: vec!["g0".to_string(), "g1".to_string()],
+                quants: q1,
+                ..Default::default()
+            }),
+            ..Default::default()
+        },
+    ];
+
+    let result = star_l58_main(
+        &[
+            "STAR".to_string(),
+            "--runMode".to_string(),
+            "alignReads".to_string(),
+        ],
+        p,
+        b"",
+        Some(Genome::default()),
+        Some(Transcriptome::default()),
+        None,
+        Some(chunks),
+        &BTreeSet::new(),
+        &[],
+        &[],
+    )
+    .unwrap();
+
+    let gc = &result.transcriptome.unwrap().quants.gene_counts;
+    assert_eq!(gc.c_multi, 21);
+    assert_eq!(gc.c_none, vec![32, 43, 54]);
+    assert_eq!(gc.c_ambig, vec![65, 76, 87]);
+    assert_eq!(gc.g_count, vec![vec![11, 13], vec![15, 17], vec![19, 21]]);
+}
+
+#[test]
+fn star_main_align_reads_concatenates_paired_keep_input_order_chunks() {
+    let unique = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_nanos();
+    let dir = std::env::temp_dir().join(format!(
+        "star_rs_star_main_chunk_cat_test_{}_{}",
+        std::process::id(),
+        unique
+    ));
+    std::fs::create_dir_all(&dir).unwrap();
+    std::fs::write(dir.join("Aligned.out.sam.chunk0"), "first\n").unwrap();
+    std::fs::write(dir.join("Aligned.out.sam.chunk1"), "second\n").unwrap();
+    let p = Parameters {
+        run_mode_in: vec!["alignReads".to_string()],
+        run_thread_n: 2,
+        out_sam_bool: true,
+        out_sam_order: "PairedKeepInputOrder".to_string(),
+        out_file_tmp: dir.to_string_lossy().to_string(),
+        out_sam_contents: "@HD\n".to_string(),
+        out_tmp_keep: "All".to_string(),
+        ..Default::default()
+    };
+
+    let result = star_l58_main(
+        &[
+            "STAR".to_string(),
+            "--runMode".to_string(),
+            "alignReads".to_string(),
+        ],
+        p,
+        b"",
+        Some(Genome::default()),
+        Some(Transcriptome::default()),
+        None,
+        Some(vec![ReadAlignChunk::default(), ReadAlignChunk::default()]),
+        &BTreeSet::new(),
+        &[],
+        &[],
+    )
+    .unwrap();
+
+    assert_eq!(result.parameters.out_sam_contents, "@HD\nfirst\nsecond\n");
+    assert!(!dir.join("Aligned.out.sam.chunk0").exists());
+    assert!(!dir.join("Aligned.out.sam.chunk1").exists());
 
     std::fs::remove_dir_all(dir).unwrap();
 }
@@ -751,6 +1212,7 @@ fn cli_align_reads_writes_chimeric_output_files_when_requested() {
     let chim_junction =
         std::fs::read_to_string(dir.join("chim_out/Chimeric.out.junction")).unwrap();
     assert!(chim_junction.contains("# Nreads "));
+    assert_eq!(chim_junction.matches("# Nreads ").count(), 1);
     let chim_sam = std::fs::read_to_string(dir.join("chim_out/Chimeric.out.sam")).unwrap();
     assert!(chim_sam.starts_with("@HD\tVN:1.4\n"));
     assert!(chim_sam.contains("@SQ\tSN:chr1\tLN:16\n"));
@@ -824,6 +1286,8 @@ fn cli_align_reads_accepts_chimeric_within_bam_output() {
     assert_eq!(aligned.exit_code, 0);
     assert!(aligned.parameters.p_ch.out_bam);
     let bam = std::fs::read(dir.join("chim_bam_out/Aligned.out.bam")).unwrap();
+    assert!(bam.starts_with(&[0x1f, 0x8b]));
+    let bam = bam_payload(&bam);
     assert!(bam.starts_with(b"BAM\x01"));
     assert!(bam.len() > aligned.parameters.out_bam_unsorted_header.len());
 
@@ -1119,8 +1583,41 @@ fn cli_align_reads_writes_unsorted_bam_output() {
 
     assert_eq!(aligned.exit_code, 0);
     let bam = std::fs::read(dir.join("bam_out/Aligned.out.bam")).unwrap();
+    assert!(bam.starts_with(&[0x1f, 0x8b]));
+    let bam = bam_payload(&bam);
     assert!(bam.starts_with(b"BAM\x01"));
     assert!(bam.len() > aligned.parameters.out_bam_unsorted_header.len());
+    let samtools_available = std::process::Command::new("samtools")
+        .arg("--version")
+        .output()
+        .map(|output| output.status.success())
+        .unwrap_or(false);
+    if samtools_available {
+        let bam_path = dir.join("bam_out/Aligned.out.bam");
+        let quickcheck = std::process::Command::new("samtools")
+            .arg("quickcheck")
+            .arg("-v")
+            .arg(&bam_path)
+            .output()
+            .unwrap();
+        assert!(
+            quickcheck.status.success(),
+            "{}",
+            String::from_utf8_lossy(&quickcheck.stderr)
+        );
+        let viewed = std::process::Command::new("samtools")
+            .arg("view")
+            .arg(&bam_path)
+            .output()
+            .unwrap();
+        assert!(
+            viewed.status.success(),
+            "{}",
+            String::from_utf8_lossy(&viewed.stderr)
+        );
+        let viewed = String::from_utf8_lossy(&viewed.stdout);
+        assert!(viewed.contains("r1\t0\tchr1\t1\t255\t8M"));
+    }
     assert!(aligned.log_final_out.contains("Number of input reads |\t1"));
 
     std::fs::remove_dir_all(dir).unwrap();
@@ -1189,6 +1686,8 @@ fn cli_align_reads_writes_sorted_bam_output() {
 
     assert_eq!(aligned.exit_code, 0);
     let bam = std::fs::read(dir.join("sorted_bam_out/Aligned.sortedByCoord.out.bam")).unwrap();
+    assert!(bam.starts_with(&[0x1f, 0x8b]));
+    let bam = bam_payload(&bam);
     assert!(bam.starts_with(b"BAM\x01"));
     assert!(bam.len() > aligned.parameters.out_bam_unsorted_header.len());
     assert!(
@@ -1346,23 +1845,7 @@ fn cli_input_alignments_from_bam_writes_signal_from_existing_bam() {
     assert_eq!(aligned.exit_code, 0);
     let bam_path = dir.join("align/Aligned.out.bam");
     assert!(bam_path.exists());
-    let bgzf_bam_path = dir.join("align/Aligned.bgzf.bam");
-    let raw_bam = std::fs::read(&bam_path).unwrap();
-    let mut encoder =
-        flate2::write::DeflateEncoder::new(Vec::new(), flate2::Compression::default());
-    std::io::Write::write_all(&mut encoder, &raw_bam).unwrap();
-    let compressed_bam = encoder.finish().unwrap();
-    let block_size = 18 + compressed_bam.len() + 8;
-    let mut bgzf_bam = Vec::new();
-    bgzf_bam.extend_from_slice(&[0x1f, 0x8b, 8, 4, 0, 0, 0, 0, 0, 255]);
-    bgzf_bam.extend_from_slice(&6u16.to_le_bytes());
-    bgzf_bam.extend_from_slice(b"BC");
-    bgzf_bam.extend_from_slice(&2u16.to_le_bytes());
-    bgzf_bam.extend_from_slice(&((block_size - 1) as u16).to_le_bytes());
-    bgzf_bam.extend_from_slice(&compressed_bam);
-    bgzf_bam.extend_from_slice(&0u32.to_le_bytes());
-    bgzf_bam.extend_from_slice(&(raw_bam.len() as u32).to_le_bytes());
-    std::fs::write(&bgzf_bam_path, &bgzf_bam).unwrap();
+    assert!(std::fs::read(&bam_path).unwrap().starts_with(&[0x1f, 0x8b]));
 
     let signal = run_cli(&[
         "STAR".to_string(),
@@ -1389,7 +1872,7 @@ fn cli_input_alignments_from_bam_writes_signal_from_existing_bam() {
         "--runMode".to_string(),
         "inputAlignmentsFromBAM".to_string(),
         "--inputBAMfile".to_string(),
-        bgzf_bam_path.to_str().unwrap().to_string(),
+        bam_path.to_str().unwrap().to_string(),
         "--outWigType".to_string(),
         "bedGraph".to_string(),
         "--outFileNamePrefix".to_string(),
@@ -1400,6 +1883,51 @@ fn cli_input_alignments_from_bam_writes_signal_from_existing_bam() {
     let signal_bgzf_file = dir.join("signal_bgzf/Signal.UniqueMultiple.str1.out.bg");
     let signal_bgzf_contents = std::fs::read_to_string(signal_bgzf_file).unwrap();
     assert!(signal_bgzf_contents.contains("chr1\t0\t8\t1"));
+
+    let samtools_available = std::process::Command::new("samtools")
+        .arg("--version")
+        .output()
+        .map(|output| output.status.success())
+        .unwrap_or(false);
+    if samtools_available {
+        let external_sam = dir.join("external.sam");
+        let external_bam = dir.join("external.bam");
+        std::fs::write(
+            &external_sam,
+            "@HD\tVN:1.4\n@SQ\tSN:chr1\tLN:16\nrExt\t0\tchr1\t1\t255\t8M\t*\t0\t0\tACGTACGT\tFFFFFFFF\tNH:i:1\n",
+        )
+        .unwrap();
+        let converted = std::process::Command::new("samtools")
+            .arg("view")
+            .arg("-b")
+            .arg("-o")
+            .arg(&external_bam)
+            .arg(&external_sam)
+            .output()
+            .unwrap();
+        assert!(
+            converted.status.success(),
+            "{}",
+            String::from_utf8_lossy(&converted.stderr)
+        );
+        let external_signal_prefix = dir.join("signal_external/");
+        let external_signal = run_cli(&[
+            "STAR".to_string(),
+            "--runMode".to_string(),
+            "inputAlignmentsFromBAM".to_string(),
+            "--inputBAMfile".to_string(),
+            external_bam.to_str().unwrap().to_string(),
+            "--outWigType".to_string(),
+            "bedGraph".to_string(),
+            "--outFileNamePrefix".to_string(),
+            external_signal_prefix.to_str().unwrap().to_string(),
+        ])
+        .unwrap();
+        assert_eq!(external_signal.exit_code, 0);
+        let external_signal_file = dir.join("signal_external/Signal.UniqueMultiple.str1.out.bg");
+        let external_signal_contents = std::fs::read_to_string(external_signal_file).unwrap();
+        assert!(external_signal_contents.contains("chr1\t0\t8\t1"));
+    }
 
     std::fs::remove_dir_all(dir).unwrap();
 }
@@ -1481,7 +2009,9 @@ fn cli_input_alignments_from_bam_marks_duplicates_and_writes_processed_bam() {
     assert!(!result.processed_bam_output.is_empty());
     let processed_path = dir.join("dedup/Processed.out.bam");
     assert!(processed_path.exists());
-    let processed = std::fs::read(processed_path).unwrap();
+    let processed_file = std::fs::read(processed_path).unwrap();
+    assert!(processed_file.starts_with(&[0x1f, 0x8b]));
+    let processed = bam_payload(&processed_file);
 
     let mut pos = 4usize;
     let header_len = i32::from_ne_bytes(processed[pos..pos + 4].try_into().unwrap()) as usize;
@@ -1667,6 +2197,8 @@ fn cli_align_reads_quant_mode_transcriptome_sam_writes_bam() {
     assert_eq!(aligned.exit_code, 0);
     assert!(aligned.parameters.quant_tr_sam_bam_yes);
     let bam = std::fs::read(dir.join("quant_bam_out/Aligned.toTranscriptome.out.bam")).unwrap();
+    assert!(bam.starts_with(&[0x1f, 0x8b]));
+    let bam = bam_payload(&bam);
     assert!(bam.starts_with(b"BAM\x01"));
     assert!(bam.len() > aligned.parameters.out_quant_bam_header.len());
 
@@ -1818,6 +2350,178 @@ fn cli_align_reads_accepts_paired_read_files_as_star_vector_argument() {
         ]
     );
     assert!(aligned.log_final_out.contains("Number of input reads |\t1"));
+
+    std::fs::remove_dir_all(dir).unwrap();
+}
+
+#[test]
+fn cli_align_reads_nonrepetitive_paired_read_does_not_panic_in_suffix_index_search() {
+    let unique = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_nanos();
+    let dir = std::env::temp_dir().join(format!(
+        "star_rs_cli_paired_unique_align_test_{}_{}",
+        std::process::id(),
+        unique
+    ));
+    let genome_dir = dir.join("genome");
+    let out_prefix = dir.join("paired_unique/");
+    std::fs::create_dir_all(&genome_dir).unwrap();
+    let fasta = dir.join("tiny.fa");
+    let reads_1 = dir.join("reads_1.fq");
+    let reads_2 = dir.join("reads_2.fq");
+    std::fs::write(&fasta, ">chr1\nACGTACGTTGCAAGTC\n").unwrap();
+    std::fs::write(&reads_1, "@pair_unique/1\nACGTACGT\n+\nFFFFFFFF\n").unwrap();
+    std::fs::write(&reads_2, "@pair_unique/2\nTGCAAGTC\n+\nHHHHHHHH\n").unwrap();
+
+    let generated = run_cli(&[
+        "STAR".to_string(),
+        "--runMode".to_string(),
+        "genomeGenerate".to_string(),
+        "--genomeDir".to_string(),
+        genome_dir.to_str().unwrap().to_string(),
+        "--genomeFastaFiles".to_string(),
+        fasta.to_str().unwrap().to_string(),
+        "--genomeSAindexNbases".to_string(),
+        "1".to_string(),
+        "--genomeChrBinNbits".to_string(),
+        "2".to_string(),
+        "--limitGenomeGenerateRAM".to_string(),
+        "1000000".to_string(),
+    ])
+    .unwrap();
+    assert_eq!(generated.exit_code, 0);
+
+    let aligned = run_cli(&[
+        "STAR".to_string(),
+        "--genomeDir".to_string(),
+        genome_dir.to_str().unwrap().to_string(),
+        "--readFilesIn".to_string(),
+        reads_1.to_str().unwrap().to_string(),
+        reads_2.to_str().unwrap().to_string(),
+        "--outSAMtype".to_string(),
+        "SAM".to_string(),
+        "--outFileNamePrefix".to_string(),
+        out_prefix.to_str().unwrap().to_string(),
+        "--seedSplitMin".to_string(),
+        "1".to_string(),
+        "--seedMapMin".to_string(),
+        "0".to_string(),
+        "--outFilterMatchNmin".to_string(),
+        "0".to_string(),
+        "--outFilterScoreMin".to_string(),
+        "0".to_string(),
+    ])
+    .unwrap();
+
+    assert_eq!(aligned.exit_code, 0);
+    assert!(aligned.log_final_out.contains("Number of input reads |\t1"));
+    assert!(
+        std::fs::read_to_string(dir.join("paired_unique/Aligned.out.sam"))
+            .unwrap()
+            .starts_with("@HD\tVN:1.4\n")
+    );
+
+    std::fs::remove_dir_all(dir).unwrap();
+}
+
+#[test]
+fn cli_align_reads_randomized_single_end_does_not_panic_in_stitching() {
+    let unique = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_nanos();
+    let dir = std::env::temp_dir().join(format!(
+        "star_rs_cli_stitching_regression_test_{}_{}",
+        std::process::id(),
+        unique
+    ));
+    let genome_dir = dir.join("genome");
+    let out_prefix = dir.join("stitching/");
+    std::fs::create_dir_all(&genome_dir).unwrap();
+    let fasta = dir.join("genome.fa");
+    let reads = dir.join("reads.fq");
+    std::fs::write(
+        &fasta,
+        concat!(
+            ">chr1\n",
+            "GGTTCTCCACGTTAAAAGCCGATTAGCACCTGAGACGGCTCCGTAGCCATGATTGAAGACTATTGTAGCCTGGAAAGTTGACGTTCCAGCAGAATGACGCCACACTGAGATTGGTTTCAAAGGCGGCTTCGACGAAAACTTCTAGGCGCCTCATAAAGCATGCATCTATACCCAGCGGAATCTCATCAATCGAGGCGCGTATGATCTGGGCTAAAGATCGTAACGCCCTACATATCTCTTCCGTATTAGGTTTAAAGACTTTACCTCGCCGGACGCGGGTAACCGGTTTGGAGAGCGGGGACAAGGCTCCGGTCTGTTTCGGCCCAAAAAGGGCCTACAGATATGGCCGCACACACCTCCCCCGTGGTGGTCTATAATTGTAATGATAAAAAAAACTCACCTCGTTCAAAGGGCTGGGTACACATACCCTTCGCGGATTCCGGCATTCAGTCTGCGTGAAGTACGTTCAGCCGGGGGTTTGATAACTCAGGCTGCTGGTAGTAGTCTCAGTCGTGGACGTGTACTTGTCTTCCATGCCTTTCGCCCTCAGACGATTTACCTAAAAGTTGCAGTCCCGGCTCGATACATTTATCGTATTCAACAGGAGAAATTGTGCAGGTGGTCCTGAATCTCGAGGAGAGGTCAAAAAATCCCGTCAAACAATAGACATACCTCATGAACGCGCGCCTTAATACCCAAG\n",
+            ">chr2\n",
+            "GGGACACCATCTAGTCTGCTCGATACTCCTGACATGTCACGGTACGCCACGAGCATTTTTTGCCCGCTGGTAACGCCTACGACGCCCACTTCCGGTATTAGTGTCACCTTGCCGAGGCCATTTGAGTATGTGAGAGCACTGTTCCAGCGCAAAGCCTTTAACTGGAATGTTGACGTTTAGAAGTTCCACGCTCAGGACCGCTCTCCCCAGGCCAGCCTCTTGGGCCGCCCCCCAGGTTTAACTTCCTAAAGGATTGGTCCCAAGGACCCAAAGCCGTTTATAATGGACGTCTGCACTTAGGACTGGGCGGTTAAGCTGGTTTAGTCGAATGACCTAACGGGTCTACGTCGCCCGAGCCCCTTTGCTCTCCGGCAAGCAAGTGCAATCGACGCGCTCCCCAGTACCCAGGATGCATTTACCTGGCCTTTTAAAAGTCTTAGGCCTCGATTGAAAACGGTTGTGACCATCCATGGGCGAACTGTGCCAGTCGGGCTAAGTGCCTACAGGAATCTGCGGTATAACGTGCTCACTCAAGGGGACTTAGTTTCTTACACCTTGCTCAGCGACTGGACCTTTTTCCGAACTCGATCTGGACGGGTGCTTGGCGGTGTAGCAATGACAGACTACAGTACTCTCTGGGGCAGCGCTCT\n",
+        ),
+    )
+    .unwrap();
+    std::fs::write(
+        &reads,
+        concat!(
+            "@r0_45\nAAGGACCCAAAGCCGGTTAAAATGGACGTCTGCACTTAGGACTGG\n+\nFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n",
+            "@r1_36\nCGAACTCGATCTGGACGGGTGCTTGGGGGTGTAGCC\n+\nFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n",
+            "@r2_36\nTCGCGGATTCCGCCTTTCAGTCTCCGAGAAGTACGT\n+\nFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n",
+            "@r3_36\nAGTCGTGGACGTGTACTTGTCTTCCAAGCCTTTCGC\n+\nFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n",
+            "@r4_36\nCCAGGTTTAGCTCCCTAAAGGATTGGTCCCAAGGAC\n+\nFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n",
+            "@r5_75\nCAAAGGGCTGTGTACACATACCCATCGCGGATTCCGGCATTCAGTCTGCGTGAAGTACGTTCAGCCGGGGGTTTG\n+\nFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n",
+            "@r6_30\nTTATTGTAATGATAAAAAAAACTCACCTCG\n+\nFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n",
+            "@r7_75\nATTGATAACACAGGCTGCTGGTAGTAGTCTCAGTCGTTGACGTGTAATTGTCTTCCATGCCTTTCGCCCTCAGAC\n+\nFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n",
+            "@r8_36\nCAGGAGCAATTGTGCAGGTGGTCCTGAATATCGAGG\n+\nFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n",
+            "@r9_30\nGACCCAAAGCCGTTTATAATGGACGTCTGC\n+\nFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n",
+            "@r10_30\nGTTTATAATGGACGTCTGCACTTAGGACTG\n+\nFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n",
+            "@r11_30\nGTGACATGTCACGGTACGCCACGAGCATTT\n+\nFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n",
+        ),
+    )
+    .unwrap();
+
+    let generated = run_cli(&[
+        "STAR".to_string(),
+        "--runMode".to_string(),
+        "genomeGenerate".to_string(),
+        "--genomeDir".to_string(),
+        genome_dir.to_str().unwrap().to_string(),
+        "--genomeFastaFiles".to_string(),
+        fasta.to_str().unwrap().to_string(),
+        "--genomeSAindexNbases".to_string(),
+        "3".to_string(),
+        "--genomeChrBinNbits".to_string(),
+        "4".to_string(),
+        "--limitGenomeGenerateRAM".to_string(),
+        "1000000".to_string(),
+    ])
+    .unwrap();
+    assert_eq!(generated.exit_code, 0);
+
+    let aligned = run_cli(&[
+        "STAR".to_string(),
+        "--genomeDir".to_string(),
+        genome_dir.to_str().unwrap().to_string(),
+        "--readFilesIn".to_string(),
+        reads.to_str().unwrap().to_string(),
+        "--outSAMtype".to_string(),
+        "SAM".to_string(),
+        "--outFileNamePrefix".to_string(),
+        out_prefix.to_str().unwrap().to_string(),
+        "--seedSplitMin".to_string(),
+        "12".to_string(),
+        "--seedMapMin".to_string(),
+        "5".to_string(),
+        "--outFilterMatchNmin".to_string(),
+        "0".to_string(),
+        "--outFilterScoreMin".to_string(),
+        "0".to_string(),
+        "--outFilterMultimapNmax".to_string(),
+        "20".to_string(),
+        "--outSAMmultNmax".to_string(),
+        "20".to_string(),
+    ])
+    .unwrap();
+
+    assert_eq!(aligned.exit_code, 0);
+    assert!(
+        aligned
+            .log_final_out
+            .contains("Number of input reads |\t12")
+    );
+    let sam = std::fs::read(dir.join("stitching/Aligned.out.sam")).unwrap();
+    assert!(!sam.contains(&0));
 
     std::fs::remove_dir_all(dir).unwrap();
 }

@@ -5,12 +5,62 @@ use std::path::Path;
 
 use crate::generated::functions::{
     genome_genomeload_l18_genome_genomeload, genome_l15_genome_genome,
-    parameters_l310_parameters_inputparameters, star_l58_main, stats_l147_stats_writelines,
+    parameters_l310_parameters_inputparameters, star_l58_main,
     transcriptome_l7_transcriptome_transcriptome, transcriptome_l156_transcriptome_quantsoutput,
 };
 use crate::generated::structs::{Parameters, StarMainResult, Transcriptome};
 
 pub const PARAMETERS_DEFAULT: &str = include_str!("../STAR/source/parametersDefault");
+
+fn write_bgzf_block(
+    out: &mut Vec<u8>,
+    payload: &[u8],
+    compression: flate2::Compression,
+) -> Result<(), String> {
+    let mut encoder = flate2::write::DeflateEncoder::new(Vec::new(), compression);
+    encoder.write_all(payload).map_err(|e| e.to_string())?;
+    let compressed = encoder.finish().map_err(|e| e.to_string())?;
+    let block_size = 18 + compressed.len() + 8;
+    if block_size > 65_536 {
+        return Err("BGZF block exceeds 64KB".to_string());
+    }
+    out.extend_from_slice(&[0x1f, 0x8b, 8, 4, 0, 0, 0, 0, 0, 255]);
+    out.extend_from_slice(&6u16.to_le_bytes());
+    out.extend_from_slice(b"BC");
+    out.extend_from_slice(&2u16.to_le_bytes());
+    out.extend_from_slice(&((block_size - 1) as u16).to_le_bytes());
+    out.extend_from_slice(&compressed);
+    out.extend_from_slice(&crc32fast::hash(payload).to_le_bytes());
+    out.extend_from_slice(&(payload.len() as u32).to_le_bytes());
+    Ok(())
+}
+
+fn bgzf_compress_bam_bytes(bam: &[u8], compression_level: i32) -> Result<Vec<u8>, String> {
+    let compression = if (0..=9).contains(&compression_level) {
+        flate2::Compression::new(compression_level as u32)
+    } else {
+        flate2::Compression::default()
+    };
+    let mut out = Vec::new();
+    let mut start = 0usize;
+    while start < bam.len() {
+        let mut end = (start + 60_000).min(bam.len());
+        loop {
+            let before = out.len();
+            match write_bgzf_block(&mut out, &bam[start..end], compression) {
+                Ok(()) => break,
+                Err(_) if end > start + 1 => {
+                    out.truncate(before);
+                    end = start + (end - start) / 2;
+                }
+                Err(err) => return Err(err),
+            }
+        }
+        start = end;
+    }
+    write_bgzf_block(&mut out, &[], compression)?;
+    Ok(out)
+}
 
 pub fn cli_args() -> Vec<String> {
     let args: Vec<String> = std::env::args().collect();
@@ -256,6 +306,64 @@ pub fn run_cli(args: &[String]) -> Result<StarMainResult, String> {
             }
             std::fs::write(path, &result.log_final_out).map_err(|e| e.to_string())?;
         }
+        if let Some(solo_result) = &result.solo_cell_filtering
+            && let Some(cell_filtering) = &solo_result.cell_filtering
+            && let Some(output_results) = &cell_filtering.output_results
+        {
+            for (path, contents) in &output_results.files {
+                if let Some(parent) = Path::new(path).parent()
+                    && !parent.as_os_str().is_empty()
+                {
+                    std::fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+                }
+                std::fs::write(path, contents).map_err(|e| e.to_string())?;
+            }
+        }
+        if let Some(solo_result) = &result.solo_process_and_output {
+            for dir in &solo_result.created_directories {
+                if !dir.is_empty() {
+                    std::fs::create_dir_all(dir)
+                        .map_err(|e| format!("could not create STARsolo directory {dir}: {e}"))?;
+                }
+            }
+            for (path, contents) in &solo_result.files {
+                if let Some(parent) = Path::new(path).parent()
+                    && !parent.as_os_str().is_empty()
+                {
+                    std::fs::create_dir_all(parent).map_err(|e| {
+                        format!("could not create parent directory for STARsolo output {path}: {e}")
+                    })?;
+                }
+                std::fs::write(path, contents)
+                    .map_err(|e| format!("could not write STARsolo output {path}: {e}"))?;
+            }
+            #[cfg(unix)]
+            {
+                for (target, link) in &solo_result.symlinks {
+                    if target.is_empty() || link.is_empty() {
+                        continue;
+                    }
+                    if let Some(parent) = Path::new(link).parent()
+                        && !parent.as_os_str().is_empty()
+                    {
+                        std::fs::create_dir_all(parent).map_err(|e| {
+                            format!(
+                                "could not create parent directory for STARsolo symlink {link}: {e}"
+                            )
+                        })?;
+                    }
+                    match std::os::unix::fs::symlink(target, link) {
+                        Ok(()) => {}
+                        Err(err) if err.kind() == std::io::ErrorKind::AlreadyExists => {}
+                        Err(err) => {
+                            return Err(format!(
+                                "could not create STARsolo symlink {link} -> {target}: {err}"
+                            ));
+                        }
+                    }
+                }
+            }
+        }
         if result.parameters.out_sam_bool
             && result.parameters.out_std != "SAM"
             && !result.parameters.out_sam_contents.is_empty()
@@ -281,7 +389,11 @@ pub fn run_cli(args: &[String]) -> Result<StarMainResult, String> {
                     bam.extend_from_slice(&out_bam.bgzf_bam);
                 }
             }
-            std::fs::write(path, bam).map_err(|e| e.to_string())?;
+            std::fs::write(
+                path,
+                bgzf_compress_bam_bytes(&bam, result.parameters.out_bam_compression)?,
+            )
+            .map_err(|e| e.to_string())?;
         }
         if result.parameters.out_bam_coord
             && result.parameters.out_std != "BAM_SortedByCoordinate"
@@ -294,7 +406,14 @@ pub fn run_cli(args: &[String]) -> Result<StarMainResult, String> {
             {
                 std::fs::create_dir_all(parent).map_err(|e| e.to_string())?;
             }
-            std::fs::write(path, &bam_sort.output_bam).map_err(|e| e.to_string())?;
+            std::fs::write(
+                path,
+                bgzf_compress_bam_bytes(
+                    &bam_sort.output_bam,
+                    result.parameters.out_bam_compression,
+                )?,
+            )
+            .map_err(|e| e.to_string())?;
         }
         if result.parameters.quant_tr_sam_bam_yes && result.parameters.out_std != "BAM_Quant" {
             let path = format!("{}Aligned.toTranscriptome.out.bam", prefix);
@@ -309,7 +428,11 @@ pub fn run_cli(args: &[String]) -> Result<StarMainResult, String> {
                     bam.extend_from_slice(&map_chunk.quant_bam_output);
                 }
             }
-            std::fs::write(path, bam).map_err(|e| e.to_string())?;
+            std::fs::write(
+                path,
+                bgzf_compress_bam_bytes(&bam, result.parameters.out_bam_compression)?,
+            )
+            .map_err(|e| e.to_string())?;
         }
         if result.parameters.p_ch.out_chim_sam_opened {
             let path = format!("{}Chimeric.out.sam", prefix);
@@ -318,13 +441,8 @@ pub fn run_cli(args: &[String]) -> Result<StarMainResult, String> {
             {
                 std::fs::create_dir_all(parent).map_err(|e| e.to_string())?;
             }
-            let mut contents = result.parameters.p_ch.out_chim_sam_contents.clone();
-            for process_chunk in &result.process_chunks {
-                for map_chunk in &process_chunk.map_chunks {
-                    contents.push_str(&map_chunk.chimeric_sam_output);
-                }
-            }
-            std::fs::write(path, contents).map_err(|e| e.to_string())?;
+            std::fs::write(path, &result.parameters.p_ch.out_chim_sam_contents)
+                .map_err(|e| e.to_string())?;
         }
         if result.parameters.p_ch.out_chim_junction_opened {
             let path = format!("{}Chimeric.out.junction", prefix);
@@ -333,19 +451,8 @@ pub fn run_cli(args: &[String]) -> Result<StarMainResult, String> {
             {
                 std::fs::create_dir_all(parent).map_err(|e| e.to_string())?;
             }
-            let mut contents = result.parameters.p_ch.out_chim_junction_contents.clone();
-            for process_chunk in &result.process_chunks {
-                for map_chunk in &process_chunk.map_chunks {
-                    contents.push_str(&map_chunk.chimeric_junction_output);
-                }
-            }
-            contents.push_str(&stats_l147_stats_writelines(
-                &result.stats_all,
-                &result.parameters.p_ch.out_junction_format,
-                "#",
-                &format!("2.7.11b   {}", result.parameters.command_line),
-            ));
-            std::fs::write(path, contents).map_err(|e| e.to_string())?;
+            std::fs::write(path, &result.parameters.p_ch.out_chim_junction_contents)
+                .map_err(|e| e.to_string())?;
         }
         if let Some(output_sj) = &result.output_sj {
             let path = format!("{}SJ.out.tab", prefix);
@@ -392,7 +499,14 @@ pub fn run_cli(args: &[String]) -> Result<StarMainResult, String> {
             {
                 std::fs::create_dir_all(parent).map_err(|e| e.to_string())?;
             }
-            std::fs::write(path, &result.processed_bam_output).map_err(|e| e.to_string())?;
+            std::fs::write(
+                path,
+                bgzf_compress_bam_bytes(
+                    &result.processed_bam_output,
+                    result.parameters.out_bam_compression,
+                )?,
+            )
+            .map_err(|e| e.to_string())?;
         }
         if result.parameters.quant_ge_count_yes
             && let Some(transcriptome) = &result.transcriptome
@@ -421,11 +535,17 @@ pub fn print_result(result: &StarMainResult) {
                 bam.extend_from_slice(&out_bam.bgzf_bam);
             }
         }
-        let _ = std::io::stdout().write_all(&bam);
+        if let Ok(bam) = bgzf_compress_bam_bytes(&bam, result.parameters.out_bam_compression) {
+            let _ = std::io::stdout().write_all(&bam);
+        }
     } else if result.parameters.out_std == "BAM_SortedByCoordinate"
         && let Some(bam_sort) = &result.bam_sort
     {
-        let _ = std::io::stdout().write_all(&bam_sort.output_bam);
+        if let Ok(bam) =
+            bgzf_compress_bam_bytes(&bam_sort.output_bam, result.parameters.out_bam_compression)
+        {
+            let _ = std::io::stdout().write_all(&bam);
+        }
     } else if result.parameters.out_std == "BAM_Quant" && result.parameters.quant_tr_sam_bam_yes {
         let mut bam = result.parameters.out_quant_bam_header.clone();
         for process_chunk in &result.process_chunks {
@@ -433,7 +553,9 @@ pub fn print_result(result: &StarMainResult) {
                 bam.extend_from_slice(&map_chunk.quant_bam_output);
             }
         }
-        let _ = std::io::stdout().write_all(&bam);
+        if let Ok(bam) = bgzf_compress_bam_bytes(&bam, result.parameters.out_bam_compression) {
+            let _ = std::io::stdout().write_all(&bam);
+        }
     } else if !result.log_stdout.is_empty() {
         print!("{}", result.log_stdout);
     }

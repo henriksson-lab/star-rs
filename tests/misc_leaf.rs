@@ -6537,8 +6537,17 @@ fn read_align_chunk_map_chunk_flushes_sam_collapses_sj_and_adds_stats() {
 
 #[test]
 fn read_align_chunk_map_chunk_uses_paired_keep_input_order_chunk_names() {
+    let unique = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_nanos();
+    let dir = std::env::temp_dir().join(format!(
+        "star_rs_mapchunk_order_test_{}_{}",
+        std::process::id(),
+        unique
+    ));
     let p = Parameters {
-        out_file_tmp: "/tmp/star-mapchunk".to_string(),
+        out_file_tmp: dir.to_string_lossy().to_string(),
         out_sam_bool: true,
         out_sam_order: "PairedKeepInputOrder".to_string(),
         run_thread_n: 2,
@@ -6548,6 +6557,7 @@ fn read_align_chunk_map_chunk_uses_paired_keep_input_order_chunk_names() {
     };
     let mut chunk = ReadAlignChunk {
         i_thread: 3,
+        i_chunk_in: 7,
         no_reads_left: true,
         chunk_out_bam: b"xyz".to_vec(),
         ..Default::default()
@@ -6569,15 +6579,22 @@ fn read_align_chunk_map_chunk_uses_paired_keep_input_order_chunk_names() {
 
     assert_eq!(
         result.paired_keep_input_order_tmp_name.as_deref(),
-        Some("/tmp/star-mapchunk/Aligned.tmp.sam.chunk3")
+        Some(format!("{}/Aligned.tmp.sam.chunk7", dir.to_string_lossy()).as_str())
     );
     assert_eq!(
         result.paired_keep_input_order_final_name.as_deref(),
-        Some("/tmp/star-mapchunk/Aligned.out.sam.chunk3")
+        Some(format!("{}/Aligned.out.sam.chunk7", dir.to_string_lossy()).as_str())
+    );
+    assert!(!dir.join("Aligned.tmp.sam.chunk7").exists());
+    assert_eq!(
+        std::fs::read(dir.join("Aligned.out.sam.chunk7")).unwrap(),
+        b""
     );
     assert!(result.direct_sam_output.is_empty());
     assert!(result.paired_keep_input_order_tmp.is_empty());
     assert_eq!(chunk.chunk_out_bam_total, 0);
+
+    std::fs::remove_dir_all(dir).unwrap();
 }
 
 #[test]

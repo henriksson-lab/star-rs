@@ -740,6 +740,8 @@ pub struct StarMainResult {
     pub bam_sort: Option<BamSortByCoordinateResult>,
     pub signal: Option<SignalFromBamResult>,
     pub processed_bam_output: Vec<u8>,
+    pub solo_cell_filtering: Option<SoloConstructorCellFilteringResult>,
+    pub solo_process_and_output: Option<SoloProcessAndOutputResult>,
     pub transcriptome: Option<Transcriptome>,
     pub stats_all: Stats,
     pub read_chunks: Vec<ReadAlignChunk>,
