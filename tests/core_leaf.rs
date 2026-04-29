@@ -1341,6 +1341,66 @@ fn read_align_mult_map_select_uses_recorded_transcripts_not_anchor_counts() {
 }
 
 #[test]
+fn read_align_mult_map_select_recovers_zero_anchor_singleton_best_window() {
+    let genome = Genome {
+        chr_start: vec![0],
+        ..Default::default()
+    };
+    let tr_all = vec![vec![
+        Transcript {
+            max_score: 31,
+            chr: 0,
+            r_length: 34,
+            g_start: 8,
+            ..Default::default()
+        },
+        Transcript {
+            max_score: 20,
+            chr: 0,
+            r_length: 22,
+            g_start: 40,
+            ..Default::default()
+        },
+        Transcript {
+            max_score: 12,
+            chr: 0,
+            r_length: 18,
+            g_start: 80,
+            ..Default::default()
+        },
+    ]];
+    let mut read_align = ReadAlign {
+        n_w: 1,
+        n_wap: vec![0],
+        n_win_tr: vec![3],
+        l_read: 36,
+        tr_best: Transcript {
+            max_score: 31,
+            ..Default::default()
+        },
+        ..Default::default()
+    };
+
+    let selected = readalign_multmapselect_l8_readalign_multmapselect(
+        &mut read_align,
+        &genome,
+        &tr_all,
+        0,
+        20,
+        false,
+        false,
+        "",
+        &[],
+    )
+    .unwrap();
+
+    assert_eq!(read_align.n_tr, 1);
+    assert_eq!(selected.len(), 1);
+    assert_eq!(selected[0].max_score, 31);
+    assert!(selected[0].primary_flag);
+}
+
+#[test]
 fn quantifications_constructor_and_add_quants_match_gene_count_layout() {
     let mut q = quantifications_l3_quantifications_quantifications(4);
     assert_eq!(q.gene_counts.n_ge, 4);

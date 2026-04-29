@@ -7060,11 +7060,18 @@ pub fn readalign_multmapselect_l8_readalign_multmapselect(
     for iw in 0..read_align.n_w as usize {
         let n_win_tr_recorded = read_align.n_win_tr.get(iw).copied().unwrap_or(0) as usize;
         let n_wap = read_align.n_wap.get(iw).copied().map(|n| n as usize);
-        let n_win_tr = if n_wap.is_none()
-            || (n_wap == Some(0)
-                && tr_all[iw].first().is_some_and(|tr| {
-                    tr.max_score == max_score && (n_win_tr_recorded == 1 || tr.sj_yes)
-                })) {
+        let zero_anchor_best_singleton = n_wap == Some(0)
+            && tr_all[iw]
+                .first()
+                .is_some_and(|tr| tr.max_score == max_score)
+            && tr_all[iw]
+                .iter()
+                .take(n_win_tr_recorded)
+                .filter(|tr| tr.max_score + out_filter_multimap_score_range >= max_score)
+                .take(2)
+                .count()
+                == 1;
+        let n_win_tr = if n_wap.is_none() || zero_anchor_best_singleton {
             n_win_tr_recorded
         } else {
             n_wap.unwrap_or(0)
@@ -17863,44 +17870,6 @@ pub fn readalign_oneread_l8_readalign_oneread(
         p.out_filter_mismatch_nover_lmax,
         p.out_filter_multimap_nmax,
     );
-    if std::env::var("STAR_RS_DEBUG_READ")
-        .ok()
-        .as_deref()
-        .is_some_and(|name| read_align.read_name.contains(name))
-    {
-        eprintln!(
-            "debug read={} n_w={} n_tr={} tr_mult={} unmap={} best_score={} best_match={} best_rlen={}",
-            read_align.read_name,
-            read_align.n_w,
-            read_align.n_tr,
-            result.tr_mult.len(),
-            read_align.unmap_type,
-            read_align.tr_best.max_score,
-            read_align.tr_best.n_match,
-            read_align.tr_best.r_length,
-        );
-        for iw in 0..read_align.n_w as usize {
-            eprintln!(
-                "window {} n_wap={} n_win_tr={} len={} first_score={} first_sj={}",
-                iw,
-                read_align.n_wap.get(iw).copied().unwrap_or(u32::MAX),
-                read_align.n_win_tr.get(iw).copied().unwrap_or(u64::MAX),
-                read_align.tr_all.get(iw).map(Vec::len).unwrap_or(0),
-                read_align
-                    .tr_all
-                    .get(iw)
-                    .and_then(|v| v.first())
-                    .map(|tr| tr.max_score)
-                    .unwrap_or(i32::MIN),
-                read_align
-                    .tr_all
-                    .get(iw)
-                    .and_then(|v| v.first())
-                    .map(|tr| tr.sj_yes)
-                    .unwrap_or(false),
-            );
-        }
-    }
 
     result.aligns_gen_out = readalign_transformgenome_l5_readalign_transformgenome(
         read_align,
