@@ -6,6 +6,7 @@ use star_rs::generated::structs::{
 #[test]
 fn service_comparators_match_lexicographic_rules() {
     assert_eq!(servicefuns_l7_sum1d(&[1u32, 2, 3, 100], 3), 6);
+    assert_eq!(servicefuns_l7_sum1d(&[1u32, 2, 3], 10), 6);
     assert_eq!(servicefuns_l13_funcomparenumbers(&7, &3), 1);
     assert_eq!(servicefuns_l13_funcomparenumbers(&3, &7), -1);
     assert_eq!(servicefuns_l13_funcomparenumbers(&7, &7), 0);
@@ -15,23 +16,40 @@ fn service_comparators_match_lexicographic_rules() {
         servicefuns_l39_funcomparenumbersreverseshift::<u32, 2>(&[0, 1, 9], &[5, 4, 7]),
         -1
     );
+    assert_eq!(
+        servicefuns_l39_funcomparenumbersreverseshift::<u32, 2>(&[0, 1], &[5, 4, 7]),
+        0
+    );
     assert_eq!(servicefuns_l53_funcompareuint1(&7, &3), 1);
     assert_eq!(servicefuns_l53_funcompareuint1(&7, &7), 0);
     assert_eq!(servicefuns_l66_funcompareuint2(&[1, 9], &[1, 8]), 1);
     assert_eq!(servicefuns_l66_funcompareuint2(&[1, 8], &[1, 8]), 0);
     assert_eq!(servicefuns_l66_funcompareuint2(&[0, 99], &[1, 0]), -1);
+    assert_eq!(servicefuns_l66_funcompareuint2(&[1], &[1, 8]), 0);
 
     assert_eq!(
         servicefuns_l84_funcomparearrays::<u32, 3>(&[1, 2, 3], &[1, 2, 4]),
         -1
     );
     assert_eq!(
+        servicefuns_l84_funcomparearrays::<u32, 3>(&[1, 2], &[1, 2, 4]),
+        0
+    );
+    assert_eq!(
         servicefuns_l101_funcomparearraysreverse::<u32, 3>(&[1, 2, 3], &[1, 2, 4]),
         1
     );
     assert_eq!(
+        servicefuns_l101_funcomparearraysreverse::<u32, 3>(&[1, 2], &[1, 2, 4]),
+        0
+    );
+    assert_eq!(
         servicefuns_l118_funcomparearraysshift::<u32, 2, 1>(&[9, 1, 5], &[8, 1, 4]),
         1
+    );
+    assert_eq!(
+        servicefuns_l118_funcomparearraysshift::<u32, 2, 1>(&[9, 1], &[8, 1, 4]),
+        0
     );
     assert_eq!(
         servicefuns_l135_funcomparetypesecondfirst(&[9, 1], &[8, 1]),
@@ -45,9 +63,14 @@ fn service_comparators_match_lexicographic_rules() {
         servicefuns_l135_funcomparetypesecondfirst(&[9, 0], &[0, 1]),
         -1
     );
+    assert_eq!(servicefuns_l135_funcomparetypesecondfirst(&[9], &[8, 1]), 0);
     assert_eq!(
         servicefuns_l153_funcomparetypeshift::<u32, 1>(&[9, 2], &[8, 3]),
         -1
+    );
+    assert_eq!(
+        servicefuns_l153_funcomparetypeshift::<u32, 1>(&[9], &[8, 3]),
+        0
     );
 }
 
@@ -83,6 +106,8 @@ fn service_binary_search_variants_match_boundary_contracts() {
         servicefuns_l192_binarysearch1(0, &arr, arr.len() as u32),
         u32::MAX
     );
+    assert_eq!(servicefuns_l192_binarysearch1(2, &arr[..3], 99), 2);
+    assert_eq!(servicefuns_l192_binarysearch1(2, &arr, 0), u32::MAX);
 
     assert_eq!(
         servicefuns_l239_binarysearch1a(2, &arr, arr.len() as i32),
@@ -96,6 +121,8 @@ fn service_binary_search_variants_match_boundary_contracts() {
         servicefuns_l239_binarysearch1a(0, &arr, arr.len() as i32),
         -1
     );
+    assert_eq!(servicefuns_l239_binarysearch1a(2, &arr[..3], 99), 2);
+    assert_eq!(servicefuns_l239_binarysearch1a(2, &arr, -1), -1);
 
     assert_eq!(
         servicefuns_l266_binarysearch1b(2, &arr, arr.len() as i32),
@@ -109,6 +136,8 @@ fn service_binary_search_variants_match_boundary_contracts() {
         servicefuns_l266_binarysearch1b(9, &arr, arr.len() as i32),
         -1
     );
+    assert_eq!(servicefuns_l266_binarysearch1b(2, &arr[..3], 99), 1);
+    assert_eq!(servicefuns_l266_binarysearch1b(2, &arr, -1), -1);
 
     assert_eq!(
         servicefuns_l294_binarysearchexact(5, &arr, arr.len() as u64),
@@ -118,6 +147,8 @@ fn service_binary_search_variants_match_boundary_contracts() {
         servicefuns_l294_binarysearchexact(4, &arr, arr.len() as u64),
         -1
     );
+    assert_eq!(servicefuns_l294_binarysearchexact(2, &arr[..3], 99), 1);
+    assert_eq!(servicefuns_l294_binarysearchexact(2, &arr, 0), -1);
 }
 
 #[test]
@@ -273,6 +304,42 @@ fn suffix_compare_seq_to_genome_matches_forward_reverse_and_spacer_rules() {
 }
 
 #[test]
+fn suffix_compare_seq_to_genome_preserves_32_bit_strand_entries() {
+    let genome = Genome {
+        g: vec![0, 1, 2, 3, 4, 5],
+        sa: vec![(1_u64 << 32) | 1],
+        n_genome: 6,
+        gstrand_bit: 32,
+        gstrand_mask: !(1u64 << 32),
+        ..Default::default()
+    };
+    let fwd = [9u8, 9, 9];
+    let rev = [4u8, 3, 2];
+
+    let mut comp = false;
+    assert_eq!(
+        suffixarrayfuns_l10_compareseqtogenome(&genome, [&fwd, &rev], 0, 3, 0, 0, true, &mut comp),
+        3
+    );
+
+    let mut comp1 = 0;
+    assert_eq!(
+        suffixarrayfuns_l221_compareseqtogenome1(
+            &genome,
+            [&fwd, &rev],
+            0,
+            3,
+            0,
+            0,
+            true,
+            u64::MAX,
+            &mut comp1,
+        ),
+        3
+    );
+}
+
+#[test]
 fn suffix_compare_seq_to_genome_accepts_prefix_longer_than_search_span() {
     let genome = Genome {
         g: vec![0, 1, 2, 3, 4, 5],
@@ -411,7 +478,7 @@ fn genome_sa_index_find_next_index_matches_step_and_binary_search() {
         n_sa: 6,
         n_genome: 7,
         gstrand_bit: 31,
-        gstrand_mask: u32::MAX,
+        gstrand_mask: !(1u64 << 32),
         p_ge: ParametersGenome {
             g_saindex_nbases: 2,
             ..Default::default()
@@ -438,7 +505,7 @@ fn genome_sa_index_find_next_index_preserves_cpp_end_jump_behavior() {
         n_sa: 6,
         n_genome: 7,
         gstrand_bit: 31,
-        gstrand_mask: u32::MAX,
+        gstrand_mask: !(1u64 << 32),
         p_ge: ParametersGenome {
             g_saindex_nbases: 2,
             ..Default::default()
@@ -466,9 +533,9 @@ fn genome_sa_index_chunk_writes_present_absent_and_tail_entries() {
         n_sa: 6,
         n_genome: 7,
         gstrand_bit: 31,
-        gstrand_mask: u32::MAX,
+        gstrand_mask: u64::MAX,
         genome_sa_index_start: vec![0, 4, 20],
-        sai_mark_absent_mask_c: absent as u32,
+        sai_mark_absent_mask_c: absent,
         sai_mark_nmask_c: 1 << 5,
         p_ge: ParametersGenome {
             g_saindex_nbases: 2,
@@ -517,10 +584,10 @@ fn genome_sa_index_chunk_marks_previous_entry_when_suffix_contains_n() {
         n_sa: 4,
         n_genome: 6,
         gstrand_bit: 31,
-        gstrand_mask: u32::MAX,
+        gstrand_mask: u64::MAX,
         genome_sa_index_start: vec![0, 4, 20],
-        sai_mark_absent_mask_c: absent as u32,
-        sai_mark_nmask_c: n_mask as u32,
+        sai_mark_absent_mask_c: absent,
+        sai_mark_nmask_c: n_mask,
         p_ge: ParametersGenome {
             g_saindex_nbases: 2,
             ..Default::default()
@@ -575,6 +642,36 @@ fn genome_sa_index_initializes_offsets_masks_and_table() {
 }
 
 #[test]
+fn genome_sa_index_chunk_keeps_64_bit_marker_values_for_large_strand_bits() {
+    let absent = 1_u64 << 34;
+    let n_mask = 1_u64 << 33;
+    let genome = Genome {
+        n_sa: 6,
+        n_genome: 7,
+        gstrand_bit: 32,
+        gstrand_mask: u64::MAX,
+        genome_sa_index_start: vec![0, 4, 20],
+        sai_mark_absent_mask_c: absent,
+        sai_mark_nmask_c: n_mask,
+        p_ge: ParametersGenome {
+            g_saindex_nbases: 2,
+            ..Default::default()
+        },
+        ..Default::default()
+    };
+    let g = [0u8, 0, 0, 1, 1, 2, 3];
+    let sa = [0u64, 1, 2, 3, 4, 5];
+    let mut sai = vec![0u64; 20];
+
+    genomesaindex_l117_genomesaindexchunk(&g, &sa, &mut sai, 0, 5, &genome).unwrap();
+
+    assert_eq!(sai[3], 6 | absent);
+    assert_eq!(sai[16], 6 | absent);
+    assert!(sai.iter().any(|value| (*value & absent) != 0));
+    assert!(sai.iter().all(|value| (*value & n_mask) == 0));
+}
+
+#[test]
 fn suffix_max_mappable_length_reports_longest_partial_range() {
     let genome = Genome {
         g: vec![1, 2, 5, 1, 2, 6, 1, 3, 0],
@@ -608,7 +705,7 @@ fn suffix_max_mappable_length_reports_longest_partial_range() {
 
 #[test]
 fn readalign_max_mappable_length_two_strands_uses_sa_index_and_records_store_aligns() {
-    let mut sai = vec![0u32; 20];
+    let mut sai = vec![0u64; 20];
     sai[4 + 6] = 0;
     sai[4 + 7] = 2;
     let genome = Genome {
@@ -668,7 +765,7 @@ fn readalign_max_mappable_length_two_strands_uses_sa_index_and_records_store_ali
 
 #[test]
 fn readalign_max_mappable_length_two_strands_accepts_unique_index_hit_without_sa_search() {
-    let mut sai = vec![0u32; 20];
+    let mut sai = vec![0u64; 20];
     sai[4 + 6] = 2;
     sai[4 + 7] = 3;
     let genome = Genome {
@@ -728,7 +825,7 @@ fn readalign_max_mappable_length_two_strands_accepts_unique_index_hit_without_sa
 
 #[test]
 fn readalign_map_one_read_records_unique_seed_and_stitches_window() {
-    let mut sai = vec![0u32; 20];
+    let mut sai = vec![0u64; 20];
     sai[4 + 6] = 0;
     sai[4 + 7] = 2;
     let genome = Genome {
@@ -934,8 +1031,6 @@ fn sjdb_build_index_inserts_new_junction_suffix_and_copies_sequence() {
     packedarray_l8_packedarray_definebits(&mut sa, 33, 1);
     packedarray_l31_packedarray_allocatearray(&mut sa);
     packedarray_l17_packedarray_writepacked(&mut sa, 0, 0);
-    let mut sa2 = PackedArray::default();
-    let mut sai = PackedArray::default();
 
     let mut gsj = vec![0, 1, 0, 0, 0];
     let mut genome_seq = vec![1, GENOME_SPACING_CHAR, GENOME_SPACING_CHAR];
@@ -948,7 +1043,8 @@ fn sjdb_build_index_inserts_new_junction_suffix_and_copies_sequence() {
         n_chr_real: 0,
         chr_start: vec![10],
         gstrand_bit: 32,
-        gstrand_mask: u32::MAX,
+        gstrand_mask: u64::MAX,
+        sa_packed: sa,
         sjdb_n: 1,
         sjdb_length: 2,
         sjdb_start: vec![100],
@@ -966,9 +1062,6 @@ fn sjdb_build_index_inserts_new_junction_suffix_and_copies_sequence() {
         &Parameters::default(),
         &mut gsj,
         &mut genome_seq,
-        &mut sa,
-        &mut sa2,
-        &mut sai,
         &mut map_gen,
         &map_gen1,
     )
@@ -978,9 +1071,9 @@ fn sjdb_build_index_inserts_new_junction_suffix_and_copies_sequence() {
     assert_eq!(result.n_ind, 2);
     assert_eq!(map_gen.n_genome, 12);
     assert_eq!(map_gen.n_sa, 3);
-    assert_eq!(&genome_seq[10..12], &[0, GENOME_SPACING_CHAR]);
+    assert_eq!(&map_gen.g[10..12], &[0, GENOME_SPACING_CHAR]);
     let packed_sa: Vec<u64> = (0..map_gen.n_sa as u64)
-        .map(|ii| packedarray_h18_packedarray_index(&sa, ii))
+        .map(|ii| packedarray_h18_packedarray_index(&map_gen.sa_packed, ii))
         .collect();
     assert!(packed_sa.contains(&10));
     assert!(packed_sa.contains(&0));
@@ -996,9 +1089,6 @@ fn sjdb_build_index_inserts_new_junction_suffix_and_copies_sequence() {
 fn sjdb_build_index_returns_without_junctions() {
     let mut gsj = Vec::new();
     let mut g = vec![0, 1, 2];
-    let mut sa = PackedArray::default();
-    let mut sa2 = PackedArray::default();
-    let mut sai = PackedArray::default();
     let mut map_gen = Genome::default();
     let map_gen1 = Genome::default();
 
@@ -1006,9 +1096,6 @@ fn sjdb_build_index_returns_without_junctions() {
         &Parameters::default(),
         &mut gsj,
         &mut g,
-        &mut sa,
-        &mut sa2,
-        &mut sai,
         &mut map_gen,
         &map_gen1,
     )

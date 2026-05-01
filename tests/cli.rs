@@ -8,6 +8,18 @@ use star_rs::generated::structs::{
 };
 use std::collections::BTreeSet;
 use std::io::Read;
+use std::path::PathBuf;
+
+const UNIQUE_TEST_GENOME: &str = ">chr1\nACGTTGCAAGTCCTGA\n";
+const UNIQUE_TEST_READ: &str = "@r1\nACGTTGCA\n+\nFFFFFFFF\n";
+
+fn unique_temp_dir(label: &str) -> PathBuf {
+    let unique = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_nanos();
+    std::env::temp_dir().join(format!("star_rs_{label}_{}_{}", std::process::id(), unique))
+}
 
 fn bam_payload(bytes: &[u8]) -> Vec<u8> {
     if bytes.starts_with(b"BAM\x01") {
@@ -27,6 +39,55 @@ fn cli_help_uses_translated_star_usage() {
     assert_eq!(result.exit_code, 0);
     assert!(result.usage.starts_with("Usage: STAR"));
     assert!(result.usage.contains("runMode"));
+}
+
+#[test]
+fn cli_malformed_fastq_quality_length_returns_error_without_panic() {
+    let dir = unique_temp_dir("malformed_fastq_no_panic");
+    let genome_dir = dir.join("genome");
+    let out_dir = dir.join("align/");
+    std::fs::create_dir_all(&genome_dir).unwrap();
+
+    let fasta = dir.join("genome.fa");
+    let reads = dir.join("reads.fq");
+    std::fs::write(&fasta, UNIQUE_TEST_GENOME).unwrap();
+    std::fs::write(&reads, "@bad\nACGTACGT\n+\nFFFF\n").unwrap();
+
+    run_cli(&[
+        "STAR".to_string(),
+        "--runMode".to_string(),
+        "genomeGenerate".to_string(),
+        "--genomeDir".to_string(),
+        genome_dir.to_str().unwrap().to_string(),
+        "--genomeFastaFiles".to_string(),
+        fasta.to_str().unwrap().to_string(),
+        "--genomeSAindexNbases".to_string(),
+        "1".to_string(),
+        "--genomeChrBinNbits".to_string(),
+        "2".to_string(),
+        "--limitGenomeGenerateRAM".to_string(),
+        "1000000".to_string(),
+    ])
+    .unwrap();
+
+    let result = std::panic::catch_unwind(|| {
+        run_cli(&[
+            "STAR".to_string(),
+            "--genomeDir".to_string(),
+            genome_dir.to_str().unwrap().to_string(),
+            "--readFilesIn".to_string(),
+            reads.to_str().unwrap().to_string(),
+            "--outFileNamePrefix".to_string(),
+            out_dir.to_str().unwrap().to_string(),
+        ])
+    });
+    let err = result.expect("malformed FASTQ must return an error, not panic");
+    assert!(
+        err.unwrap_err()
+            .contains("quality string length is not equal to sequence length")
+    );
+
+    std::fs::remove_dir_all(dir).unwrap();
 }
 
 #[test]
@@ -247,6 +308,72 @@ fn cli_liftover_writes_lifted_gtf_for_each_chain_file() {
 }
 
 #[test]
+fn cli_liftover_malformed_chain_returns_error_without_panic() {
+    let dir = unique_temp_dir("liftover_bad_chain_no_panic");
+    let out_prefix = dir.join("lift/");
+    std::fs::create_dir_all(&dir).unwrap();
+    let chain = dir.join("bad.chain");
+    let gtf = dir.join("input.gtf");
+    std::fs::write(
+        &chain,
+        "chain 100 chr1 1000 + bad 80 chrA 2000 + 20 90 1\n25\n",
+    )
+    .unwrap();
+    std::fs::write(&gtf, "chr1\tsrc\texon\t12\t20\t.\t+\t.\tgene_id \"a\";\n").unwrap();
+
+    let result = std::panic::catch_unwind(|| {
+        run_cli(&[
+            "STAR".to_string(),
+            "--runMode".to_string(),
+            "liftOver".to_string(),
+            "--genomeChainFiles".to_string(),
+            chain.to_str().unwrap().to_string(),
+            "--sjdbGTFfile".to_string(),
+            gtf.to_str().unwrap().to_string(),
+            "--outFileNamePrefix".to_string(),
+            out_prefix.to_str().unwrap().to_string(),
+        ])
+    });
+    let err = result.expect("malformed chain must return an error, not panic");
+    assert!(err.unwrap_err().contains("invalid source start bad"));
+
+    std::fs::remove_dir_all(dir).unwrap();
+}
+
+#[test]
+fn cli_liftover_malformed_gtf_coordinate_returns_error_without_panic() {
+    let dir = unique_temp_dir("liftover_bad_gtf_no_panic");
+    let out_prefix = dir.join("lift/");
+    std::fs::create_dir_all(&dir).unwrap();
+    let chain = dir.join("one.chain");
+    let gtf = dir.join("bad.gtf");
+    std::fs::write(
+        &chain,
+        "chain 100 chr1 1000 + 10 80 chrA 2000 + 20 90 1\n25\n",
+    )
+    .unwrap();
+    std::fs::write(&gtf, "chr1\tsrc\texon\tbad\t20\t.\t+\t.\tgene_id \"a\";\n").unwrap();
+
+    let result = std::panic::catch_unwind(|| {
+        run_cli(&[
+            "STAR".to_string(),
+            "--runMode".to_string(),
+            "liftOver".to_string(),
+            "--genomeChainFiles".to_string(),
+            chain.to_str().unwrap().to_string(),
+            "--sjdbGTFfile".to_string(),
+            gtf.to_str().unwrap().to_string(),
+            "--outFileNamePrefix".to_string(),
+            out_prefix.to_str().unwrap().to_string(),
+        ])
+    });
+    let err = result.expect("malformed GTF coordinate must return an error, not panic");
+    assert!(err.unwrap_err().contains("has invalid coordinate bad"));
+
+    std::fs::remove_dir_all(dir).unwrap();
+}
+
+#[test]
 fn cli_solo_cell_filtering_loads_raw_matrix_and_writes_filtered_output() {
     let unique = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
@@ -318,7 +445,7 @@ fn cli_genome_generate_applies_star_style_arguments() {
     let out_tmp = dir.join("tmp");
     std::fs::create_dir_all(&genome_dir).unwrap();
     let fasta = dir.join("tiny.fa");
-    std::fs::write(&fasta, ">chr1\nACGTACGTACGTACGT\n").unwrap();
+    std::fs::write(&fasta, UNIQUE_TEST_GENOME).unwrap();
 
     let result = run_cli(&[
         "STAR".to_string(),
@@ -364,7 +491,7 @@ fn cli_accepts_out_sam_filter_with_added_references() {
     let genome_dir = dir.join("genome");
     std::fs::create_dir_all(&genome_dir).unwrap();
     let fasta = dir.join("tiny.fa");
-    std::fs::write(&fasta, ">chr1\nACGTACGTACGTACGT\n").unwrap();
+    std::fs::write(&fasta, UNIQUE_TEST_GENOME).unwrap();
 
     let result = run_cli(&[
         "STAR".to_string(),
@@ -407,7 +534,7 @@ fn cli_reads_solo_whitelist_before_parameter_initialization() {
     std::fs::create_dir_all(&genome_dir).unwrap();
     let fasta = dir.join("tiny.fa");
     let whitelist = dir.join("whitelist.txt");
-    std::fs::write(&fasta, ">chr1\nACGTACGTACGTACGT\n").unwrap();
+    std::fs::write(&fasta, UNIQUE_TEST_GENOME).unwrap();
     std::fs::write(&whitelist, "ACGTACGTACGTACGT\n").unwrap();
 
     let result = run_cli(&[
@@ -529,8 +656,8 @@ fn cli_align_reads_loads_genome_and_processes_fastq_read() {
     std::fs::create_dir_all(&genome_dir).unwrap();
     let fasta = dir.join("tiny.fa");
     let reads = dir.join("reads.fq");
-    std::fs::write(&fasta, ">chr1\nACGTACGTACGTACGT\n").unwrap();
-    std::fs::write(&reads, "@r1\nACGTACGT\n+\nFFFFFFFF\n").unwrap();
+    std::fs::write(&fasta, UNIQUE_TEST_GENOME).unwrap();
+    std::fs::write(&reads, UNIQUE_TEST_READ).unwrap();
 
     let generated = run_cli(&[
         "STAR".to_string(),
@@ -608,8 +735,8 @@ fn cli_align_reads_paired_keep_input_order_writes_chunk_file_output() {
     std::fs::create_dir_all(&genome_dir).unwrap();
     let fasta = dir.join("tiny.fa");
     let reads = dir.join("reads.fq");
-    std::fs::write(&fasta, ">chr1\nACGTACGTACGTACGT\n").unwrap();
-    std::fs::write(&reads, "@r1\nACGTACGT\n+\nFFFFFFFF\n").unwrap();
+    std::fs::write(&fasta, UNIQUE_TEST_GENOME).unwrap();
+    std::fs::write(&reads, UNIQUE_TEST_READ).unwrap();
 
     run_cli(&[
         "STAR".to_string(),
@@ -687,8 +814,8 @@ fn cli_align_reads_bysjout_runs_second_mapping_stage() {
     std::fs::create_dir_all(&genome_dir).unwrap();
     let fasta = dir.join("tiny.fa");
     let reads = dir.join("reads.fq");
-    std::fs::write(&fasta, ">chr1\nACGTACGTACGTACGT\n").unwrap();
-    std::fs::write(&reads, "@r1\nACGTACGT\n+\nFFFFFFFF\n").unwrap();
+    std::fs::write(&fasta, UNIQUE_TEST_GENOME).unwrap();
+    std::fs::write(&reads, UNIQUE_TEST_READ).unwrap();
 
     run_cli(&[
         "STAR".to_string(),
@@ -928,8 +1055,8 @@ fn cli_align_reads_applies_multimapper_output_controls() {
     std::fs::create_dir_all(&genome_dir).unwrap();
     let fasta = dir.join("duplicate.fa");
     let reads = dir.join("reads.fq");
-    std::fs::write(&fasta, ">chr1\nACGTACGTACGTACGT\n>chr2\nACGTACGTACGTACGT\n").unwrap();
-    std::fs::write(&reads, "@r1\nACGTACGT\n+\nFFFFFFFF\n").unwrap();
+    std::fs::write(&fasta, ">chr1\nACGTTGCAAGTCCTGA\n>chr2\nACGTTGCAAGTCCTGA\n").unwrap();
+    std::fs::write(&reads, UNIQUE_TEST_READ).unwrap();
 
     let generated = run_cli(&[
         "STAR".to_string(),
@@ -1010,8 +1137,8 @@ fn cli_align_reads_twopass_basic_initializes_pass1_outputs() {
     std::fs::create_dir_all(&genome_dir).unwrap();
     let fasta = dir.join("tiny.fa");
     let reads = dir.join("reads.fq");
-    std::fs::write(&fasta, ">chr1\nACGTACGTACGTACGT\n").unwrap();
-    std::fs::write(&reads, "@r1\nACGTACGT\n+\nFFFFFFFF\n").unwrap();
+    std::fs::write(&fasta, UNIQUE_TEST_GENOME).unwrap();
+    std::fs::write(&reads, UNIQUE_TEST_READ).unwrap();
 
     let generated = run_cli(&[
         "STAR".to_string(),
@@ -1084,8 +1211,8 @@ fn cli_align_reads_marks_limited_multimapper_output() {
     std::fs::create_dir_all(&genome_dir).unwrap();
     let fasta = dir.join("duplicate.fa");
     let reads = dir.join("reads.fq");
-    std::fs::write(&fasta, ">chr1\nACGTACGTACGTACGT\n>chr2\nACGTACGTACGTACGT\n").unwrap();
-    std::fs::write(&reads, "@r1\nACGTACGT\n+\nFFFFFFFF\n").unwrap();
+    std::fs::write(&fasta, ">chr1\nACGTTGCAAGTCCTGA\n>chr2\nACGTTGCAAGTCCTGA\n").unwrap();
+    std::fs::write(&reads, UNIQUE_TEST_READ).unwrap();
 
     let generated = run_cli(&[
         "STAR".to_string(),
@@ -1156,8 +1283,8 @@ fn cli_align_reads_writes_chimeric_output_files_when_requested() {
     std::fs::create_dir_all(&genome_dir).unwrap();
     let fasta = dir.join("tiny.fa");
     let reads = dir.join("reads.fq");
-    std::fs::write(&fasta, ">chr1\nACGTACGTACGTACGT\n").unwrap();
-    std::fs::write(&reads, "@r1\nACGTACGT\n+\nFFFFFFFF\n").unwrap();
+    std::fs::write(&fasta, UNIQUE_TEST_GENOME).unwrap();
+    std::fs::write(&reads, UNIQUE_TEST_READ).unwrap();
 
     let generated = run_cli(&[
         "STAR".to_string(),
@@ -1236,8 +1363,8 @@ fn cli_align_reads_accepts_chimeric_within_bam_output() {
     std::fs::create_dir_all(&genome_dir).unwrap();
     let fasta = dir.join("tiny.fa");
     let reads = dir.join("reads.fq");
-    std::fs::write(&fasta, ">chr1\nACGTACGTACGTACGT\n").unwrap();
-    std::fs::write(&reads, "@r1\nACGTACGT\n+\nFFFFFFFF\n").unwrap();
+    std::fs::write(&fasta, UNIQUE_TEST_GENOME).unwrap();
+    std::fs::write(&reads, UNIQUE_TEST_READ).unwrap();
 
     let generated = run_cli(&[
         "STAR".to_string(),
@@ -1311,8 +1438,8 @@ fn cli_align_reads_applies_custom_sam_headers() {
     let fasta = dir.join("tiny.fa");
     let reads = dir.join("reads.fq");
     let comments = dir.join("comments.sam");
-    std::fs::write(&fasta, ">chr1\nACGTACGTACGTACGT\n").unwrap();
-    std::fs::write(&reads, "@r1\nACGTACGT\n+\nFFFFFFFF\n").unwrap();
+    std::fs::write(&fasta, UNIQUE_TEST_GENOME).unwrap();
+    std::fs::write(&reads, UNIQUE_TEST_READ).unwrap();
     std::fs::write(&comments, "\n@CO\tfrom-file\n   \n@CO\tsecond\n").unwrap();
 
     let generated = run_cli(&[
@@ -1390,8 +1517,8 @@ fn cli_align_reads_out_std_sam_keeps_alignment_on_stdout_path() {
     std::fs::create_dir_all(&genome_dir).unwrap();
     let fasta = dir.join("tiny.fa");
     let reads = dir.join("reads.fq");
-    std::fs::write(&fasta, ">chr1\nACGTACGTACGTACGT\n").unwrap();
-    std::fs::write(&reads, "@r1\nACGTACGT\n+\nFFFFFFFF\n").unwrap();
+    std::fs::write(&fasta, UNIQUE_TEST_GENOME).unwrap();
+    std::fs::write(&reads, UNIQUE_TEST_READ).unwrap();
 
     let generated = run_cli(&[
         "STAR".to_string(),
@@ -1470,7 +1597,7 @@ fn cli_align_reads_writes_unmapped_fastx_output() {
     std::fs::create_dir_all(&genome_dir).unwrap();
     let fasta = dir.join("tiny.fa");
     let reads = dir.join("reads.fq");
-    std::fs::write(&fasta, ">chr1\nACGTACGTACGTACGT\n").unwrap();
+    std::fs::write(&fasta, UNIQUE_TEST_GENOME).unwrap();
     std::fs::write(&reads, "@r_un\nTTTTTTTT\n+\nFFFFFFFF\n").unwrap();
 
     let generated = run_cli(&[
@@ -1538,8 +1665,8 @@ fn cli_align_reads_writes_unsorted_bam_output() {
     std::fs::create_dir_all(&genome_dir).unwrap();
     let fasta = dir.join("tiny.fa");
     let reads = dir.join("reads.fq");
-    std::fs::write(&fasta, ">chr1\nACGTACGTACGTACGT\n").unwrap();
-    std::fs::write(&reads, "@r1\nACGTACGT\n+\nFFFFFFFF\n").unwrap();
+    std::fs::write(&fasta, UNIQUE_TEST_GENOME).unwrap();
+    std::fs::write(&reads, UNIQUE_TEST_READ).unwrap();
 
     let generated = run_cli(&[
         "STAR".to_string(),
@@ -1639,8 +1766,8 @@ fn cli_align_reads_writes_sorted_bam_output() {
     std::fs::create_dir_all(&genome_dir).unwrap();
     let fasta = dir.join("tiny.fa");
     let reads = dir.join("reads.fq");
-    std::fs::write(&fasta, ">chr1\nACGTACGTACGTACGT\n").unwrap();
-    std::fs::write(&reads, "@r1\nACGTACGT\n+\nFFFFFFFF\n").unwrap();
+    std::fs::write(&fasta, UNIQUE_TEST_GENOME).unwrap();
+    std::fs::write(&reads, UNIQUE_TEST_READ).unwrap();
 
     let generated = run_cli(&[
         "STAR".to_string(),
@@ -1718,8 +1845,8 @@ fn cli_align_reads_writes_wiggle_signal_from_sorted_bam_records() {
     std::fs::create_dir_all(&genome_dir).unwrap();
     let fasta = dir.join("tiny.fa");
     let reads = dir.join("reads.fq");
-    std::fs::write(&fasta, ">chr1\nACGTACGTACGTACGT\n").unwrap();
-    std::fs::write(&reads, "@r1\nACGTACGT\n+\nFFFFFFFF\n").unwrap();
+    std::fs::write(&fasta, UNIQUE_TEST_GENOME).unwrap();
+    std::fs::write(&reads, UNIQUE_TEST_READ).unwrap();
 
     let generated = run_cli(&[
         "STAR".to_string(),
@@ -1800,8 +1927,8 @@ fn cli_input_alignments_from_bam_writes_signal_from_existing_bam() {
     std::fs::create_dir_all(&genome_dir).unwrap();
     let fasta = dir.join("tiny.fa");
     let reads = dir.join("reads.fq");
-    std::fs::write(&fasta, ">chr1\nACGTACGTACGTACGT\n").unwrap();
-    std::fs::write(&reads, "@r1\nACGTACGT\n+\nFFFFFFFF\n").unwrap();
+    std::fs::write(&fasta, UNIQUE_TEST_GENOME).unwrap();
+    std::fs::write(&reads, UNIQUE_TEST_READ).unwrap();
 
     let generated = run_cli(&[
         "STAR".to_string(),
@@ -2039,6 +2166,118 @@ fn cli_input_alignments_from_bam_marks_duplicates_and_writes_processed_bam() {
 }
 
 #[test]
+fn cli_input_alignments_from_bam_malformed_header_returns_error_without_panic() {
+    let dir = unique_temp_dir("input_bam_bad_header_no_panic");
+    let out_prefix = dir.join("bam/");
+    std::fs::create_dir_all(&dir).unwrap();
+    let bam_path = dir.join("bad.bam");
+
+    let mut bam = Vec::new();
+    bam.extend_from_slice(b"BAM\x01");
+    bam.extend_from_slice(&(-1i32).to_ne_bytes());
+    bam.extend_from_slice(&0i32.to_ne_bytes());
+    std::fs::write(&bam_path, &bam).unwrap();
+
+    let result = std::panic::catch_unwind(|| {
+        run_cli(&[
+            "STAR".to_string(),
+            "--runMode".to_string(),
+            "inputAlignmentsFromBAM".to_string(),
+            "--inputBAMfile".to_string(),
+            bam_path.to_str().unwrap().to_string(),
+            "--outFileNamePrefix".to_string(),
+            out_prefix.to_str().unwrap().to_string(),
+        ])
+    });
+    let err = result.expect("malformed BAM header must return an error, not panic");
+    assert!(err.unwrap_err().contains("malformed BAM header"));
+
+    std::fs::remove_dir_all(dir).unwrap();
+}
+
+#[test]
+fn cli_input_alignments_from_bam_malformed_record_layout_returns_error_without_panic() {
+    let dir = unique_temp_dir("input_bam_bad_record_layout_no_panic");
+    let out_prefix = dir.join("bam/");
+    std::fs::create_dir_all(&dir).unwrap();
+    let bam_path = dir.join("bad_record.bam");
+
+    let mut bam = Vec::new();
+    bam.extend_from_slice(b"BAM\x01");
+    bam.extend_from_slice(&0i32.to_ne_bytes());
+    bam.extend_from_slice(&1i32.to_ne_bytes());
+    bam.extend_from_slice(&5i32.to_ne_bytes());
+    bam.extend_from_slice(b"chr1\0");
+    bam.extend_from_slice(&1000i32.to_ne_bytes());
+
+    bam.extend_from_slice(&32i32.to_ne_bytes());
+    bam.extend_from_slice(&0i32.to_ne_bytes());
+    bam.extend_from_slice(&0i32.to_ne_bytes());
+    bam.extend_from_slice(&250u32.to_ne_bytes());
+    bam.extend_from_slice(&0u32.to_ne_bytes());
+    bam.extend_from_slice(&0i32.to_ne_bytes());
+    bam.extend_from_slice(&(-1i32).to_ne_bytes());
+    bam.extend_from_slice(&(-1i32).to_ne_bytes());
+    bam.extend_from_slice(&0i32.to_ne_bytes());
+    std::fs::write(&bam_path, &bam).unwrap();
+
+    let result = std::panic::catch_unwind(|| {
+        run_cli(&[
+            "STAR".to_string(),
+            "--runMode".to_string(),
+            "inputAlignmentsFromBAM".to_string(),
+            "--inputBAMfile".to_string(),
+            bam_path.to_str().unwrap().to_string(),
+            "--outFileNamePrefix".to_string(),
+            out_prefix.to_str().unwrap().to_string(),
+        ])
+    });
+    let err = result.expect("malformed BAM record layout must return an error, not panic");
+    assert!(err.unwrap_err().contains("malformed BAM record"));
+
+    std::fs::remove_dir_all(dir).unwrap();
+}
+
+#[test]
+fn cli_input_alignments_from_bam_malformed_bgzf_returns_error_without_panic() {
+    let dir = unique_temp_dir("input_bam_bad_bgzf_no_panic");
+    let out_prefix = dir.join("bam/");
+    std::fs::create_dir_all(&dir).unwrap();
+    let bam_path = dir.join("bad_bgzf.bam");
+
+    let mut bgzf = Vec::new();
+    bgzf.extend_from_slice(&[0x1f, 0x8b, 8, 4]);
+    bgzf.extend_from_slice(&[0, 0, 0, 0, 0, 255]);
+    bgzf.extend_from_slice(&6u16.to_le_bytes());
+    bgzf.extend_from_slice(b"BC");
+    bgzf.extend_from_slice(&2u16.to_le_bytes());
+    bgzf.extend_from_slice(&25u16.to_le_bytes());
+    bgzf.extend_from_slice(&[0; 4]);
+    std::fs::write(&bam_path, &bgzf).unwrap();
+
+    let result = std::panic::catch_unwind(|| {
+        run_cli(&[
+            "STAR".to_string(),
+            "--runMode".to_string(),
+            "inputAlignmentsFromBAM".to_string(),
+            "--inputBAMfile".to_string(),
+            bam_path.to_str().unwrap().to_string(),
+            "--outFileNamePrefix".to_string(),
+            out_prefix.to_str().unwrap().to_string(),
+        ])
+    });
+    let err = result.expect("malformed BGZF BAM must return an error, not panic");
+    let err = err.unwrap_err();
+    assert!(
+        err.contains("truncated BAM record")
+            || err.contains("malformed BAM record")
+            || err.contains("could not read BAM header")
+    );
+
+    std::fs::remove_dir_all(dir).unwrap();
+}
+
+#[test]
 fn cli_align_reads_quant_mode_gene_counts_writes_reads_per_gene() {
     let unique = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
@@ -2055,13 +2294,13 @@ fn cli_align_reads_quant_mode_gene_counts_writes_reads_per_gene() {
     let fasta = dir.join("tiny.fa");
     let gtf = dir.join("genes.gtf");
     let reads = dir.join("reads.fq");
-    std::fs::write(&fasta, ">chr1\nACGTACGTACGTACGT\n").unwrap();
+    std::fs::write(&fasta, UNIQUE_TEST_GENOME).unwrap();
     std::fs::write(
         &gtf,
         "chr1\tsrc\texon\t1\t8\t.\t+\t.\tgene_id \"G1\"; transcript_id \"T1\";\n",
     )
     .unwrap();
-    std::fs::write(&reads, "@r1\nACGTACGT\n+\nFFFFFFFF\n").unwrap();
+    std::fs::write(&reads, UNIQUE_TEST_READ).unwrap();
 
     let generated = run_cli(&[
         "STAR".to_string(),
@@ -2141,13 +2380,13 @@ fn cli_align_reads_quant_mode_transcriptome_sam_writes_bam() {
     let fasta = dir.join("tiny.fa");
     let gtf = dir.join("genes.gtf");
     let reads = dir.join("reads.fq");
-    std::fs::write(&fasta, ">chr1\nACGTACGTACGTACGT\n").unwrap();
+    std::fs::write(&fasta, UNIQUE_TEST_GENOME).unwrap();
     std::fs::write(
         &gtf,
         "chr1\tsrc\texon\t1\t8\t.\t+\t.\tgene_id \"G1\"; transcript_id \"T1\";\n",
     )
     .unwrap();
-    std::fs::write(&reads, "@r1\nACGTACGT\n+\nFFFFFFFF\n").unwrap();
+    std::fs::write(&reads, UNIQUE_TEST_READ).unwrap();
 
     let generated = run_cli(&[
         "STAR".to_string(),
@@ -2221,8 +2460,8 @@ fn cli_align_reads_uses_read_files_command_for_gzip_fastq() {
     let fasta = dir.join("tiny.fa");
     let reads_plain = dir.join("reads.fq");
     let reads_gz = dir.join("reads.fq.gz");
-    std::fs::write(&fasta, ">chr1\nACGTACGTACGTACGT\n").unwrap();
-    std::fs::write(&reads_plain, "@r1\nACGTACGT\n+\nFFFFFFFF\n").unwrap();
+    std::fs::write(&fasta, UNIQUE_TEST_GENOME).unwrap();
+    std::fs::write(&reads_plain, UNIQUE_TEST_READ).unwrap();
     let gzip_status = std::process::Command::new("gzip")
         .arg("-c")
         .arg(&reads_plain)
@@ -2542,10 +2781,10 @@ fn cli_align_reads_applies_read_limit_numeric_ids_flags_and_quality_shift() {
     std::fs::create_dir_all(&genome_dir).unwrap();
     let fasta = dir.join("tiny.fa");
     let reads = dir.join("reads.fq");
-    std::fs::write(&fasta, ">chr1\nACGTACGTACGTACGT\n").unwrap();
+    std::fs::write(&fasta, UNIQUE_TEST_GENOME).unwrap();
     std::fs::write(
         &reads,
-        "@r1\nACGTACGT\n+\nFFFFFFFF\n@r2\nTACGTACG\n+\nFFFFFFFF\n",
+        "@r1\nACGTTGCA\n+\nFFFFFFFF\n@r2\nCGTTGCAA\n+\nFFFFFFFF\n",
     )
     .unwrap();
 
@@ -2629,8 +2868,8 @@ fn cli_align_reads_applies_out_sam_mode_noqs_and_none() {
     std::fs::create_dir_all(&genome_dir).unwrap();
     let fasta = dir.join("tiny.fa");
     let reads = dir.join("reads.fq");
-    std::fs::write(&fasta, ">chr1\nACGTACGTACGTACGT\n").unwrap();
-    std::fs::write(&reads, "@r1\nACGTACGT\n+\nFFFFFFFF\n").unwrap();
+    std::fs::write(&fasta, UNIQUE_TEST_GENOME).unwrap();
+    std::fs::write(&reads, UNIQUE_TEST_READ).unwrap();
 
     let generated = run_cli(&[
         "STAR".to_string(),
@@ -2723,7 +2962,7 @@ fn cli_align_reads_accepts_comma_separated_read_file_chunks() {
     let fasta = dir.join("tiny.fa");
     let reads_1 = dir.join("reads_1.fq");
     let reads_2 = dir.join("reads_2.fq");
-    std::fs::write(&fasta, ">chr1\nACGTACGTACGTACGT\n").unwrap();
+    std::fs::write(&fasta, UNIQUE_TEST_GENOME).unwrap();
     std::fs::write(&reads_1, "@r1\nACGTACGT\n+\nFFFFFFFF\n").unwrap();
     std::fs::write(&reads_2, "@r2\nACGTACGT\n+\nFFFFFFFF\n").unwrap();
 
@@ -2793,7 +3032,7 @@ fn cli_align_reads_accepts_read_files_manifest() {
     let reads = dir.join("reads.fq");
     let manifest = dir.join("manifest.tsv");
     std::fs::write(&fasta, ">chr1\nACGTACGTACGTACGT\n").unwrap();
-    std::fs::write(&reads, "@r1\nACGTACGT\n+\nFFFFFFFF\n").unwrap();
+    std::fs::write(&reads, UNIQUE_TEST_READ).unwrap();
     std::fs::write(
         &manifest,
         format!("{}\t-\tID:rg1\n", reads.to_str().unwrap()),

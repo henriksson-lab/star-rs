@@ -32,6 +32,19 @@ fn simple_uint_and_sj_comparators_match_original_ordering() {
 }
 
 #[test]
+fn compare_sj_handles_short_records_without_panic() {
+    assert_eq!(outsj_l15_comparesj(&[], &[]), 0);
+
+    let mut full = [0u8; 8];
+    full[0..4].copy_from_slice(&1u32.to_ne_bytes());
+    assert_eq!(outsj_l15_comparesj(&[1, 2, 3], &full), -1);
+
+    let mut same_start = [0u8; 8];
+    same_start[4..8].copy_from_slice(&2u32.to_ne_bytes());
+    assert_eq!(outsj_l15_comparesj(&[0, 0, 0, 0, 1, 2, 3], &same_start), -1);
+}
+
+#[test]
 fn parameters_scan_one_line_matches_comments_levels_and_errors() {
     let mut state = ParametersScanState {
         par_array: vec![
@@ -1124,9 +1137,21 @@ fn find_char_returns_first_offset_without_boundary_checks() {
 #[test]
 fn solo_barcode_position_parser_matches_anchor_assignment() {
     let mut barcode = SoloBarcode::default();
-    solobarcode_l37_solobarcode_extractpositionsfromstring(&mut barcode, "1_25_2_30");
+    solobarcode_l37_solobarcode_extractpositionsfromstring(&mut barcode, "1_25_2_30").unwrap();
     assert_eq!(barcode.anchor_type, [1, 2]);
     assert_eq!(barcode.anchor_dist, [25, 30]);
+}
+
+#[test]
+fn solo_barcode_position_parser_reports_malformed_input_without_panic() {
+    let mut barcode = SoloBarcode::default();
+
+    let short = solobarcode_l37_solobarcode_extractpositionsfromstring(&mut barcode, "1_25_2");
+    assert!(short.is_err());
+
+    let bad_number =
+        solobarcode_l37_solobarcode_extractpositionsfromstring(&mut barcode, "1_25_x_30");
+    assert!(bad_number.is_err());
 }
 
 #[test]
@@ -2527,7 +2552,8 @@ fn supertranscriptome_load_slices_sequences_and_indexes_junctions() {
         &[0, 3, 6],
         &[3, 3, 4],
         "0\t10\t30\n0\t10\t20\n0\t15\t25\n2\t8\t12\n",
-    );
+    )
+    .unwrap();
 
     assert_eq!(st.n, 3);
     assert_eq!(st.super_trs[0].length, 3);
@@ -2547,6 +2573,30 @@ fn supertranscriptome_load_slices_sequences_and_indexes_junctions() {
         log,
         "Max number of splice junctions in a superTranscript = 3\nMax number of donor sites in a superTranscript = 2\n"
     );
+}
+
+#[test]
+fn supertranscriptome_load_reports_malformed_records_without_panic() {
+    let mut st = SuperTranscriptome::default();
+    let g = b"AAACCC".to_vec();
+
+    let bad_record = supertranscriptome_l32_supertranscriptome_load(
+        &mut st,
+        &g,
+        &[0, 3],
+        &[3, 3],
+        "0\tbad\t30\n",
+    );
+    assert!(bad_record.is_err());
+
+    let bad_interval = supertranscriptome_l32_supertranscriptome_load(
+        &mut st,
+        &g,
+        &[0, 4],
+        &[3, 3],
+        "0\t10\t30\n",
+    );
+    assert!(bad_interval.is_err());
 }
 
 #[test]
@@ -4692,7 +4742,8 @@ fn solo_feature_sum_threads_builds_undefined_whitelist_and_detected_cb_indexes()
         &mut read_bar_sum,
         &read_feat_all,
         41,
-    );
+    )
+    .unwrap();
 
     assert_eq!(sf.n_reads_input, 42);
     assert_eq!(sf.read_feat_all_len, 2);
@@ -4744,7 +4795,8 @@ fn solo_feature_sum_threads_restart_recounts_stream_cb_column() {
         &mut read_bar_sum,
         &read_feat_all,
         0,
-    );
+    )
+    .unwrap();
 
     assert_eq!(
         sf.read_feat_sum.as_ref().unwrap().cb_read_count,
@@ -4754,6 +4806,50 @@ fn solo_feature_sum_threads_restart_recounts_stream_cb_column() {
     assert_eq!(sf.n_reads_mapped, 8);
     assert_eq!(sf.ind_cb, vec![0, 1, 2]);
     assert_eq!(sf.ind_cb_wl, vec![0, 1, 2]);
+}
+
+#[test]
+fn solo_feature_sum_threads_restart_reports_malformed_records_without_panic() {
+    let mut p_solo = ParametersSolo {
+        cb_wl_yes: true,
+        cb_wl_size: 1,
+        ..Default::default()
+    };
+    let p = Parameters {
+        run_restart_type: 1,
+        ..Default::default()
+    };
+    let mut sf = SoloFeature {
+        feature_type: SOLO_FEATURE_GENE,
+        read_feat_sum: Some(SoloReadFeature {
+            cb_wl_yes: true,
+            cb_wl_size: 1,
+            cb_read_count: vec![0],
+            ..Default::default()
+        }),
+        ..Default::default()
+    };
+    let read_feat_all = vec![SoloReadFeature {
+        stream_reads: "9 8 7 not_a_cb\n".to_string(),
+        cb_wl_yes: true,
+        cb_wl_size: 1,
+        cb_read_count: vec![0],
+        ..Default::default()
+    }];
+    let mut read_bar_sum = SoloReadBarcode::default();
+
+    assert!(
+        solofeature_sumthreads_l8_solofeature_sumthreads(
+            &mut sf,
+            &p,
+            &mut p_solo,
+            &mut read_bar_sum,
+            &read_feat_all,
+            0,
+        )
+        .unwrap_err()
+        .contains("invalid cell barcode index")
+    );
 }
 
 #[test]
@@ -5772,18 +5868,21 @@ fn solo_input_feature_umi_matches_formatted_stream_extraction() {
     let mut flags = star_rs::generated::structs::SoloReadFlagClass::default();
 
     let mut gene_tokens = "17 123 5 42 1".split_whitespace();
-    assert!(soloinputfeatureumi_l5_soloinputfeatureumi(
-        &mut gene_tokens,
-        SOLO_FEATURE_GENE,
-        true,
-        &sj_all,
-        &mut iread,
-        &mut cbmatch,
-        &mut feature,
-        &mut umi,
-        &mut feat_vec,
-        &mut flags,
-    ));
+    assert!(
+        soloinputfeatureumi_l5_soloinputfeatureumi(
+            &mut gene_tokens,
+            SOLO_FEATURE_GENE,
+            true,
+            &sj_all,
+            &mut iread,
+            &mut cbmatch,
+            &mut feature,
+            &mut umi,
+            &mut feat_vec,
+            &mut flags,
+        )
+        .unwrap()
+    );
     assert_eq!(umi, 17);
     assert_eq!(iread, 123);
     assert_eq!(flags.flag, 5);
@@ -5791,53 +5890,127 @@ fn solo_input_feature_umi_matches_formatted_stream_extraction() {
     assert_eq!(cbmatch, 1);
 
     let mut sj_tokens = "91 200 20 -1".split_whitespace();
-    assert!(soloinputfeatureumi_l5_soloinputfeatureumi(
-        &mut sj_tokens,
-        SOLO_FEATURE_SJ,
-        false,
-        &sj_all,
-        &mut iread,
-        &mut cbmatch,
-        &mut feature,
-        &mut umi,
-        &mut feat_vec,
-        &mut flags,
-    ));
+    assert!(
+        soloinputfeatureumi_l5_soloinputfeatureumi(
+            &mut sj_tokens,
+            SOLO_FEATURE_SJ,
+            false,
+            &sj_all,
+            &mut iread,
+            &mut cbmatch,
+            &mut feature,
+            &mut umi,
+            &mut feat_vec,
+            &mut flags,
+        )
+        .unwrap()
+    );
     assert_eq!(umi, 91);
     assert_eq!(feature, 1);
     assert_eq!(cbmatch, -1);
 
     let mut tr_tokens = "55 2 7 8 9 10 3".split_whitespace();
-    assert!(soloinputfeatureumi_l5_soloinputfeatureumi(
-        &mut tr_tokens,
-        SOLO_FEATURE_TRANSCRIPT3P,
-        false,
-        &sj_all,
-        &mut iread,
-        &mut cbmatch,
-        &mut feature,
-        &mut umi,
-        &mut feat_vec,
-        &mut flags,
-    ));
+    assert!(
+        soloinputfeatureumi_l5_soloinputfeatureumi(
+            &mut tr_tokens,
+            SOLO_FEATURE_TRANSCRIPT3P,
+            false,
+            &sj_all,
+            &mut iread,
+            &mut cbmatch,
+            &mut feature,
+            &mut umi,
+            &mut feat_vec,
+            &mut flags,
+        )
+        .unwrap()
+    );
     assert_eq!(umi, 55);
     assert_eq!(feature, 0);
     assert_eq!(feat_vec, vec![7, 8, 9, 10]);
     assert_eq!(cbmatch, 3);
 
     let mut empty = "".split_whitespace();
-    assert!(!soloinputfeatureumi_l5_soloinputfeatureumi(
-        &mut empty,
-        SOLO_FEATURE_GENE,
-        false,
-        &sj_all,
-        &mut iread,
-        &mut cbmatch,
-        &mut feature,
-        &mut umi,
-        &mut feat_vec,
-        &mut flags,
-    ));
+    assert!(
+        !soloinputfeatureumi_l5_soloinputfeatureumi(
+            &mut empty,
+            SOLO_FEATURE_GENE,
+            false,
+            &sj_all,
+            &mut iread,
+            &mut cbmatch,
+            &mut feature,
+            &mut umi,
+            &mut feat_vec,
+            &mut flags,
+        )
+        .unwrap()
+    );
+}
+
+#[test]
+fn solo_input_feature_umi_reports_malformed_records_without_panic() {
+    let sj_all = [vec![100], vec![10]];
+    let mut iread = 0;
+    let mut cbmatch = 0;
+    let mut feature = 0;
+    let mut umi = 0;
+    let mut feat_vec = Vec::new();
+    let mut flags = star_rs::generated::structs::SoloReadFlagClass::default();
+
+    let mut bad_umi = "bad 42 1".split_whitespace();
+    assert!(
+        soloinputfeatureumi_l5_soloinputfeatureumi(
+            &mut bad_umi,
+            SOLO_FEATURE_GENE,
+            false,
+            &sj_all,
+            &mut iread,
+            &mut cbmatch,
+            &mut feature,
+            &mut umi,
+            &mut feat_vec,
+            &mut flags,
+        )
+        .unwrap_err()
+        .contains("invalid UMI")
+    );
+
+    let mut missing_cb = "17 42".split_whitespace();
+    assert!(
+        soloinputfeatureumi_l5_soloinputfeatureumi(
+            &mut missing_cb,
+            SOLO_FEATURE_GENE,
+            false,
+            &sj_all,
+            &mut iread,
+            &mut cbmatch,
+            &mut feature,
+            &mut umi,
+            &mut feat_vec,
+            &mut flags,
+        )
+        .unwrap_err()
+        .contains("missing CB match")
+    );
+
+    let mut short_tr = "55 2 7".split_whitespace();
+    assert!(
+        soloinputfeatureumi_l5_soloinputfeatureumi(
+            &mut short_tr,
+            SOLO_FEATURE_TRANSCRIPT3P,
+            false,
+            &sj_all,
+            &mut iread,
+            &mut cbmatch,
+            &mut feature,
+            &mut umi,
+            &mut feat_vec,
+            &mut flags,
+        )
+        .unwrap_err()
+        .contains("missing transcript value")
+    );
 }
 
 #[test]
@@ -6310,7 +6483,7 @@ fn read_align_constructor_allocates_core_buffers_and_resets_counters() {
     assert_eq!(ra.read_nmates, 2);
     assert_eq!(ra.rng_mult_order_seed, 2331);
     assert_eq!(ra.align_tr_all.len(), 4);
-    assert_eq!(ra.win_bin[0], vec![u32::MAX; 8]);
+    assert_eq!(ra.win_bin[0], vec![UINT_WIN_BIN_MAX; 8]);
     assert_eq!(ra.split_r[0].len(), 7);
     assert_eq!(ra.pc.len(), 6);
     assert_eq!(ra.wa.len(), 3);
@@ -10718,7 +10891,7 @@ fn read_align_assign_align_to_window_records_replaces_and_prunes_like_original()
 }
 
 #[test]
-fn read_align_assign_align_to_window_handles_anchor_overflow_marker() {
+fn read_align_assign_align_to_window_prunes_all_anchor_overflow() {
     let mut ra = ReadAlign {
         l_read: 30,
         n_w: 1,
@@ -10741,6 +10914,11 @@ fn read_align_assign_align_to_window_handles_anchor_overflow_marker() {
     .unwrap();
     assert_eq!(ra.map_marker, MARKER_TOO_MANY_ANCHORS_PER_WINDOW);
     assert_eq!(ra.n_w, 0);
+    assert_eq!(ra.n_wa[0], 2);
+    assert_eq!(ra.wa[0][0][WA_LENGTH], 5);
+    assert_eq!(ra.wa[0][1][WA_LENGTH], 6);
+    assert_eq!(ra.wa[0][0][WA_ANCHOR], 1);
+    assert_eq!(ra.wa[0][1][WA_ANCHOR], 1);
 }
 
 #[test]
@@ -10886,9 +11064,16 @@ fn read_align_stitch_pieces_records_single_anchor_window() {
         tr_init: Box::new(Transcript::default()),
         ..Default::default()
     };
-    let reads = vec![vec![0, 1, 2, 3], vec![3, 2, 1, 0]];
+    let reads = [vec![0, 1, 2, 3], vec![3, 2, 1, 0], Vec::new()];
 
-    readalign_stitchpieces_l12_readalign_stitchpieces(&mut ra, &reads, 4, &genome, &p).unwrap();
+    readalign_stitchpieces_l12_readalign_stitchpieces(
+        &mut ra,
+        [&reads[0], &reads[1], &reads[2]],
+        4,
+        &genome,
+        &p,
+    )
+    .unwrap();
 
     assert_eq!(ra.map_marker, 0);
     assert_eq!(ra.n_wall, 1);
@@ -10924,7 +11109,7 @@ fn read_align_stitch_pieces_converts_reverse_strand_coordinates() {
         ..Default::default()
     };
     let genome = Genome {
-        sa: vec![(1u32 << 31) | 20],
+        sa: vec![(1u64 << 31) | 20],
         n_genome: 200,
         gstrand_bit: 31,
         gstrand_mask: 0x7fff_ffff,
@@ -10953,9 +11138,16 @@ fn read_align_stitch_pieces_converts_reverse_strand_coordinates() {
         tr_init: Box::new(Transcript::default()),
         ..Default::default()
     };
-    let reads = vec![vec![0, 1, 2, 3], vec![3, 2, 1, 0]];
+    let reads = [vec![0, 1, 2, 3], vec![3, 2, 1, 0], Vec::new()];
 
-    readalign_stitchpieces_l12_readalign_stitchpieces(&mut ra, &reads, 4, &genome, &p).unwrap();
+    readalign_stitchpieces_l12_readalign_stitchpieces(
+        &mut ra,
+        [&reads[0], &reads[1], &reads[2]],
+        4,
+        &genome,
+        &p,
+    )
+    .unwrap();
 
     assert_eq!(ra.map_marker, 0);
     assert_eq!(ra.n_w, 1);
@@ -10966,6 +11158,70 @@ fn read_align_stitch_pieces_converts_reverse_strand_coordinates() {
     assert_eq!(ra.tr_all[0][0].ro_str, 1);
     assert_eq!(ra.tr_all[0][0].exons[0][EX_G], 176);
     assert_eq!(ra.tr_best.max_score, 4);
+}
+
+#[test]
+fn read_align_stitch_pieces_skips_reverse_suffixes_past_genome_start() {
+    let p = Parameters {
+        win_bin_nbits: 0,
+        win_anchor_dist_nbins: 1,
+        win_anchor_multimap_nmax: 1,
+        win_flank_nbins: 0,
+        win_bin_chr_nbits: 8,
+        win_bin_n: 64,
+        align_windows_per_read_nmax: 4,
+        seed_per_window_nmax: 4,
+        align_transcripts_per_window_nmax: 4,
+        align_transcripts_per_read_nmax: 16,
+        out_filter_intron_motifs: "None".to_string(),
+        out_filter_multimap_score_range: 0,
+        align_soft_clip_at_reference_ends_yes: true,
+        ..Default::default()
+    };
+    let genome = Genome {
+        sa: vec![(1u64 << 32) | 14],
+        n_genome: 16,
+        gstrand_bit: 32,
+        gstrand_mask: u64::MAX,
+        sj_gstart: 1_000,
+        chr_bin: vec![0; 64],
+        g: vec![0; 64],
+        chr_start: vec![0],
+        chr_length: vec![64],
+        ..Default::default()
+    };
+    let mut pc = vec![[0u32; PC_SIZE]; 1];
+    pc[0][PC_R_START] = 0;
+    pc[0][PC_LENGTH] = 4;
+    pc[0][PC_DIR] = 1;
+    pc[0][PC_NREP] = 1;
+    pc[0][PC_SASTART] = 0;
+    pc[0][PC_SAEND] = 0;
+    pc[0][PC_IFRAG] = 0;
+    let mut ra = ReadAlign {
+        n_p: 1,
+        l_read: 4,
+        pc,
+        out_filter_mismatch_nmax_total: 10,
+        read_length: vec![4],
+        max_score_mate: vec![i32::MIN],
+        tr_init: Box::new(Transcript::default()),
+        ..Default::default()
+    };
+    let reads = [vec![0, 1, 2, 3], vec![3, 2, 1, 0], Vec::new()];
+
+    readalign_stitchpieces_l12_readalign_stitchpieces(
+        &mut ra,
+        [&reads[0], &reads[1], &reads[2]],
+        4,
+        &genome,
+        &p,
+    )
+    .unwrap();
+
+    assert_eq!(ra.map_marker, MARKER_NO_GOOD_WINDOW);
+    assert_eq!(ra.n_w, 0);
+    assert_eq!(ra.n_tr, 0);
 }
 
 #[test]
@@ -11253,18 +11509,54 @@ chr1 14 . N C . . . GT 0/1
 chr1 15 . A A . . . GT 1/1
 ";
     let mut snp = SNP::default();
-    let n_homoz = variation_l23_scanvcf(vcf, &mut snp, &[100, 200], &chr_index, true);
+    let n_homoz = variation_l23_scanvcf(vcf, &mut snp, &[100, 200], &chr_index, true).unwrap();
     assert_eq!(n_homoz, 1);
     assert_eq!(snp.n, 2);
     assert_eq!(snp.loci_v, vec![110, 203]);
     assert_eq!(snp.nt, vec![[0, 0, 1], [1, 0, 2]]);
 
     let mut snp_with_homoz = SNP::default();
-    let n_homoz = variation_l23_scanvcf(vcf, &mut snp_with_homoz, &[100, 200], &chr_index, false);
+    let n_homoz =
+        variation_l23_scanvcf(vcf, &mut snp_with_homoz, &[100, 200], &chr_index, false).unwrap();
     assert_eq!(n_homoz, 0);
     assert_eq!(snp_with_homoz.n, 3);
     assert_eq!(snp_with_homoz.loci_v, vec![110, 112, 203]);
     assert_eq!(snp_with_homoz.nt[1], [2, 3, 3]);
+}
+
+#[test]
+fn scan_vcf_reports_malformed_records_without_panic() {
+    let mut chr_index = std::collections::BTreeMap::new();
+    chr_index.insert("chr1".to_string(), 0);
+
+    let mut snp = SNP::default();
+    assert!(
+        variation_l23_scanvcf(
+            "chr1 bad . A C . . . GT 0/1\n",
+            &mut snp,
+            &[100],
+            &chr_index,
+            true
+        )
+        .unwrap_err()
+        .contains("invalid POS field")
+    );
+    assert!(
+        variation_l23_scanvcf(
+            "chr1 10 . A C . . . GT 2/1\n",
+            &mut snp,
+            &[100],
+            &chr_index,
+            true,
+        )
+        .unwrap_err()
+        .contains("genotype allele index")
+    );
+    assert!(
+        variation_l23_scanvcf("chr1 10 . A\n", &mut snp, &[100], &chr_index, true)
+            .unwrap_err()
+            .contains("missing ALT field")
+    );
 }
 
 #[test]
@@ -11833,7 +12125,8 @@ fn solo_read_feature_input_records_counts_exact_rescued_and_rejected_records() {
         &mut read_flag_counts,
         &mut n_read_per_cb_unique,
         &mut n_read_per_cb_multi,
-    );
+    )
+    .unwrap();
 
     assert_eq!(cb_p[0], vec![7, 101, 0]);
     assert_eq!(cb_p[1], Vec::<u32>::new());
@@ -11859,6 +12152,55 @@ fn solo_read_feature_input_records_counts_exact_rescued_and_rejected_records() {
     assert_eq!(
         read_flag_counts.flag_counts_no_cb[SOLO_READ_FLAG_CB_MATCH as usize],
         2
+    );
+}
+
+#[test]
+fn solo_read_feature_input_records_reports_malformed_cb_without_panic() {
+    let mut rf = SoloReadFeature {
+        feature_type: SOLO_FEATURE_GENE,
+        read_info_yes: true,
+        read_index_yes: true,
+        stream_reads: "101 0 0 7 0 not_a_cb".to_string(),
+        stats: star_rs::generated::structs::SoloReadFeatureStats {
+            v: vec![0; SOLO_READ_FEATURE_N_STATS],
+            ..Default::default()
+        },
+        ..Default::default()
+    };
+    let p_solo = ParametersSolo {
+        cb_wl_yes: true,
+        cb_match_wl: CBMatchWL {
+            one_exact: true,
+            ..Default::default()
+        },
+        read_stats_yes: vec![true],
+        qs_base: 33,
+        qs_max: 40,
+        cb_min_p: 0.8,
+        ..Default::default()
+    };
+    let mut cb_p = vec![Vec::<u32>::new(); 1];
+    let mut read_info = vec![SoloFeatureReadInfo::default(); 1];
+    let mut read_flag_counts = SoloReadFlagClass::default();
+    let mut n_read_per_cb_unique = vec![0; 1];
+    let mut n_read_per_cb_multi = vec![0; 1];
+
+    assert!(
+        soloreadfeature_inputrecords_l8_soloreadfeature_inputrecords(
+            &mut rf,
+            &p_solo,
+            &[Vec::new(), Vec::new()],
+            &mut cb_p,
+            3,
+            &[1],
+            &mut read_info,
+            &mut read_flag_counts,
+            &mut n_read_per_cb_unique,
+            &mut n_read_per_cb_multi,
+        )
+        .unwrap_err()
+        .contains("invalid cell barcode index")
     );
 }
 
@@ -12132,7 +12474,7 @@ fn sjdb_insert_junctions_prepares_builds_and_recomputes_win_bins() {
         chr_start: vec![0, 32],
         chr_bin: vec![0; 40],
         gstrand_bit: 32,
-        gstrand_mask: u32::MAX,
+        gstrand_mask: u64::MAX,
         sjdb_overhang: 2,
         sjdb_length: 5,
         p_ge: ParametersGenome {
@@ -12302,7 +12644,8 @@ fn solo_feature_count_velocyto_intersects_umis_and_classifies_counts() {
         "T1",
         "T2",
         "MEM\n",
-    );
+    )
+    .unwrap();
 
     assert_eq!(
         log,
@@ -12322,6 +12665,49 @@ fn solo_feature_count_velocyto_intersects_umis_and_classifies_counts() {
     let stats = &solo_feature.read_feat_sum.as_ref().unwrap().stats.v;
     assert_eq!(stats[SOLO_READ_FEATURE_STAT_YES_UMIS], 3);
     assert_eq!(stats[SOLO_READ_FEATURE_STAT_YES_CELL_BARCODES], 2);
+}
+
+#[test]
+fn solo_feature_count_velocyto_reports_malformed_records_without_panic() {
+    let mut solo_feature = SoloFeature {
+        feature_type: SOLO_FEATURE_VELOCYTO,
+        n_cb: 1,
+        ind_cb_wl: vec![0],
+        n_reads_mapped: 1,
+        read_feat_sum: Some(SoloReadFeature {
+            cb_read_count: vec![1],
+            stats: star_rs::generated::structs::SoloReadFeatureStats {
+                v: vec![0; SOLO_READ_FEATURE_N_STATS],
+                ..Default::default()
+            },
+            ..Default::default()
+        }),
+        read_feat_all: vec![SoloReadFeature {
+            stream_reads: "0 1 9 1\n".to_string(),
+            ..Default::default()
+        }],
+        ..Default::default()
+    };
+    let gene_read_info = vec![SoloFeatureReadInfo { cb: 0, umi: 10 }];
+    let transcriptome = Transcriptome {
+        tr_gene: vec![0],
+        ..Default::default()
+    };
+
+    assert!(
+        solofeature_countvelocyto_l12_solofeature_countvelocyto(
+            &mut solo_feature,
+            &gene_read_info,
+            &transcriptome,
+            1,
+            "T0",
+            "T1",
+            "T2",
+            "MEM\n",
+        )
+        .unwrap_err()
+        .contains("transcript id 9 is outside transcriptome")
+    );
 }
 
 #[test]
@@ -12394,7 +12780,8 @@ fn solo_feature_count_smartseq_collapses_feature_umis_per_cell() {
         "T1",
         "T2",
         "T3",
-    );
+    )
+    .unwrap();
 
     assert!(log.contains("Redistributing reads into 2files; nReadRec=6"));
     assert!(log.contains("T1 ... Finished redistribution"));
@@ -12423,6 +12810,56 @@ fn solo_feature_count_smartseq_collapses_feature_umis_per_cell() {
     );
     assert_eq!(stats[SOLO_READ_FEATURE_STAT_YES_UMIS], 4);
     assert_eq!(stats[SOLO_READ_FEATURE_STAT_YES_CELL_BARCODES], 2);
+}
+
+#[test]
+fn solo_feature_count_smartseq_reports_malformed_cb_without_panic() {
+    let p = Parameters {
+        run_thread_n: 1,
+        p_solo: ParametersSolo {
+            redistr_reads_nfiles: 1,
+            ..Default::default()
+        },
+        ..Default::default()
+    };
+    let mut read_feat_sum = soloreadfeature_l5_soloreadfeature_soloreadfeature(
+        SOLO_FEATURE_GENE,
+        &Parameters::default(),
+        -1,
+    );
+    read_feat_sum.cb_read_count = vec![1];
+    read_feat_sum.stats = star_rs::generated::structs::SoloReadFeatureStats {
+        names: vec![],
+        v: vec![0; SOLO_READ_FEATURE_N_STATS],
+    };
+    let mut solo_feature = SoloFeature {
+        feature_type: SOLO_FEATURE_GENE,
+        n_cb: 1,
+        ind_cb: vec![0],
+        ind_cb_wl: vec![0],
+        read_feat_sum: Some(read_feat_sum),
+        read_feat_all: vec![SoloReadFeature {
+            stream_reads: "10 5 0 not_a_cb\n".to_string(),
+            stats: star_rs::generated::structs::SoloReadFeatureStats {
+                names: vec![],
+                v: vec![0; SOLO_READ_FEATURE_N_STATS],
+            },
+            ..Default::default()
+        }],
+        ..Default::default()
+    };
+
+    assert!(
+        solofeature_countsmartseq_l9_solofeature_countsmartseq(
+            &mut solo_feature,
+            &p,
+            "T1",
+            "T2",
+            "T3",
+        )
+        .unwrap_err()
+        .contains("invalid cell barcode index")
+    );
 }
 
 #[test]

@@ -755,9 +755,9 @@ fn genome_load_populates_core_arrays_and_redefines_windows() {
         "chr1\n",
         "4\n",
         "0\n8\n",
-        &[0, 1, 2, 3, 4, 4, 4, 4],
-        &sa.char_array,
-        &sa_index,
+        vec![0, 1, 2, 3, 4, 4, 4, 4],
+        sa.char_array.clone(),
+        sa_index,
         None,
         0,
     )
@@ -776,7 +776,11 @@ fn genome_load_populates_core_arrays_and_redefines_windows() {
     assert_eq!(genome.p_ge.g_sasparse_d, 2);
     assert_eq!(genome.gstrand_bit, 32);
     assert_eq!(genome.n_sa, 3);
-    assert_eq!(genome.sa, vec![4, 2, (1_u64 << 32) as u32 | 1]);
+    let loaded_sa: Vec<u64> = (0..genome.n_sa as u64)
+        .map(|ii| packedarray_h18_packedarray_index(&genome.sa_packed, ii))
+        .collect();
+    assert_eq!(loaded_sa, vec![4, 2, (1_u64 << 32) | 1]);
+    assert!(genome.sa.is_empty());
     assert_eq!(genome.genome_sa_index_start, vec![0, 2]);
     assert_eq!(genome.sai, vec![7, 9]);
     assert_eq!(genome.sjdb_n, 0);
@@ -810,9 +814,9 @@ fn genome_load_rejects_missing_and_incompatible_parameters() {
         "",
         "",
         "",
-        &[],
-        &[],
-        &[],
+        Vec::new(),
+        Vec::new(),
+        Vec::new(),
         None,
         0,
     )
@@ -826,9 +830,9 @@ fn genome_load_rejects_missing_and_incompatible_parameters() {
         "",
         "",
         "",
-        &[],
-        &[],
-        &[],
+        Vec::new(),
+        Vec::new(),
+        Vec::new(),
         None,
         0,
     )

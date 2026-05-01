@@ -1,6 +1,6 @@
 use clap::{Arg, Command};
 use std::collections::BTreeSet;
-use std::io::Write;
+use std::io::{Read, Write};
 use std::path::Path;
 
 use crate::generated::functions::{
@@ -688,13 +688,13 @@ pub fn load_genome_from_parameters(
             parameters.p_ge.g_dir
         )
     })?;
-    let genome_contents = std::fs::read(genome_dir.join("Genome")).map_err(|_| {
+    let genome_contents = read_file_exact(genome_dir.join("Genome")).map_err(|_| {
         format!(
             "EXITING because of FATAL error, could not open file {}/Genome\nSOLUTION: re-generate genome files with STAR --runMode genomeGenerate\n",
             parameters.p_ge.g_dir
         )
     })?;
-    let sa = std::fs::read(genome_dir.join("SA")).map_err(|_| {
+    let sa = read_file_exact(genome_dir.join("SA")).map_err(|_| {
         format!(
             "EXITING because of FATAL error, could not open file {}/SA\nSOLUTION: re-generate genome files with STAR --runMode genomeGenerate\n",
             parameters.p_ge.g_dir
@@ -718,11 +718,25 @@ pub fn load_genome_from_parameters(
         &chr_name,
         &chr_length,
         &chr_start,
-        &genome_contents,
-        &sa,
-        &sa_index,
+        genome_contents,
+        sa,
+        sa_index,
         sjdb_info.as_deref(),
         raw_time,
     )?;
     Ok(genome)
+}
+
+fn read_file_exact(path: impl AsRef<Path>) -> std::io::Result<Vec<u8>> {
+    let mut file = std::fs::File::open(path)?;
+    let len = file.metadata()?.len() as usize;
+    let mut contents = Vec::with_capacity(len);
+    file.read_to_end(&mut contents)?;
+    if contents.len() != len {
+        return Err(std::io::Error::new(
+            std::io::ErrorKind::UnexpectedEof,
+            "file length changed while reading",
+        ));
+    }
+    Ok(contents)
 }

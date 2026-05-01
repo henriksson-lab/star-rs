@@ -229,6 +229,11 @@ fn binary_search2_matches_duplicate_x_scan_behavior() {
     assert_eq!(binarysearch2_l3_binarysearch2(2, 8, &x, &y, 6), -1);
     assert_eq!(binarysearch2_l3_binarysearch2(4, 1, &x, &y, 6), -1);
     assert_eq!(binarysearch2_l3_binarysearch2(9, 1, &x, &y, 6), -1);
+    assert_eq!(
+        binarysearch2_l3_binarysearch2(2, 4, &x[..3], &y[..3], 99),
+        2
+    );
+    assert_eq!(binarysearch2_l3_binarysearch2(2, 4, &x, &y, -1), -1);
 }
 
 #[test]
@@ -348,6 +353,50 @@ fn bam_remove_duplicates_reports_missing_required_tags() {
         bamremoveduplicates_l114_bamremoveduplicates(&mut missing_as, 6, false)
             .unwrap_err()
             .contains("SAM tag AS is missing")
+    );
+}
+
+#[test]
+fn bam_remove_duplicates_reports_malformed_records_without_panic() {
+    let mut short = vec![vec![0u32; 4]];
+    assert!(
+        bamremoveduplicates_l114_bamremoveduplicates(&mut short, 6, false)
+            .unwrap_err()
+            .contains("malformed BAM record")
+    );
+
+    let mut no_cigar = vec![bam_record_with_seq_aux(
+        b"readA",
+        100,
+        0,
+        &[],
+        6,
+        &[0x12, 0x34, 0x56],
+        1,
+        Some(20),
+    )];
+    assert!(
+        bamremoveduplicates_l114_bamremoveduplicates(&mut no_cigar, 6, false)
+            .unwrap_err()
+            .contains("malformed BAM CIGAR")
+    );
+
+    let cigar = [(3 << 4)];
+    let seq = [0x12, 0x34];
+    let mut too_short = vec![bam_record_with_seq_aux(
+        b"readA",
+        100,
+        0,
+        &cigar,
+        3,
+        &seq,
+        1,
+        Some(20),
+    )];
+    assert!(
+        bamremoveduplicates_l114_bamremoveduplicates(&mut too_short, 6, false)
+            .unwrap_err()
+            .contains("shorter than bamRemoveDuplicatesMate2basesN")
     );
 }
 
@@ -638,6 +687,68 @@ fn stitch_window_aligns_records_single_window_alignment() {
     assert_eq!(w_tr[0].max_score, 4);
     assert_eq!(w_tr[0].i_frag, 0);
     assert_eq!(ra.max_score_mate[0], 4);
+}
+
+#[test]
+fn stitch_window_aligns_updates_genomic_end_after_right_extension() {
+    let wa = vec![{
+        let mut a = [0u32; WA_SIZE];
+        a[WA_LENGTH] = 3;
+        a[WA_R_START] = 0;
+        a[WA_G_START] = 10;
+        a[WA_N_REP] = 1;
+        a[WA_ANCHOR] = 1;
+        a[WA_I_FRAG] = 0;
+        a[WA_SJ_A] = u32::MAX;
+        a
+    }];
+    let mut incl = vec![false; 1];
+    let r = vec![0, 0, 0, 0, 0];
+    let genome = Genome {
+        g: vec![0; 128],
+        n_genome: 128,
+        chr_start: vec![0],
+        chr_length: vec![128],
+        ..Default::default()
+    };
+    let p = Parameters {
+        out_filter_intron_motifs: "None".to_string(),
+        align_transcripts_per_window_nmax: 4,
+        align_soft_clip_at_reference_ends_yes: true,
+        ..Default::default()
+    };
+    let mut ra = ReadAlign {
+        out_filter_mismatch_nmax_total: 10,
+        read_length: vec![5],
+        max_score_mate: vec![i32::MIN],
+        ..Default::default()
+    };
+    let mut w_tr = vec![Transcript::default(); 4];
+    let mut n_win_tr = 0;
+
+    stitchwindowaligns_l8_stitchwindowaligns(
+        0,
+        wa.len() as u32,
+        0,
+        &mut incl,
+        0,
+        0,
+        Transcript::default(),
+        5,
+        &wa,
+        &r,
+        &genome,
+        &p,
+        &mut w_tr,
+        &mut n_win_tr,
+        &mut ra,
+    )
+    .unwrap();
+
+    assert_eq!(n_win_tr, 1);
+    assert_eq!(w_tr[0].exons[0][EX_L], 5);
+    assert_eq!(w_tr[0].g_length, 5);
+    assert_eq!(w_tr[0].max_score, 5);
 }
 
 #[test]
@@ -1295,6 +1406,287 @@ fn read_align_mult_map_select_preserves_old_primary_and_limit_paths() {
     assert_eq!(limited.len(), 2);
     assert!(limited.iter().all(|tr| !tr.primary_flag));
     assert!(!too_multi.tr_best.primary_flag);
+}
+
+#[test]
+fn read_align_mult_map_select_orders_compact_nonbest_repeat_ties() {
+    let genome = Genome {
+        chr_start: vec![0],
+        ..Default::default()
+    };
+    let tr_all = vec![vec![
+        Transcript {
+            max_score: 35,
+            chr: 0,
+            r_start: 0,
+            r_length: 35,
+            g_start: 223130,
+            n_mm: 0,
+            ..Default::default()
+        },
+        Transcript {
+            max_score: 33,
+            chr: 0,
+            r_start: 0,
+            r_length: 34,
+            g_start: 223128,
+            n_mm: 0,
+            ..Default::default()
+        },
+        Transcript {
+            max_score: 33,
+            chr: 0,
+            r_start: 0,
+            r_length: 34,
+            g_start: 223129,
+            n_mm: 0,
+            ..Default::default()
+        },
+    ]];
+    let mut read_align = ReadAlign {
+        n_w: 1,
+        n_win_tr: vec![3],
+        l_read: 51,
+        tr_best: tr_all[0][0].clone(),
+        ..Default::default()
+    };
+
+    let selected = readalign_multmapselect_l8_readalign_multmapselect(
+        &mut read_align,
+        &genome,
+        &tr_all,
+        2,
+        20,
+        false,
+        false,
+        "",
+        &[],
+    )
+    .unwrap();
+
+    assert_eq!(
+        selected
+            .iter()
+            .map(|tr| (tr.max_score, tr.c_start))
+            .collect::<Vec<_>>(),
+        vec![(35, 223130), (33, 223128), (33, 223129)]
+    );
+
+    let tr_all_r_start_tie = vec![vec![
+        Transcript {
+            max_score: 38,
+            chr: 0,
+            r_start: 4,
+            r_length: 43,
+            g_start: 223122,
+            n_mm: 2,
+            ..Default::default()
+        },
+        Transcript {
+            max_score: 37,
+            chr: 0,
+            r_start: 0,
+            r_length: 46,
+            g_start: 223128,
+            n_mm: 4,
+            ..Default::default()
+        },
+        Transcript {
+            max_score: 37,
+            chr: 0,
+            r_start: 0,
+            r_length: 46,
+            g_start: 223129,
+            n_mm: 4,
+            ..Default::default()
+        },
+    ]];
+    let mut mismatch_read_align = ReadAlign {
+        n_w: 1,
+        n_win_tr: vec![3],
+        l_read: 51,
+        tr_best: tr_all_r_start_tie[0][0].clone(),
+        ..Default::default()
+    };
+
+    let mismatch_selected = readalign_multmapselect_l8_readalign_multmapselect(
+        &mut mismatch_read_align,
+        &genome,
+        &tr_all_r_start_tie,
+        1,
+        20,
+        false,
+        false,
+        "",
+        &[],
+    )
+    .unwrap();
+
+    assert_eq!(
+        mismatch_selected
+            .iter()
+            .map(|tr| (tr.max_score, tr.n_mm, tr.c_start))
+            .collect::<Vec<_>>(),
+        vec![(38, 2, 223122), (37, 4, 223128), (37, 4, 223129)]
+    );
+}
+
+#[test]
+fn read_align_mult_map_select_orders_nonbest_softclip_before_insertion_tie() {
+    let genome = Genome {
+        chr_start: vec![0],
+        ..Default::default()
+    };
+    let tr_all = vec![vec![
+        Transcript {
+            max_score: 33,
+            chr: 0,
+            r_start: 11,
+            r_length: 38,
+            g_start: 223125,
+            n_mm: 2,
+            ..Default::default()
+        },
+        Transcript {
+            max_score: 32,
+            chr: 0,
+            r_start: 14,
+            r_length: 37,
+            g_start: 223127,
+            n_mm: 2,
+            ..Default::default()
+        },
+        Transcript {
+            max_score: 32,
+            chr: 0,
+            r_start: 11,
+            r_length: 40,
+            g_start: 223125,
+            n_mm: 1,
+            ..Default::default()
+        },
+    ]];
+    let mut read_align = ReadAlign {
+        n_w: 1,
+        n_win_tr: vec![3],
+        l_read: 51,
+        tr_best: tr_all[0][0].clone(),
+        ..Default::default()
+    };
+
+    let selected = readalign_multmapselect_l8_readalign_multmapselect(
+        &mut read_align,
+        &genome,
+        &tr_all,
+        1,
+        20,
+        false,
+        false,
+        "",
+        &[],
+    )
+    .unwrap();
+
+    assert_eq!(
+        selected
+            .iter()
+            .map(|tr| (tr.max_score, tr.r_start, tr.c_start, tr.n_mm))
+            .collect::<Vec<_>>(),
+        vec![
+            (33, 11, 223125, 2),
+            (32, 14, 223127, 2),
+            (32, 11, 223125, 1)
+        ]
+    );
+}
+
+#[test]
+fn read_align_mult_map_select_marks_nonfirst_tr_best_primary_after_coordinate_fill() {
+    let genome = Genome {
+        chr_start: vec![0],
+        ..Default::default()
+    };
+    let best = Transcript {
+        max_score: 38,
+        chr: 0,
+        str_: 0,
+        ro_str: 0,
+        r_start: 1,
+        ro_start: 1,
+        r_length: 45,
+        mapped_length: 45,
+        g_start: 189665,
+        g_length: 45,
+        n_match: 42,
+        n_mm: 3,
+        n_unique: 1,
+        n_anchor: 1,
+        n_exons: 1,
+        exons: vec![[1, 189665, 45, 0, u32::MAX]],
+        canon_sj: vec![-1],
+        shift_sj: vec![[0, 0]],
+        sj_str: vec![0],
+        sj_annot: vec![0],
+        read_name: "@SRR10143877.15951".to_string(),
+        ..Default::default()
+    };
+    let tr_all = vec![
+        vec![Transcript {
+            max_score: 38,
+            chr: 0,
+            str_: 1,
+            ro_str: 1,
+            r_start: 1,
+            ro_start: 1,
+            r_length: 49,
+            mapped_length: 49,
+            g_start: 165869,
+            g_length: 50,
+            n_match: 46,
+            n_mm: 3,
+            n_exons: 2,
+            exons: vec![[1, 165869, 29, 0, u32::MAX], [30, 165899, 20, 0, u32::MAX]],
+            canon_sj: vec![-1, 0],
+            shift_sj: vec![[0, 1], [0, 0]],
+            sj_str: vec![0, 0],
+            sj_annot: vec![0, 0],
+            ..Default::default()
+        }],
+        vec![best.clone()],
+    ];
+    let mut read_align = ReadAlign {
+        n_w: 2,
+        n_win_tr: vec![1, 1],
+        l_read: 51,
+        tr_best: Transcript {
+            c_start: 0,
+            primary_flag: false,
+            ..best
+        },
+        ..Default::default()
+    };
+
+    let selected = readalign_multmapselect_l8_readalign_multmapselect(
+        &mut read_align,
+        &genome,
+        &tr_all,
+        0,
+        20,
+        false,
+        false,
+        "",
+        &[],
+    )
+    .unwrap();
+
+    assert_eq!(read_align.tr_best.c_start, 189665);
+    assert_eq!(
+        selected
+            .iter()
+            .map(|tr| tr.primary_flag)
+            .collect::<Vec<_>>(),
+        vec![false, true]
+    );
 }
 
 #[test]

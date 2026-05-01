@@ -105,6 +105,19 @@ binary. Prefer real-world or externally derived data when adding broader tests;
 synthetic fixtures are useful for isolating failures but should not be the only
 evidence for parity.
 
+The env-gated real-world parity test can be prepared with a splice-enriched
+yeast RNA-seq fixture:
+
+```sh
+tools/prepare_yeast_conformance.sh
+source .tmp/yeast_conformance/env.sh
+cargo test real_world_conformance_from_env_matches_original_star_core_sam_fields --test cpp_parity -- --nocapture
+```
+
+The preparation script uses original STAR to select real reads whose alignments
+contain splice-junction CIGARs, and the test requires at least one splice event
+unless `STAR_RS_REAL_MIN_SPLICES=0` is set.
+
 ## Translation Workflow
 
 1. Keep the C++ source in [`STAR/source`](STAR/source/) as the ground truth.

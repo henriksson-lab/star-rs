@@ -33,6 +33,7 @@ fn bam_cigar_string_and_reg2bin_match_htslib_macros() {
         "10M1I5D3S"
     );
     assert_eq!(bamfunctions_l5_bam_cigarstring(&[], 0), "");
+    assert_eq!(bamfunctions_l5_bam_cigarstring(&cigar[..2], 4), "10M1I");
 
     assert_eq!(bamfunctions_l95_reg2bin(0, 1), 4681);
     assert_eq!(bamfunctions_l95_reg2bin(20_000, 40_000), 585);
@@ -86,6 +87,12 @@ fn bam_read1_from_array_matches_core_field_unpacking() {
         bamfunctions_l30_bam_read1_fromarray(&short_block, &mut bad),
         -4
     );
+
+    let truncated_body = bytes[..36].to_vec();
+    assert_eq!(
+        bamfunctions_l30_bam_read1_fromarray(&truncated_body, &mut bad),
+        -4
+    );
 }
 
 #[test]
@@ -98,17 +105,23 @@ fn bamoutput_unsorted_constructor_buffers_and_flushes_like_original() {
     let a1 = [10u8, 11, 12, 13];
     let a2 = [20u8, 21, 22, 23];
 
-    bamoutput_l52_bamoutput_unsortedonealign(&mut out, &a1, 4, 4);
+    bamoutput_l52_bamoutput_unsortedonealign(&mut out, &a1, 4, 4).unwrap();
     assert_eq!(out.bin_bytes1, 4);
     assert_eq!(out.bgzf_bam, vec![1, 2]);
 
-    bamoutput_l52_bamoutput_unsortedonealign(&mut out, &a2, 4, 16);
+    bamoutput_l52_bamoutput_unsortedonealign(&mut out, &a2, 4, 16).unwrap();
     assert_eq!(out.bgzf_bam, vec![1, 2, 10, 11, 12, 13]);
     assert_eq!(out.bin_bytes1, 4);
 
     bamoutput_l70_bamoutput_unsortedflush(&mut out);
     assert_eq!(out.bgzf_bam, vec![1, 2, 10, 11, 12, 13, 20, 21, 22, 23]);
     assert_eq!(out.bin_bytes1, 0);
+
+    let err = bamoutput_l52_bamoutput_unsortedonealign(&mut out, &[1, 2], 4, 4).unwrap_err();
+    assert!(err.contains("exceeds input buffer"));
+
+    let err = bamoutput_l52_bamoutput_unsortedonealign(&mut out, &[0; 16], 16, 16).unwrap_err();
+    assert!(err.contains("exceeds output buffer"));
 }
 
 #[test]
@@ -128,11 +141,11 @@ fn bamoutput_coordinate_constructor_rebins_and_flushes_records() {
     let r1 = bam_record(0, 100, 1);
     let r2 = bam_record(0, 300, 2);
     let r3 = bam_record(0, 500, 3);
-    bamoutput_l77_bamoutput_coordonealign(&mut out, &mut p, &r1, r1.len() as u64, 10);
-    bamoutput_l77_bamoutput_coordonealign(&mut out, &mut p, &r2, r2.len() as u64, 20);
-    bamoutput_l77_bamoutput_coordonealign(&mut out, &mut p, &r3, r3.len() as u64, 30);
+    bamoutput_l77_bamoutput_coordonealign(&mut out, &mut p, &r1, r1.len() as u64, 10).unwrap();
+    bamoutput_l77_bamoutput_coordonealign(&mut out, &mut p, &r2, r2.len() as u64, 20).unwrap();
+    bamoutput_l77_bamoutput_coordonealign(&mut out, &mut p, &r3, r3.len() as u64, 30).unwrap();
 
-    bamoutput_l168_bamoutput_coordflush(&mut out, &mut p);
+    bamoutput_l168_bamoutput_coordflush(&mut out, &mut p).unwrap();
     assert_eq!(out.n_bins, 4);
     assert_eq!(p.out_bam_sorting_bin_start, vec![0, 300, 500, 0]);
     assert!(p.bam_sorting_log.contains("BAM sorting: 3 mapped reads"));
@@ -155,6 +168,36 @@ fn bamoutput_coordinate_constructor_rebins_and_flushes_records() {
         v.extend_from_slice(&30u64.to_le_bytes());
         v
     });
+}
+
+#[test]
+fn bamoutput_coordinate_reports_malformed_records_without_panic() {
+    let mut p = Parameters {
+        out_bam_coord_nbins: 2,
+        chunk_out_bam_size_bytes: 120,
+        out_bam_sorting_bin_start: vec![0, 0],
+        ..Default::default()
+    };
+    let mut out = bamoutput_l9_bamoutput_bamoutput(0, "/tmp/bam", &p);
+
+    let short = bamoutput_l77_bamoutput_coordonealign(&mut out, &mut p, &[0, 1, 2], 3, 0);
+    assert!(short.is_err());
+
+    let oversized = bamoutput_l77_bamoutput_coordonealign(&mut out, &mut p, &[0, 1, 2, 3], 20, 0);
+    assert!(oversized.is_err());
+
+    let mut overflow = bamoutput_l9_bamoutput_bamoutput(0, "/tmp/bam", &p);
+    overflow.bin_bytes[0] = u64::MAX - 1;
+    let record = bam_record(0, 10, 1);
+    let err = bamoutput_l77_bamoutput_coordonealign(
+        &mut overflow,
+        &mut p,
+        &record,
+        record.len() as u64,
+        0,
+    )
+    .unwrap_err();
+    assert!(err.contains("byte count overflow"));
 }
 
 #[test]
@@ -258,6 +301,32 @@ fn bambinsortbycoordinate_returns_empty_for_empty_bins_and_errors_on_size_mismat
     )
     .unwrap_err();
     assert!(err.contains("Expected bin size=99"));
+
+    let err = bambinsortbycoordinate_l7_bambinsortbycoordinate(
+        1,
+        1,
+        2,
+        1,
+        "d",
+        &p,
+        &genome,
+        &[vec![1, 2]],
+    )
+    .unwrap_err();
+    assert!(err.contains("truncated temporary BAM coordinate bin"));
+
+    let err = bambinsortbycoordinate_l7_bambinsortbycoordinate(
+        1,
+        1,
+        4,
+        1,
+        "d",
+        &p,
+        &genome,
+        &[u32::MAX.to_le_bytes().to_vec()],
+    )
+    .unwrap_err();
+    assert!(err.contains("truncated temporary BAM coordinate bin"));
 }
 
 #[test]
@@ -325,6 +394,21 @@ fn bambinsortunmapped_reports_truncated_temp_records() {
         bambinsortunmapped_l5_bambinsortunmapped(1, 1, "d", &p, &genome, &[vec![12, 0, 0, 0]])
             .unwrap_err();
     assert!(err.contains("truncated temporary bam file"));
+
+    let err = bambinsortunmapped_l5_bambinsortunmapped(1, 1, "d", &p, &genome, &[vec![1, 2]])
+        .unwrap_err();
+    assert!(err.contains("truncated temporary bam file"));
+
+    let err = bambinsortunmapped_l5_bambinsortunmapped(
+        1,
+        1,
+        "d",
+        &p,
+        &genome,
+        &[u32::MAX.to_le_bytes().to_vec()],
+    )
+    .unwrap_err();
+    assert!(err.contains("malformed temporary bam file"));
 }
 
 #[test]
@@ -545,7 +629,8 @@ fn bam_attr_array_write_sam_tags_filters_and_encodes_supported_tags() {
             u16::from_ne_bytes(*b"ch"),
             u16::from_ne_bytes(*b"ZZ"),
         ],
-    );
+    )
+    .unwrap();
     assert_eq!(n, 18);
     assert_eq!(&buf[..3], b"NMi");
     assert_eq!(i32::from_ne_bytes(buf[3..7].try_into().unwrap()), -7);
@@ -554,12 +639,33 @@ fn bam_attr_array_write_sam_tags_filters_and_encodes_supported_tags() {
 
     let mut all_buf = [0u8; 64];
     let n_all =
-        bamfunctions_l147_bamattrarraywritesamtags("AS:f:1.25\tXY:i:2", &mut all_buf, true, &[]);
+        bamfunctions_l147_bamattrarraywritesamtags("AS:f:1.25\tXY:i:2", &mut all_buf, true, &[])
+            .unwrap();
     assert_eq!(n_all, 14);
     assert_eq!(&all_buf[..3], b"ASf");
     assert_eq!(f32::from_ne_bytes(all_buf[3..7].try_into().unwrap()), 1.25);
     assert_eq!(&all_buf[7..10], b"XYi");
     assert_eq!(i32::from_ne_bytes(all_buf[10..14].try_into().unwrap()), 2);
+}
+
+#[test]
+fn bam_attr_array_write_sam_tags_reports_malformed_tags_without_panic() {
+    let mut buf = [0u8; 64];
+    assert!(
+        bamfunctions_l147_bamattrarraywritesamtags("N", &mut buf, true, &[])
+            .unwrap_err()
+            .contains("malformed SAM attribute")
+    );
+    assert!(
+        bamfunctions_l147_bamattrarraywritesamtags("NM:i:not_an_int", &mut buf, true, &[])
+            .unwrap_err()
+            .contains("malformed SAM integer attribute")
+    );
+    assert!(
+        bamfunctions_l147_bamattrarraywritesamtags("AS:f:not_a_float", &mut buf, true, &[])
+            .unwrap_err()
+            .contains("malformed SAM float attribute")
+    );
 }
 
 #[test]

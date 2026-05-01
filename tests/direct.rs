@@ -16,7 +16,7 @@ fn direct_star_run_maps_in_memory_read_pair() {
     let out_prefix = dir.join("direct/");
     std::fs::create_dir_all(&genome_dir).unwrap();
     let fasta = dir.join("tiny.fa");
-    std::fs::write(&fasta, ">chr1\nACGTACGTACGTACGT\n").unwrap();
+    std::fs::write(&fasta, ">chr1\nACGTTGCAAGTCCTGA\n").unwrap();
 
     run_cli(&[
         "STAR".to_string(),
@@ -58,7 +58,7 @@ fn direct_star_run_maps_in_memory_read_pair() {
     run.clear_chunk_input();
     run.append_read_pair(&DirectReadPair {
         name: "r1",
-        r1: b"ACGTACGT",
+        r1: b"ACGTTGCA",
         q1: b"FFFFFFFF",
         r2: b"",
         q2: b"",

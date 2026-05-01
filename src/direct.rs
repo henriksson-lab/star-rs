@@ -18,6 +18,8 @@ use crate::generated::structs::{
 
 /// Intentional helper API for direct access to the translated aligner core.
 ///
+/// Used by Bascet.
+///
 /// The main translation keeps STAR's original file-oriented control flow for
 /// parity and auditability. This type is deliberately outside that one-function
 /// per original-function scaffold and is a user-approved deviation from CCC's
@@ -32,6 +34,8 @@ pub struct DirectReadPair<'a> {
 }
 
 /// Stateful direct aligner wrapper around STAR's translated core structures.
+///
+/// Used by Bascet.
 ///
 /// This is an intentional helper layer for zero-copy direct access from other
 /// Rust code and a user-approved CCC deviation rather than a missing original
@@ -53,6 +57,7 @@ pub struct DirectStarRun {
 }
 
 impl DirectStarRun {
+    /// Used by Bascet.
     pub fn new(args: &[String]) -> Result<Self, String> {
         let mut parameters = Parameters::default();
         let parameter_files = parameter_files_from_args(args)?;
@@ -186,6 +191,8 @@ impl DirectStarRun {
 
     /// Clear the current in-memory FASTQ chunk while preserving allocated
     /// buffers for repeated direct aligner calls.
+    ///
+    /// Used by Bascet.
     pub fn clear_chunk_input(&mut self) {
         let read_nends = self.parameters.read_nends as usize;
         let chunk = &mut self.read_chunks[0];
@@ -203,6 +210,8 @@ impl DirectStarRun {
 
     /// Check whether appending this borrowed read pair would reach STAR's
     /// configured chunk byte limit.
+    ///
+    /// Used by Bascet.
     pub fn read_pair_would_exceed_chunk(&self, read: &DirectReadPair<'_>) -> bool {
         let chunk = &self.read_chunks[0];
         let limit = self.parameters.chunk_in_size_bytes.max(1);
@@ -219,6 +228,8 @@ impl DirectStarRun {
     ///
     /// The chunk bytes are shaped exactly like STAR's internal FASTQ buffers so
     /// the translated core aligner can consume them unchanged.
+    ///
+    /// Used by Bascet.
     pub fn append_read_pair(&mut self, read: &DirectReadPair<'_>) {
         self.parameters.i_read_all += 1;
         let read_id = if self.parameters.out_sam_read_id_number {
@@ -246,6 +257,8 @@ impl DirectStarRun {
     }
 
     /// Report whether the current direct chunk has reached STAR's byte limit.
+    ///
+    /// Used by Bascet.
     pub fn chunk_reached_limit(&self) -> bool {
         let chunk = &self.read_chunks[0];
         let limit = self.parameters.chunk_in_size_bytes.max(1);
@@ -255,6 +268,8 @@ impl DirectStarRun {
 
     /// Finalize the current direct chunk and pass it to STAR's translated
     /// `ReadAlignChunk::mapChunk` logic.
+    ///
+    /// Used by Bascet.
     pub fn finalize_and_map_chunk(&mut self) -> Result<(), String> {
         let read_nends = self.parameters.read_nends as usize;
         let chunk = &mut self.read_chunks[0];
@@ -282,6 +297,8 @@ impl DirectStarRun {
 
     /// Finish the direct run and return the same aggregate result shape used by
     /// the CLI-facing STAR entry point.
+    ///
+    /// Used by Bascet.
     pub fn finish(mut self) -> StarMainResult {
         self.read_chunks[0].no_reads_left = true;
         if self.parameters.out_sam_bool
@@ -311,6 +328,8 @@ impl DirectStarRun {
     }
 }
 
+// Used by Bascet.
+//
 // User-approved CCC deviation for direct access: this encodes borrowed
 // read/quality slices into STAR's in-memory chunk format without requiring
 // caller-side FASTQ files.
@@ -323,6 +342,8 @@ fn write_star_mate_to_chunk(chunk_in: &mut Vec<u8>, read_id: &str, seq: &[u8], q
     chunk_in.push(b'\n');
 }
 
+// Used by Bascet.
+//
 // User-approved CCC deviation matching the timestamp type expected by the
 // translated STAR stats/logging code.
 fn current_unix_time() -> libc::time_t {

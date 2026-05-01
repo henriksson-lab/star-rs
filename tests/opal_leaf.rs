@@ -18,6 +18,9 @@ fn time_month_day_time_matches_star_format_for_epoch() {
 #[test]
 fn opal_array_and_gap_primitives_match_cpp_logic() {
     assert_eq!(opal_l1031_arraymax(&[3, 1, 7, 7, 2], 5), 7);
+    assert_eq!(opal_l1031_arraymax(&[3, 1, 7], 99), 7);
+    assert_eq!(opal_l1031_arraymax::<i32>(&[], 1), 0);
+    assert_eq!(opal_l1031_arraymax(&[3, 1, 7], -1), 0);
     assert_eq!(opal_l1048_gappenalty(0, 5, 2), 0);
     assert_eq!(opal_l1048_gappenalty(1, 5, 2), 5);
     assert_eq!(opal_l1048_gappenalty(4, 5, 2), 11);
@@ -129,9 +132,18 @@ fn opal_band_borders_cover_modes() {
 #[test]
 fn opal_reverse_and_revert_match_cpp_logic() {
     assert_eq!(opal_l1188_createreversecopy(b"ACGT", 4), b"TGCA");
+    assert_eq!(opal_l1188_createreversecopy(b"ACGT", 6), b"TGCA");
+    assert_eq!(opal_l1188_createreversecopy(b"ACGT", -1), b"");
+
     let mut values = [1, 2, 3, 4, 5];
     opal_l1197_revertarray(&mut values, 5);
     assert_eq!(values, [5, 4, 3, 2, 1]);
+
+    let mut short_values = [1, 2, 3];
+    opal_l1197_revertarray(&mut short_values, 5);
+    assert_eq!(short_values, [3, 2, 1]);
+    opal_l1197_revertarray(&mut short_values, -1);
+    assert_eq!(short_values, [3, 2, 1]);
 }
 
 #[test]
