@@ -2,6 +2,12 @@
 name = "star-rs"
 version = "0.1.0"
 edition = "2024"
+description = "Rust translation of the STAR RNA-seq aligner (experimental, LLM-mediated)"
+license = "MIT"
+repository = "https://github.com/henriksson-lab/star-rs"
+readme = "README.md"
+keywords = ["bioinformatics", "rna-seq", "aligner", "genomics", "star"]
+categories = ["science", "command-line-utilities"]
 
 [features]
 default = []

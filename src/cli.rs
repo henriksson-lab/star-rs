@@ -10,7 +10,7 @@ use crate::generated::functions::{
 };
 use crate::generated::structs::{Parameters, StarMainResult, Transcriptome};
 
-pub const PARAMETERS_DEFAULT: &str = include_str!("../STAR/source/parametersDefault");
+pub const PARAMETERS_DEFAULT: &str = include_str!("parametersDefault");
 
 fn write_bgzf_block(
     out: &mut Vec<u8>,

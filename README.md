@@ -1,10 +1,9 @@
 # star-rs
 
-`star-rs` is a Rust translation of the STAR RNA-seq aligner 
+This is a Rust translation of the STAR RNA-seq aligner 
 
-**This is an ongoing translation. Do not use!**
+* 2026-05-02: Passes basic tests but a larger battery is needed before we can assert that this translation is fully functional
 
-**Do not trust text below**
 
 ## This is an LLM-mediated faithful (hopefully) translation, not the original code! 
 
