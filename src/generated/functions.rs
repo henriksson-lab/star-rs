@@ -18305,42 +18305,24 @@ pub fn splicegraph_findsupertr_l5_splicegraph_findsupertr(
     out
 }
 
+fn format_local_time_month_day_time(raw_time: libc::time_t) -> String {
+    use chrono::{Local, TimeZone};
+
+    let timestamp = raw_time as i64;
+    match Local.timestamp_opt(timestamp, 0).single() {
+        Some(local_time) => local_time.format("%b %d %H:%M:%S").to_string(),
+        None => String::new(),
+    }
+}
+
 #[doc = "Original `timeMonthDayTime` at STAR/source/TimeFunctions.cpp:4. Args: "]
 pub fn timefunctions_l4_timemonthdaytime() -> String {
-    let mut raw_time: libc::time_t = 0;
-    unsafe {
-        libc::time(&mut raw_time as *mut libc::time_t);
-    }
-    let mut time_char = [0 as libc::c_char; 100];
-    unsafe {
-        libc::strftime(
-            time_char.as_mut_ptr(),
-            80,
-            c"%b %d %H:%M:%SS".as_ptr(),
-            libc::localtime(&raw_time as *const libc::time_t),
-        );
-        let c_string = std::ffi::CStr::from_ptr(time_char.as_ptr());
-        let mut time_string = c_string.to_string_lossy().into_owned();
-        time_string.pop();
-        time_string
-    }
+    format_local_time_month_day_time(chrono::Local::now().timestamp() as libc::time_t)
 }
 
 #[doc = "Original `timeMonthDayTime` at STAR/source/TimeFunctions.cpp:14. Args: rawTime: time_t"]
 pub fn timefunctions_l14_timemonthdaytime(raw_time: libc::time_t) -> String {
-    let mut time_char = [0 as libc::c_char; 100];
-    unsafe {
-        libc::strftime(
-            time_char.as_mut_ptr(),
-            80,
-            c"%b %d %H:%M:%SS".as_ptr(),
-            libc::localtime(&raw_time as *const libc::time_t),
-        );
-        let c_string = std::ffi::CStr::from_ptr(time_char.as_ptr());
-        let mut time_string = c_string.to_string_lossy().into_owned();
-        time_string.pop();
-        time_string
-    }
+    format_local_time_month_day_time(raw_time)
 }
 
 #[doc = "Original `readLoad` at STAR/source/readLoad.cpp:4. Args: readInStream: istream, P: Parameters, Lread: uint, LreadOriginal: uint, readName: char, Seq: char, SeqNum: char, Qual: char, clipOneMate: vector<ClipMate>, iReadAll: uint, readFilesIndex: uint32, readFilter: char, readNameExtra: string"]
@@ -34960,21 +34942,31 @@ pub fn readalign_waspmap_l115_readalign_copyread(
     }
 }
 
+fn streamfuns_create_dir(path: &str, mode: u32) -> std::io::Result<()> {
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::DirBuilderExt;
+        std::fs::DirBuilder::new().mode(mode).create(path)
+    }
+    #[cfg(not(unix))]
+    {
+        let _ = mode;
+        std::fs::create_dir(path)
+    }
+}
+
 #[doc = "Original `createDirectory` at STAR/source/streamFuns.cpp:10. Args: dirPathIn: string, dirPerm: mode_t, dirParameter: string, P: Parameters"]
 pub fn streamfuns_l10_createdirectory(
     dir_path_in: &str,
-    dir_perm: libc::mode_t,
+    dir_perm: u32,
     dir_parameter: &str,
 ) -> Result<String, String> {
     let dir_path = match dir_path_in.rfind('/') {
         Some(pos) => &dir_path_in[..=pos],
         None => "",
     };
-    let c_dir_path = std::ffi::CString::new(dir_path).map_err(|err| err.to_string())?;
-    let mkdir_res = unsafe { libc::mkdir(c_dir_path.as_ptr(), dir_perm) };
-    if mkdir_res == -1 {
-        let err = std::io::Error::last_os_error();
-        if err.raw_os_error() == Some(libc::EEXIST) {
+    if let Err(err) = streamfuns_create_dir(dir_path, dir_perm) {
+        if err.kind() == std::io::ErrorKind::AlreadyExists {
             Ok(format!(
                 "{} directory exists and will be overwritten: {}\n",
                 dir_parameter, dir_path
@@ -34992,12 +34984,8 @@ pub fn streamfuns_l10_createdirectory(
                 .unwrap_or(dir_path.len());
             while i1 < dir_path.len() {
                 let dir_path1 = &dir_path[..i1];
-                let c_dir_path1 =
-                    std::ffi::CString::new(dir_path1).map_err(|err| err.to_string())?;
-                let mkdir_res1 = unsafe { libc::mkdir(c_dir_path1.as_ptr(), dir_perm) };
-                if mkdir_res1 == -1 {
-                    let err1 = std::io::Error::last_os_error();
-                    if err1.raw_os_error() != Some(libc::EEXIST) {
+                if let Err(err1) = streamfuns_create_dir(dir_path1, dir_perm) {
+                    if err1.kind() != std::io::ErrorKind::AlreadyExists {
                         return Err(format!(
                             "EXITING because of fatal OUTPUT FILE error: could not create output directory: {} for {} {}\n ERROR: {}\nSOLUTION: check the path and permissions.\n",
                             dir_path1, dir_parameter, dir_path_in, err1
