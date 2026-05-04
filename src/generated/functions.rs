@@ -18306,6 +18306,53 @@ pub fn splicegraph_findsupertr_l5_splicegraph_findsupertr(
 }
 
 fn format_local_time_month_day_time(raw_time: libc::time_t) -> String {
+    format_local_time_month_day_time_impl(raw_time)
+}
+
+#[doc = "Original `timeMonthDayTime` at STAR/source/TimeFunctions.cpp:4. Args: "]
+pub fn timefunctions_l4_timemonthdaytime() -> String {
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|duration| duration.as_secs() as libc::time_t)
+        .unwrap_or_default();
+    format_local_time_month_day_time(now)
+}
+
+#[doc = "Original `timeMonthDayTime` at STAR/source/TimeFunctions.cpp:14. Args: rawTime: time_t"]
+pub fn timefunctions_l14_timemonthdaytime(raw_time: libc::time_t) -> String {
+    format_local_time_month_day_time(raw_time)
+}
+
+#[cfg(not(windows))]
+fn format_local_time_month_day_time_impl(raw_time: libc::time_t) -> String {
+    let mut tm = std::mem::MaybeUninit::<libc::tm>::uninit();
+    let tm = unsafe {
+        if libc::localtime_r(&raw_time, tm.as_mut_ptr()).is_null() {
+            return String::new();
+        }
+        tm.assume_init()
+    };
+
+    let mut buf = [0 as libc::c_char; 32];
+    let len = unsafe {
+        libc::strftime(
+            buf.as_mut_ptr(),
+            buf.len(),
+            c"%b %d %H:%M:%S".as_ptr(),
+            &tm,
+        )
+    };
+    if len == 0 {
+        return String::new();
+    }
+
+    unsafe { std::ffi::CStr::from_ptr(buf.as_ptr()) }
+        .to_string_lossy()
+        .into_owned()
+}
+
+#[cfg(windows)]
+fn format_local_time_month_day_time_impl(raw_time: libc::time_t) -> String {
     use chrono::{Local, TimeZone};
 
     let timestamp = raw_time as i64;
@@ -18313,16 +18360,6 @@ fn format_local_time_month_day_time(raw_time: libc::time_t) -> String {
         Some(local_time) => local_time.format("%b %d %H:%M:%S").to_string(),
         None => String::new(),
     }
-}
-
-#[doc = "Original `timeMonthDayTime` at STAR/source/TimeFunctions.cpp:4. Args: "]
-pub fn timefunctions_l4_timemonthdaytime() -> String {
-    format_local_time_month_day_time(chrono::Local::now().timestamp() as libc::time_t)
-}
-
-#[doc = "Original `timeMonthDayTime` at STAR/source/TimeFunctions.cpp:14. Args: rawTime: time_t"]
-pub fn timefunctions_l14_timemonthdaytime(raw_time: libc::time_t) -> String {
-    format_local_time_month_day_time(raw_time)
 }
 
 #[doc = "Original `readLoad` at STAR/source/readLoad.cpp:4. Args: readInStream: istream, P: Parameters, Lread: uint, LreadOriginal: uint, readName: char, Seq: char, SeqNum: char, Qual: char, clipOneMate: vector<ClipMate>, iReadAll: uint, readFilesIndex: uint32, readFilter: char, readNameExtra: string"]
