@@ -1,6 +1,6 @@
 use star_rs::cli::{existing_read_files_from_args, run_cli};
 use star_rs::generated::functions::{
-    SOLO_TYPE_CB_SAM_TAG_OUT, quantifications_l3_quantifications_quantifications, star_l58_main,
+    quantifications_l3_quantifications_quantifications, star_l58_main, SOLO_TYPE_CB_SAM_TAG_OUT,
 };
 use star_rs::generated::structs::{
     Genome, Parameters, ParametersSolo, ReadAlign, ReadAlignChunk, SoloRead, SoloReadBarcode,
@@ -30,6 +30,14 @@ fn bam_payload(bytes: &[u8]) -> Vec<u8> {
         decoder.read_to_end(&mut out).unwrap();
         out
     }
+}
+
+fn gzip_bytes(bytes: &[u8]) -> Vec<u8> {
+    use std::io::Write;
+
+    let mut encoder = flate2::write::GzEncoder::new(Vec::new(), flate2::Compression::default());
+    encoder.write_all(bytes).unwrap();
+    encoder.finish().unwrap()
 }
 
 #[test]
@@ -82,10 +90,9 @@ fn cli_malformed_fastq_quality_length_returns_error_without_panic() {
         ])
     });
     let err = result.expect("malformed FASTQ must return an error, not panic");
-    assert!(
-        err.unwrap_err()
-            .contains("quality string length is not equal to sequence length")
-    );
+    assert!(err
+        .unwrap_err()
+        .contains("quality string length is not equal to sequence length"));
 
     std::fs::remove_dir_all(dir).unwrap();
 }
@@ -286,11 +293,9 @@ fn cli_liftover_writes_lifted_gtf_for_each_chain_file() {
     .unwrap();
 
     assert_eq!(result.exit_code, 0);
-    assert!(
-        result
-            .log_main
-            .contains("DONE: lift-over of GTF file, EXITING")
-    );
+    assert!(result
+        .log_main
+        .contains("DONE: lift-over of GTF file, EXITING"));
     assert_eq!(
         std::fs::read_to_string(dir.join("lift/GTFliftOver_1.gtf")).unwrap(),
         "chrA\tsrc\texon\t22\t30\t.\t+\t.\tgene_id \"a\";\n"
@@ -421,11 +426,9 @@ fn cli_solo_cell_filtering_loads_raw_matrix_and_writes_filtered_output() {
         std::fs::read_to_string(filtered_prefix.join("barcodes.tsv")).unwrap(),
         "CB1\n"
     );
-    assert!(
-        std::fs::read_to_string(out_prefix.join("Log.out"))
-            .unwrap()
-            .ends_with("ALL DONE!\n")
-    );
+    assert!(std::fs::read_to_string(out_prefix.join("Log.out"))
+        .unwrap()
+        .ends_with("ALL DONE!\n"));
 
     std::fs::remove_dir_all(dir).unwrap();
 }
@@ -641,6 +644,60 @@ fn cli_genome_generate_reads_sjdb_gtf_file() {
 }
 
 #[test]
+fn cli_genome_generate_auto_detects_gzip_sjdb_gtf_file() {
+    let dir = unique_temp_dir("cli_auto_gzip_gtf_genome");
+    let genome_dir = dir.join("genome");
+    let out_tmp = dir.join("tmp");
+    std::fs::create_dir_all(&genome_dir).unwrap();
+    let fasta = dir.join("tiny.fa");
+    let gtf = dir.join("genes.gtf.gz");
+    let gtf_contents = concat!(
+        "chr1\tsrc\texon\t1\t4\t.\t+\t.\tgene_id \"G1\"; transcript_id \"T1\";\n",
+        "chr1\tsrc\texon\t9\t12\t.\t+\t.\tgene_id \"G1\"; transcript_id \"T1\";\n",
+    );
+    std::fs::write(&fasta, ">chr1\nACCCGTAGTTTTCCCC\n").unwrap();
+    std::fs::write(&gtf, gzip_bytes(gtf_contents.as_bytes())).unwrap();
+
+    let result = run_cli(&[
+        "STAR".to_string(),
+        "--runMode".to_string(),
+        "genomeGenerate".to_string(),
+        "--genomeDir".to_string(),
+        genome_dir.to_str().unwrap().to_string(),
+        "--genomeFastaFiles".to_string(),
+        fasta.to_str().unwrap().to_string(),
+        "--genomeSAindexNbases".to_string(),
+        "1".to_string(),
+        "--genomeChrBinNbits".to_string(),
+        "2".to_string(),
+        "--limitGenomeGenerateRAM".to_string(),
+        "1000000".to_string(),
+        "--limitSjdbInsertNsj".to_string(),
+        "1000".to_string(),
+        "--sjdbOverhang".to_string(),
+        "1".to_string(),
+        "--sjdbGTFfile".to_string(),
+        gtf.to_str().unwrap().to_string(),
+        "--outTmpDir".to_string(),
+        out_tmp.to_str().unwrap().to_string(),
+    ])
+    .unwrap();
+
+    assert_eq!(result.exit_code, 0);
+    assert!(result.log_main.contains("processing annotations GTF"));
+    assert_eq!(
+        result
+            .genome_generate
+            .last()
+            .and_then(|generation| generation.gtf.as_ref())
+            .map(|gtf| gtf.sjdb_list_from_gtf_out_tab.as_str()),
+        Some("chr1\t5\t8\t+\t1\n")
+    );
+
+    std::fs::remove_dir_all(dir).unwrap();
+}
+
+#[test]
 fn cli_align_reads_loads_genome_and_processes_fastq_read() {
     let unique = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
@@ -700,21 +757,17 @@ fn cli_align_reads_loads_genome_and_processes_fastq_read() {
 
     assert_eq!(aligned.exit_code, 0);
     assert!(aligned.log_final_out.contains("Number of input reads |\t1"));
-    assert!(
-        aligned
-            .log_final_out
-            .contains("Uniquely mapped reads number |\t1")
-    );
+    assert!(aligned
+        .log_final_out
+        .contains("Uniquely mapped reads number |\t1"));
     assert!(aligned.log_main.contains("Completed: thread #0"));
     let sam = std::fs::read_to_string(dir.join("align_out/Aligned.out.sam")).unwrap();
     assert!(sam.starts_with("@HD\tVN:1.4\n"));
     assert!(sam.contains("@SQ\tSN:chr1\tLN:16\n"));
     assert!(sam.contains("r1\t0\tchr1\t1\t"));
-    assert!(
-        std::fs::read_to_string(dir.join("align_out/Log.final.out"))
-            .unwrap()
-            .contains("Number of input reads |\t1")
-    );
+    assert!(std::fs::read_to_string(dir.join("align_out/Log.final.out"))
+        .unwrap()
+        .contains("Number of input reads |\t1"));
 
     std::fs::remove_dir_all(dir).unwrap();
 }
@@ -788,10 +841,9 @@ fn cli_align_reads_paired_keep_input_order_writes_chunk_file_output() {
         map_chunk.paired_keep_input_order_final_name.as_deref(),
         Some(expected_chunk.as_str())
     );
-    assert!(
-        !dir.join("paired_order/_STARtmp/Aligned.out.sam.chunk0")
-            .exists()
-    );
+    assert!(!dir
+        .join("paired_order/_STARtmp/Aligned.out.sam.chunk0")
+        .exists());
     let sam = std::fs::read_to_string(dir.join("paired_order/Aligned.out.sam")).unwrap();
     assert!(sam.contains("r1\t0\tchr1\t1\t"));
 
@@ -860,11 +912,9 @@ fn cli_align_reads_bysjout_runs_second_mapping_stage() {
     .unwrap();
 
     assert_eq!(aligned.exit_code, 0);
-    assert!(
-        aligned
-            .log_main
-            .contains("Completed stage 1 mapping of outFilterBySJout mapping")
-    );
+    assert!(aligned
+        .log_main
+        .contains("Completed stage 1 mapping of outFilterBySJout mapping"));
     assert_eq!(aligned.process_chunks.len(), 2);
     assert!(dir.join("bysjout/SJ.out.tab").exists());
 
@@ -1563,18 +1613,14 @@ fn cli_align_reads_out_std_sam_keeps_alignment_on_stdout_path() {
 
     assert_eq!(aligned.exit_code, 0);
     assert_eq!(aligned.parameters.out_std, "SAM");
-    assert!(
-        aligned
-            .parameters
-            .out_sam_contents
-            .starts_with("@HD\tVN:1.4\n")
-    );
-    assert!(
-        aligned
-            .parameters
-            .out_sam_contents
-            .contains("r1\t0\tchr1\t1\t")
-    );
+    assert!(aligned
+        .parameters
+        .out_sam_contents
+        .starts_with("@HD\tVN:1.4\n"));
+    assert!(aligned
+        .parameters
+        .out_sam_contents
+        .contains("r1\t0\tchr1\t1\t"));
     assert!(!dir.join("stdout_sam_out/Aligned.out.sam").exists());
     assert!(dir.join("stdout_sam_out/Log.std.out").exists());
 
@@ -1640,11 +1686,9 @@ fn cli_align_reads_writes_unmapped_fastx_output() {
     let unmapped = std::fs::read_to_string(dir.join("unmapped_out/Unmapped.out.mate1")).unwrap();
     assert!(unmapped.starts_with("@r_un 0:"));
     assert!(unmapped.contains("\nTTTTTTTT\n+\nFFFFFFFF\n"));
-    assert!(
-        aligned
-            .log_final_out
-            .contains("Number of reads unmapped: too short |\t1")
-    );
+    assert!(aligned
+        .log_final_out
+        .contains("Number of reads unmapped: too short |\t1"));
 
     std::fs::remove_dir_all(dir).unwrap();
 }
@@ -1817,13 +1861,11 @@ fn cli_align_reads_writes_sorted_bam_output() {
     let bam = bam_payload(&bam);
     assert!(bam.starts_with(b"BAM\x01"));
     assert!(bam.len() > aligned.parameters.out_bam_unsorted_header.len());
-    assert!(
-        aligned
-            .bam_sort
-            .as_ref()
-            .map(|sort| !sort.output_bam.is_empty())
-            .unwrap_or(false)
-    );
+    assert!(aligned
+        .bam_sort
+        .as_ref()
+        .map(|sort| !sort.output_bam.is_empty())
+        .unwrap_or(false));
     assert!(aligned.log_final_out.contains("Number of input reads |\t1"));
 
     std::fs::remove_dir_all(dir).unwrap();
@@ -2513,11 +2555,128 @@ fn cli_align_reads_uses_read_files_command_for_gzip_fastq() {
     assert_eq!(aligned.exit_code, 0);
     assert_eq!(aligned.parameters.read_files_command, vec!["gzip", "-cd"]);
     assert!(aligned.log_final_out.contains("Number of input reads |\t1"));
-    assert!(
-        aligned
-            .log_final_out
-            .contains("Uniquely mapped reads number |\t1")
-    );
+    assert!(aligned
+        .log_final_out
+        .contains("Uniquely mapped reads number |\t1"));
+
+    std::fs::remove_dir_all(dir).unwrap();
+}
+
+#[test]
+fn cli_align_reads_auto_detects_gzip_fastq_without_read_files_command() {
+    let dir = unique_temp_dir("cli_auto_gzip_align");
+    let genome_dir = dir.join("genome");
+    std::fs::create_dir_all(&genome_dir).unwrap();
+    let fasta = dir.join("tiny.fa");
+    let reads_gz = dir.join("reads.fq.gz");
+    std::fs::write(&fasta, UNIQUE_TEST_GENOME).unwrap();
+    std::fs::write(&reads_gz, gzip_bytes(UNIQUE_TEST_READ.as_bytes())).unwrap();
+
+    let generated = run_cli(&[
+        "STAR".to_string(),
+        "--runMode".to_string(),
+        "genomeGenerate".to_string(),
+        "--genomeDir".to_string(),
+        genome_dir.to_str().unwrap().to_string(),
+        "--genomeFastaFiles".to_string(),
+        fasta.to_str().unwrap().to_string(),
+        "--genomeSAindexNbases".to_string(),
+        "1".to_string(),
+        "--genomeChrBinNbits".to_string(),
+        "2".to_string(),
+        "--limitGenomeGenerateRAM".to_string(),
+        "1000000".to_string(),
+    ])
+    .unwrap();
+    assert_eq!(generated.exit_code, 0);
+
+    let aligned = run_cli(&[
+        "STAR".to_string(),
+        "--genomeDir".to_string(),
+        genome_dir.to_str().unwrap().to_string(),
+        "--readFilesIn".to_string(),
+        reads_gz.to_str().unwrap().to_string(),
+        "--outSAMtype".to_string(),
+        "None".to_string(),
+        "--seedSplitMin".to_string(),
+        "1".to_string(),
+        "--seedMapMin".to_string(),
+        "0".to_string(),
+        "--outFilterMatchNmin".to_string(),
+        "0".to_string(),
+        "--outFilterScoreMin".to_string(),
+        "0".to_string(),
+    ])
+    .unwrap();
+
+    assert_eq!(aligned.exit_code, 0);
+    assert!(aligned.parameters.read_files_command_string.is_empty());
+    assert!(aligned.log_final_out.contains("Number of input reads |\t1"));
+    assert!(aligned
+        .log_final_out
+        .contains("Uniquely mapped reads number |\t1"));
+
+    std::fs::remove_dir_all(dir).unwrap();
+}
+
+#[test]
+fn cli_align_reads_auto_detects_gzip_genome_index_files() {
+    let dir = unique_temp_dir("cli_auto_gzip_index");
+    let genome_dir = dir.join("genome");
+    std::fs::create_dir_all(&genome_dir).unwrap();
+    let fasta = dir.join("tiny.fa");
+    let reads = dir.join("reads.fq");
+    std::fs::write(&fasta, UNIQUE_TEST_GENOME).unwrap();
+    std::fs::write(&reads, UNIQUE_TEST_READ).unwrap();
+
+    let generated = run_cli(&[
+        "STAR".to_string(),
+        "--runMode".to_string(),
+        "genomeGenerate".to_string(),
+        "--genomeDir".to_string(),
+        genome_dir.to_str().unwrap().to_string(),
+        "--genomeFastaFiles".to_string(),
+        fasta.to_str().unwrap().to_string(),
+        "--genomeSAindexNbases".to_string(),
+        "1".to_string(),
+        "--genomeChrBinNbits".to_string(),
+        "2".to_string(),
+        "--limitGenomeGenerateRAM".to_string(),
+        "1000000".to_string(),
+    ])
+    .unwrap();
+    assert_eq!(generated.exit_code, 0);
+
+    for file_name in ["Genome", "SA", "SAindex"] {
+        let path = genome_dir.join(file_name);
+        let plain = std::fs::read(&path).unwrap();
+        std::fs::write(&path, gzip_bytes(&plain)).unwrap();
+    }
+
+    let aligned = run_cli(&[
+        "STAR".to_string(),
+        "--genomeDir".to_string(),
+        genome_dir.to_str().unwrap().to_string(),
+        "--readFilesIn".to_string(),
+        reads.to_str().unwrap().to_string(),
+        "--outSAMtype".to_string(),
+        "None".to_string(),
+        "--seedSplitMin".to_string(),
+        "1".to_string(),
+        "--seedMapMin".to_string(),
+        "0".to_string(),
+        "--outFilterMatchNmin".to_string(),
+        "0".to_string(),
+        "--outFilterScoreMin".to_string(),
+        "0".to_string(),
+    ])
+    .unwrap();
+
+    assert_eq!(aligned.exit_code, 0);
+    assert!(aligned.log_final_out.contains("Number of input reads |\t1"));
+    assert!(aligned
+        .log_final_out
+        .contains("Uniquely mapped reads number |\t1"));
 
     std::fs::remove_dir_all(dir).unwrap();
 }
@@ -2754,11 +2913,9 @@ fn cli_align_reads_randomized_single_end_does_not_panic_in_stitching() {
     .unwrap();
 
     assert_eq!(aligned.exit_code, 0);
-    assert!(
-        aligned
-            .log_final_out
-            .contains("Number of input reads |\t12")
-    );
+    assert!(aligned
+        .log_final_out
+        .contains("Number of input reads |\t12"));
     let sam = std::fs::read(dir.join("stitching/Aligned.out.sam")).unwrap();
     assert!(!sam.contains(&0));
 

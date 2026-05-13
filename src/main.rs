@@ -1,15 +1,8 @@
-mod cli;
-
-pub mod generated {
-    pub mod functions;
-    pub mod structs;
-}
-
 fn main() {
-    let args = cli::cli_args();
-    match cli::run_cli(&args) {
+    let args = star_rs::cli::cli_args();
+    match star_rs::cli::run_cli(&args) {
         Ok(result) => {
-            cli::print_result(&result);
+            star_rs::cli::print_result(&result);
             std::process::exit(result.exit_code);
         }
         Err(err) => {

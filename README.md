@@ -1,7 +1,8 @@
 # star-rs
 
-This is a Rust translation of the STAR RNA-seq aligner 
+Rust translation of the STAR RNA-seq aligner 
 
+* 2026-05-13: Automatically detects gzip files if provided by name (not piped, CLI). Binary is now an optional feature
 * 2026-05-02: Passes basic tests but a larger battery is needed before we can assert that this translation is fully functional
 
 
@@ -28,46 +29,23 @@ But:
 
 This blurb might be out of date. Go to [this page](https://github.com/henriksson-lab/rustification) for the latest information and further information about how we approach translation
 
-## Layout
-
-- [`STAR/`](STAR/) contains the original C++ STAR source and documentation used as
-  the translation source.
-- [`src/generated/functions.rs`](src/generated/functions.rs) contains translated
-  functions. Function names include source file and line information to help
-  audit against the original implementation.
-- [`src/generated/structs.rs`](src/generated/structs.rs) contains translated data
-  structures.
-- [`src/cli.rs`](src/cli.rs) contains the Rust CLI wrapper and filesystem-facing
-  glue.
-- [`src/direct.rs`](src/direct.rs) contains intentional Rust helpers for zero-copy
-  direct access to the aligner core. These are user-approved deviations from pure
-  CCC one-to-one translation where they make integration practical.
-- [`ccc_mapping.toml`](ccc_mapping.toml) maps Rust functions back to their C++
-  counterparts.
-- [`ccc/`](ccc/) contains code-complexity-comparator output and porting order
-  artifacts.
-- [`tests/`](tests/) contains focused Rust tests, CLI tests, and C++ parity tests.
-
 ## Building
 
-```sh
-cargo build
-```
-
-Build an optimized binary with:
+Build the optional CLI binary with:
 
 ```sh
-cargo build --release
+cargo build --release --features binary
 ```
 
-The CLI binary is named `star-rs`.
+The CLI binary is named `star-rs`. The STAR-style CLI implementation is also
+available as the library module `star_rs::cli`.
 
 ## Running
 
 The CLI accepts STAR-style arguments. For example:
 
 ```sh
-cargo run -- \
+cargo run --features binary -- \
   --genomeDir path/to/genome \
   --readFilesIn reads.fq \
   --outSAMtype SAM \
@@ -77,11 +55,24 @@ cargo run -- \
 Genome generation uses the same CLI entry point:
 
 ```sh
-cargo run -- \
+cargo run --features binary -- \
   --runMode genomeGenerate \
   --genomeDir path/to/genome \
   --genomeFastaFiles genome.fa
 ```
+
+## Behavior Differences From Original STAR
+
+This translation aims to preserve original STAR behavior, but it also includes
+some Rust-specific CLI/filesystem glue where that makes use more practical.
+
+- Named input files are automatically detected as gzip-compressed by their magic
+  bytes and decompressed when loaded. This applies to read files, GTF files, and
+  genome index files loaded from `--genomeDir`.
+- Explicit streaming or command-based input remains under user control. In
+  particular, `--readFilesCommand` still runs the command requested by the user,
+  and data provided through such commands is not re-detected or re-decompressed
+  by star-rs.
 
 ## Testing
 
@@ -116,35 +107,6 @@ cargo test real_world_conformance_from_env_matches_original_star_core_sam_fields
 The preparation script uses original STAR to select real reads whose alignments
 contain splice-junction CIGARs, and the test requires at least one splice event
 unless `STAR_RS_REAL_MIN_SPLICES=0` is set.
-
-## Translation Workflow
-
-1. Keep the C++ source in [`STAR/source`](STAR/source/) as the ground truth.
-2. Use [`ccc_mapping.toml`](ccc_mapping.toml) to preserve traceability from Rust
-   functions back to original C++ functions.
-3. Use code-complexity-comparator output in [`ccc/`](ccc/) to choose bottom-up
-   implementation order.
-4. Translate complete logic in the first pass for each function where feasible.
-5. Prefer preserving original control flow and data layout over idiomatic Rust
-   refactors when auditability and output parity would otherwise suffer.
-6. Add parity tests around real command-line behavior before relying on larger
-   refactors.
-
-Helper functions are allowed in this repository when they serve the approved
-direct-access aligner interface or isolate Rust-only filesystem/CLI glue. For
-generated translation code, new helpers should still be treated skeptically unless
-they are necessary for faithful behavior or safe Rust ownership.
-
-## Optional Tracehash Feature
-
-The crate has an optional `tracehash` feature for trace-oriented translation
-verification:
-
-```sh
-cargo test --features tracehash
-```
-
-
 
 ## Citing
 

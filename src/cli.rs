@@ -1,6 +1,6 @@
 use clap::{Arg, Command};
 use std::collections::BTreeSet;
-use std::io::{Read, Write};
+use std::io::Write;
 use std::path::Path;
 
 use crate::generated::functions::{
@@ -669,44 +669,52 @@ pub fn load_genome_from_parameters(
 ) -> Result<crate::generated::structs::Genome, String> {
     let mut genome = genome_l15_genome_genome(parameters.p_ge.clone());
     let genome_dir = Path::new(&parameters.p_ge.g_dir);
-    let genome_parameters = std::fs::read_to_string(genome_dir.join("genomeParameters.txt")).ok();
-    let chr_name = std::fs::read_to_string(genome_dir.join("chrName.txt")).map_err(|_| {
-        format!(
-            "EXITING because of FATAL ERROR: could not open genome file {}/chrName.txt\nSOLUTION: check that the path to genome files, specified in --genomeDir is correct and the files are present, and have user read permsissions\n",
-            parameters.p_ge.g_dir
-        )
-    })?;
-    let chr_length = std::fs::read_to_string(genome_dir.join("chrLength.txt")).map_err(|_| {
-        format!(
-            "EXITING because of FATAL error, could not open file {}/chrLength.txt\nSOLUTION: re-generate genome files with STAR --runMode genomeGenerate\n",
-            parameters.p_ge.g_dir
-        )
-    })?;
-    let chr_start = std::fs::read_to_string(genome_dir.join("chrStart.txt")).map_err(|_| {
-        format!(
-            "EXITING because of FATAL error, could not open file {}/chrStart.txt\nSOLUTION: re-generate genome files with STAR --runMode genomeGenerate\n",
-            parameters.p_ge.g_dir
-        )
-    })?;
-    let genome_contents = read_file_exact(genome_dir.join("Genome")).map_err(|_| {
-        format!(
-            "EXITING because of FATAL error, could not open file {}/Genome\nSOLUTION: re-generate genome files with STAR --runMode genomeGenerate\n",
-            parameters.p_ge.g_dir
-        )
-    })?;
-    let sa = read_file_exact(genome_dir.join("SA")).map_err(|_| {
+    let genome_parameters =
+        crate::io_utils::read_to_string_auto_gzip(genome_dir.join("genomeParameters.txt")).ok();
+    let chr_name =
+        crate::io_utils::read_to_string_auto_gzip(genome_dir.join("chrName.txt")).map_err(
+            |_| {
+                format!(
+                    "EXITING because of FATAL ERROR: could not open genome file {}/chrName.txt\nSOLUTION: check that the path to genome files, specified in --genomeDir is correct and the files are present, and have user read permsissions\n",
+                    parameters.p_ge.g_dir
+                )
+            },
+        )?;
+    let chr_length = crate::io_utils::read_to_string_auto_gzip(genome_dir.join("chrLength.txt"))
+        .map_err(|_| {
+            format!(
+                "EXITING because of FATAL error, could not open file {}/chrLength.txt\nSOLUTION: re-generate genome files with STAR --runMode genomeGenerate\n",
+                parameters.p_ge.g_dir
+            )
+        })?;
+    let chr_start = crate::io_utils::read_to_string_auto_gzip(genome_dir.join("chrStart.txt"))
+        .map_err(|_| {
+            format!(
+                "EXITING because of FATAL error, could not open file {}/chrStart.txt\nSOLUTION: re-generate genome files with STAR --runMode genomeGenerate\n",
+                parameters.p_ge.g_dir
+            )
+        })?;
+    let genome_contents = crate::io_utils::read_bytes_auto_gzip(genome_dir.join("Genome"))
+        .map_err(|_| {
+            format!(
+                "EXITING because of FATAL error, could not open file {}/Genome\nSOLUTION: re-generate genome files with STAR --runMode genomeGenerate\n",
+                parameters.p_ge.g_dir
+            )
+        })?;
+    let sa = crate::io_utils::read_bytes_auto_gzip(genome_dir.join("SA")).map_err(|_| {
         format!(
             "EXITING because of FATAL error, could not open file {}/SA\nSOLUTION: re-generate genome files with STAR --runMode genomeGenerate\n",
             parameters.p_ge.g_dir
         )
     })?;
-    let sa_index = std::fs::read(genome_dir.join("SAindex")).map_err(|_| {
+    let sa_index = crate::io_utils::read_bytes_auto_gzip(genome_dir.join("SAindex")).map_err(|_| {
         format!(
             "EXITING because of FATAL error, could not open file {}/SAindex\nSOLUTION: re-generate genome files with STAR --runMode genomeGenerate\n",
             parameters.p_ge.g_dir
         )
     })?;
-    let sjdb_info = std::fs::read_to_string(genome_dir.join("sjdbInfo.txt")).ok();
+    let sjdb_info =
+        crate::io_utils::read_to_string_auto_gzip(genome_dir.join("sjdbInfo.txt")).ok();
     let raw_time = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .map(|duration| duration.as_secs() as libc::time_t)
@@ -725,18 +733,4 @@ pub fn load_genome_from_parameters(
         raw_time,
     )?;
     Ok(genome)
-}
-
-fn read_file_exact(path: impl AsRef<Path>) -> std::io::Result<Vec<u8>> {
-    let mut file = std::fs::File::open(path)?;
-    let len = file.metadata()?.len() as usize;
-    let mut contents = Vec::with_capacity(len);
-    file.read_to_end(&mut contents)?;
-    if contents.len() != len {
-        return Err(std::io::Error::new(
-            std::io::ErrorKind::UnexpectedEof,
-            "file length changed while reading",
-        ));
-    }
-    Ok(contents)
 }

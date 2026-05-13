@@ -11234,12 +11234,14 @@ pub fn star_l58_main(
 
     if run_mode == "genomeGenerate" {
         let gtf_contents = if p.p_ge.sjdb_gtf_file != "-" && p.p_ge.sjdb_overhang > 0 {
-            Some(std::fs::read_to_string(&p.p_ge.sjdb_gtf_file).map_err(|_| {
-                format!(
-                    "FATAL error, could not open file pGe.sjdbGTFfile={}\n",
-                    p.p_ge.sjdb_gtf_file
-                )
-            })?)
+            Some(
+                crate::io_utils::read_to_string_auto_gzip(&p.p_ge.sjdb_gtf_file).map_err(|_| {
+                    format!(
+                        "FATAL error, could not open file pGe.sjdbGTFfile={}\n",
+                        p.p_ge.sjdb_gtf_file
+                    )
+                })?,
+            )
         } else {
             None
         };
@@ -11972,7 +11974,7 @@ pub fn star_l58_main(
                     let contents = if p.read_files_command.first().map(|s| s.as_str()) == Some("-")
                         && p.read_files_command_string.trim() == "cat"
                     {
-                        std::fs::read_to_string(file_name).map_err(|_| {
+                        crate::io_utils::read_to_string_auto_gzip(file_name).map_err(|_| {
                             format!(
                                 "EXITING: because of fatal INPUT file error: could not open read file: {}\nSOLUTION: check that this file exists and has read permision.\n",
                                 file_name
@@ -11988,7 +11990,7 @@ pub fn star_l58_main(
                             p.read_files_command.clone()
                         };
                         if command_words.is_empty() {
-                            std::fs::read_to_string(file_name).map_err(|_| {
+                            crate::io_utils::read_to_string_auto_gzip(file_name).map_err(|_| {
                                 format!(
                                     "EXITING because of fatal input ERROR: could not open readFilesIn={}\n",
                                     file_name
@@ -12039,12 +12041,14 @@ pub fn star_l58_main(
                             p.read_files_in.get(imate).cloned().unwrap_or_default()
                         )
                     });
-                input_mates.push(std::fs::read_to_string(&rf_name).map_err(|_| {
-                    format!(
-                        "EXITING because of fatal input ERROR: could not open readFilesIn={}\n",
-                        rf_name
-                    )
-                })?);
+                input_mates.push(crate::io_utils::read_to_string_auto_gzip(&rf_name).map_err(
+                    |_| {
+                        format!(
+                            "EXITING because of fatal input ERROR: could not open readFilesIn={}\n",
+                            rf_name
+                        )
+                    },
+                )?);
             }
             input_mates
         };
@@ -19651,12 +19655,14 @@ pub fn sjdbinsertjunctions_l11_sjdbinsertjunctions(
 
         let gtf_contents = if map_gen.p_ge.sjdb_gtf_file != "-" && map_gen.sjdb_overhang > 0 {
             Some(
-                std::fs::read_to_string(&map_gen.p_ge.sjdb_gtf_file).map_err(|_| {
-                    format!(
-                        "FATAL error, could not open file pGe.sjdbGTFfile={}\n",
-                        map_gen.p_ge.sjdb_gtf_file
-                    )
-                })?,
+                crate::io_utils::read_to_string_auto_gzip(&map_gen.p_ge.sjdb_gtf_file).map_err(
+                    |_| {
+                        format!(
+                            "FATAL error, could not open file pGe.sjdbGTFfile={}\n",
+                            map_gen.p_ge.sjdb_gtf_file
+                        )
+                    },
+                )?,
             )
         } else {
             None
@@ -31856,7 +31862,7 @@ pub fn chain_l58_chain_liftovergtf(
     gtf_file_name: &str,
     out_file_name: &str,
 ) -> Result<(), String> {
-    let contents = std::fs::read_to_string(gtf_file_name).map_err(|err| {
+    let contents = crate::io_utils::read_to_string_auto_gzip(gtf_file_name).map_err(|err| {
         format!(
             "SOLUTION: check path and permission for the GTF file{}: {}",
             gtf_file_name, err

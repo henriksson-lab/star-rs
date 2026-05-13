@@ -1,6 +1,6 @@
 [package]
 name = "star-rs"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
 description = "Rust translation of the STAR RNA-seq aligner (experimental, LLM-mediated)"
 license = "MIT"
@@ -11,7 +11,13 @@ categories = ["science", "command-line-utilities"]
 
 [features]
 default = []
+binary = []
 tracehash = ["dep:tracehash-rs"]
+
+[[bin]]
+name = "star-rs"
+path = "src/main.rs"
+required-features = ["binary"]
 
 [dependencies]
 clap = { version = "4.5", features = ["derive"] }
