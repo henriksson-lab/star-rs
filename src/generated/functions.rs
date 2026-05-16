@@ -4654,7 +4654,7 @@ pub fn solofeature_countvelocyto_l12_solofeature_countvelocyto(
 
 #[doc = "Original `sjdbBuildIndex` at STAR/source/sjdbBuildIndex.cpp:16. Args: P: Parameters, Gsj: char, G: char, SA: PackedArray, SA2: PackedArray, SAi: PackedArray, mapGen: Genome, mapGen1: Genome"]
 pub fn sjdbbuildindex_l16_sjdbbuildindex(
-    _p: &crate::generated::structs::Parameters,
+    p: &crate::generated::structs::Parameters,
     gsj: &mut Vec<u8>,
     g: &mut Vec<u8>,
     map_gen: &mut crate::generated::structs::Genome,
@@ -4694,15 +4694,22 @@ pub fn sjdbbuildindex_l16_sjdbbuildindex(
     let mut ind_array: Vec<[u64; 2]> = Vec::new();
     let mut sj_new = 0_u64;
 
-    for isj in 0..2 * map_gen.sjdb_n {
-        let isj_usize = isj as usize;
-        let seq0 = &gsj[..];
-        let seq1 = &g1c[..];
-        let isj1 = if isj < map_gen.sjdb_n {
-            isj
-        } else {
-            2 * map_gen.sjdb_n - 1 - isj
-        };
+    // STAR's sjdbBuildIndex parallelizes this loop with
+    // `#pragma omp parallel for schedule(dynamic,1000) reduction(+:sjNew)`.
+    // Each outer iteration is independent except for the `sjNew` reduction
+    // and an `old_sj_ind[sjdb_ind] = isj1` write that only fires when
+    // map_gen1.sjdb_n > 0 (i.e. when re-indexing on top of an existing
+    // genome). Collect per-iteration results in isj order and merge.
+    let n_outer = 2 * map_gen.sjdb_n as u32;
+    let sjdb_n = map_gen.sjdb_n;
+    let sjdb_length = map_gen.sjdb_length;
+    let n_sa_search_high = map_gen.n_sa.saturating_sub(1);
+    let n_threads = std::cmp::max(1, p.run_thread_n as usize);
+
+    type IterOut = (u64, Option<(usize, u32)>, Vec<[u64; 2]>);
+
+    let compute_one = |isj: u32| -> IterOut {
+        let isj1 = if isj < sjdb_n { isj } else { 2 * sjdb_n - 1 - isj };
         let sjdb_ind = if map_gen1.sjdb_n == 0 {
             -1
         } else {
@@ -4714,35 +4721,59 @@ pub fn sjdbbuildindex_l16_sjdbbuildindex(
                 map_gen1.sjdb_n as i32,
             )
         };
+        let mut entries: Vec<[u64; 2]> = Vec::new();
         if sjdb_ind < 0 {
-            sj_new += 1;
-        } else if (sjdb_ind as usize) < old_sj_ind.len() {
-            old_sj_ind[sjdb_ind as usize] = isj1;
-        }
-
-        for istart1 in 0..n_indices_sj1 {
-            let istart = istart1;
-            let seq_offset = isj * map_gen.sjdb_length + istart;
-            if sjdb_ind >= 0 || gsj[seq_offset as usize] > 3 {
-                continue;
+            for istart1 in 0..n_indices_sj1 {
+                let istart = istart1;
+                let seq_offset = isj * sjdb_length + istart;
+                if gsj[seq_offset as usize] > 3 {
+                    continue;
+                }
+                let mut l = 0_u32;
+                let sa_index = suffixarrayfuns_l297_suffixarraysearch1(
+                    map_gen,
+                    [&gsj[..], &g1c[..]],
+                    seq_offset,
+                    10000,
+                    u64::MAX,
+                    true,
+                    0,
+                    n_sa_search_high,
+                    &mut l,
+                );
+                entries.push([
+                    sa_index,
+                    (isj as u64) * sjdb_length as u64 + istart as u64,
+                ]);
             }
-            let mut l = 0_u32;
-            let sa_index = suffixarrayfuns_l297_suffixarraysearch1(
-                map_gen,
-                [seq0, seq1],
-                seq_offset,
-                10000,
-                u64::MAX,
-                true,
-                0,
-                map_gen.n_sa.saturating_sub(1),
-                &mut l,
-            );
-            ind_array.push([
-                sa_index,
-                (isj_usize as u64) * map_gen.sjdb_length as u64 + istart as u64,
-            ]);
+            (1, None, entries)
+        } else if (sjdb_ind as usize) < old_sj_ind.len() {
+            (0, Some((sjdb_ind as usize, isj1)), entries)
+        } else {
+            (0, None, entries)
         }
+    };
+
+    let per_iter: Vec<IterOut> = if n_threads <= 1 || n_outer <= 1 {
+        (0..n_outer).map(compute_one).collect()
+    } else {
+        use rayon::iter::IntoParallelIterator;
+        use rayon::iter::ParallelIterator;
+        let pool = rayon::ThreadPoolBuilder::new()
+            .num_threads(n_threads)
+            .build()
+            .map_err(|e| e.to_string())?;
+        pool.install(|| (0..n_outer).into_par_iter().map(&compute_one).collect())
+    };
+
+    let total_entries: usize = per_iter.iter().map(|r| r.2.len()).sum();
+    ind_array.reserve(total_entries);
+    for (inc, write, entries) in per_iter.into_iter() {
+        sj_new += inc;
+        if let Some((sjdb_ind, isj1)) = write {
+            old_sj_ind[sjdb_ind] = isj1;
+        }
+        ind_array.extend(entries);
     }
     sj_new /= 2;
     result.sj_new = sj_new;
@@ -8636,6 +8667,11 @@ pub fn genome_genomegenerate_l98_genome_genomegenerate(
     for ii in 0..n_genome {
         genome.g.swap(ii, g_len - 1 - ii);
     }
+    // STAR's funCompareSuffixes packs the 4-byte prefix as nibbles:
+    // p1 = (G[ii]<<12) + (G[ii-1]<<8) + (G[ii-2]<<4) + G[ii-3].
+    // Base-5 packing (an earlier translation bug) made chunk order disagree
+    // with the suffix comparator, which then trips the monotonicity check in
+    // genomeSAindexChunk.
     let sa_prefix = |ii: usize| -> usize {
         let mut prefix = 0usize;
         for offset in 0..4 {
@@ -8644,11 +8680,11 @@ pub fn genome_genomegenerate_l98_genome_genomegenerate(
                 .and_then(|pos| genome.g.get(pos))
                 .copied()
                 .unwrap_or(GENOME_SPACING_CHAR);
-            prefix = prefix * 5 + std::cmp::min(b, GENOME_SPACING_CHAR) as usize;
+            prefix = (prefix << 4) | (b as usize & 0xF);
         }
         prefix
     };
-    let ind_pref_n = 5usize.pow(4);
+    let ind_pref_n = 1usize << 16;
     let mut ind_pref_count = vec![0usize; ind_pref_n];
     let mut n_sa_usize = 0usize;
     for ii in (0..g_len).step_by(sparse_d) {
@@ -8766,37 +8802,55 @@ pub fn genome_genomegenerate_l98_genome_genomegenerate(
     result.log_stdout.push_str(&chunks_msg);
 
     let global_l = g_len / std::mem::size_of::<u64>() + 2;
-    let compare_sa_pos = |a: &u32, b: &u32| {
-        compare_suffix_positions_star_wordwise(&genome.g, *a as usize, *b as usize, global_l)
-    };
 
-    for i_chunk in 0..sa_chunk_n {
-        let mut sa_chunk = Vec::<u32>::with_capacity(ind_pref_chunk_count[i_chunk]);
-        let pref_start = ind_pref_start[i_chunk];
-        let pref_end = ind_pref_start[i_chunk + 1];
+    // Parallelize SA chunk collection + sort + write. Each chunk is
+    // independent: it reads the genome immutably and writes to its own
+    // SA_<i_chunk> file. STAR's C++ uses OpenMP across chunks for the same
+    // reason. We honor --runThreadN by building a scoped Rayon pool.
+    let g_bytes: &[u8] = &genome.g;
+    let n_genome_val = genome.n_genome;
+    let g_dir = genome.p_ge.g_dir.clone();
+    let ind_pref_start_ref = &ind_pref_start;
+    let ind_pref_chunk_count_ref = &ind_pref_chunk_count;
+    let n_threads = std::cmp::max(1, p.run_thread_n as usize);
+
+    let sort_one_chunk = |i_chunk: usize| -> Result<(), String> {
+        let pref_start = ind_pref_start_ref[i_chunk];
+        let pref_end = ind_pref_start_ref[i_chunk + 1];
+        let mut sa_chunk = Vec::<u32>::with_capacity(ind_pref_chunk_count_ref[i_chunk]);
         for ii in (0..g_len).step_by(sparse_d) {
-            if genome.g[ii] < 4 {
-                let prefix = sa_prefix(ii);
+            if g_bytes[ii] < 4 {
+                let mut prefix = 0usize;
+                for offset in 0..4 {
+                    let b = ii
+                        .checked_sub(offset)
+                        .and_then(|pos| g_bytes.get(pos))
+                        .copied()
+                        .unwrap_or(GENOME_SPACING_CHAR);
+                    prefix = (prefix << 4) | (b as usize & 0xF);
+                }
                 if prefix >= pref_start && prefix < pref_end {
                     sa_chunk.push(ii as u32);
                 }
             }
         }
-        if sa_chunk.len() != ind_pref_chunk_count[i_chunk] {
+        if sa_chunk.len() != ind_pref_chunk_count_ref[i_chunk] {
             return Err(format!(
                 "EXITING because of FATAL problem while generating the suffix array\nChunk {i_chunk} contains {} indices, expected {}\n",
                 sa_chunk.len(),
-                ind_pref_chunk_count[i_chunk]
+                ind_pref_chunk_count_ref[i_chunk]
             ));
         }
-        sa_chunk.sort_by(compare_sa_pos);
-        let chunk_file_name = format!("{}/SA_{}", genome.p_ge.g_dir, i_chunk);
+        sa_chunk.sort_by(|a, b| {
+            compare_suffix_positions_star_wordwise(g_bytes, *a as usize, *b as usize, global_l)
+        });
+        let chunk_file_name = format!("{}/SA_{}", g_dir, i_chunk);
         let mut chunk_file = streamfuns_l91_ofstropen(&chunk_file_name, "ERROR_OUT")?;
         let mut chunk_bytes = Vec::<u8>::with_capacity(
             std::cmp::min(sa_chunk.len(), 1 << 20) * std::mem::size_of::<u32>(),
         );
         for sa_pos in sa_chunk {
-            let sa_in = 2 * genome.n_genome - 1 - sa_pos as u64;
+            let sa_in = 2 * n_genome_val - 1 - sa_pos as u64;
             chunk_bytes.extend_from_slice(&(sa_in as u32).to_ne_bytes());
             if chunk_bytes.len() >= (1 << 20) * std::mem::size_of::<u32>() {
                 streamfuns_l51_fstreamwritebig(
@@ -8812,6 +8866,25 @@ pub fn genome_genomegenerate_l98_genome_genomegenerate(
             streamfuns_l51_fstreamwritebig(&mut chunk_file, &chunk_bytes, chunk_bytes.len() as u64)
                 .map_err(|e| e.to_string())?;
         }
+        Ok(())
+    };
+
+    if n_threads <= 1 || sa_chunk_n <= 1 {
+        for i_chunk in 0..sa_chunk_n {
+            sort_one_chunk(i_chunk)?;
+        }
+    } else {
+        use rayon::iter::IntoParallelIterator;
+        use rayon::iter::ParallelIterator;
+        let pool = rayon::ThreadPoolBuilder::new()
+            .num_threads(n_threads)
+            .build()
+            .map_err(|e| e.to_string())?;
+        pool.install(|| {
+            (0..sa_chunk_n)
+                .into_par_iter()
+                .try_for_each(|i_chunk| sort_one_chunk(i_chunk))
+        })?;
     }
 
     let raw_time_pack = std::time::SystemTime::now()
