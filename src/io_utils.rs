@@ -1,4 +1,4 @@
-use std::io::{Read, Seek};
+use std::io::{BufRead, BufReader, Read, Seek};
 use std::path::Path;
 
 const GZIP_MAGIC: [u8; 2] = [0x1f, 0x8b];
@@ -40,4 +40,15 @@ pub fn read_to_string_auto_gzip(path: impl AsRef<Path>) -> std::io::Result<Strin
         file.read_to_string(&mut contents)?;
     }
     Ok(contents)
+}
+
+pub fn open_bufread_auto_gzip(path: impl AsRef<Path>) -> std::io::Result<Box<dyn BufRead>> {
+    let mut file = std::fs::File::open(path)?;
+    if file_is_gzip(&mut file)? {
+        Ok(Box::new(BufReader::new(
+            flate2::read::MultiGzDecoder::new(file),
+        )))
+    } else {
+        Ok(Box::new(BufReader::new(file)))
+    }
 }

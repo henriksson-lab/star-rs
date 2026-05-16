@@ -21,7 +21,7 @@ pub struct OutSJ {
 
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct JunctionRecord {
-    pub start: u32,
+    pub start: u64,
     pub gap: u32,
     pub strand: i8,
     pub motif: i32,
@@ -46,22 +46,22 @@ pub fn outsj_l4_outsj_outsj(n_sjmax: u64) -> crate::out_sj::OutSJ {
     crate::out_sj::OutSJ {
         n: 0,
         n_store: n_sjmax,
-        junctions: Vec::with_capacity(n_sjmax as usize),
+        junctions: Vec::new(),
     }
 }
 
 #[doc = "Original `compareSJ` at STAR/source/OutSJ.cpp:15. Args: i1: void, i2: void"]
 pub fn outsj_l15_comparesj(i1: &[u8], i2: &[u8]) -> i32 {
-    let mut s1_bytes = [0u8; std::mem::size_of::<u32>()];
-    let mut s2_bytes = [0u8; std::mem::size_of::<u32>()];
-    if let Some(bytes) = i1.get(0..std::mem::size_of::<u32>()) {
+    let mut s1_bytes = [0u8; std::mem::size_of::<u64>()];
+    let mut s2_bytes = [0u8; std::mem::size_of::<u64>()];
+    if let Some(bytes) = i1.get(0..std::mem::size_of::<u64>()) {
         s1_bytes.copy_from_slice(bytes);
     }
-    if let Some(bytes) = i2.get(0..std::mem::size_of::<u32>()) {
+    if let Some(bytes) = i2.get(0..std::mem::size_of::<u64>()) {
         s2_bytes.copy_from_slice(bytes);
     }
-    let s1 = u32::from_ne_bytes(s1_bytes);
-    let s2 = u32::from_ne_bytes(s2_bytes);
+    let s1 = u64::from_ne_bytes(s1_bytes);
+    let s2 = u64::from_ne_bytes(s2_bytes);
     if s1 > s2 {
         1
     } else if s1 < s2 {
@@ -69,10 +69,14 @@ pub fn outsj_l15_comparesj(i1: &[u8], i2: &[u8]) -> i32 {
     } else {
         let mut g1_bytes = [0u8; std::mem::size_of::<u32>()];
         let mut g2_bytes = [0u8; std::mem::size_of::<u32>()];
-        if let Some(bytes) = i1.get(std::mem::size_of::<u32>()..2 * std::mem::size_of::<u32>()) {
+        if let Some(bytes) = i1.get(
+            std::mem::size_of::<u64>()..std::mem::size_of::<u64>() + std::mem::size_of::<u32>(),
+        ) {
             g1_bytes.copy_from_slice(bytes);
         }
-        if let Some(bytes) = i2.get(std::mem::size_of::<u32>()..2 * std::mem::size_of::<u32>()) {
+        if let Some(bytes) = i2.get(
+            std::mem::size_of::<u64>()..std::mem::size_of::<u64>() + std::mem::size_of::<u32>(),
+        ) {
             g2_bytes.copy_from_slice(bytes);
         }
         let g1 = u32::from_ne_bytes(g1_bytes);
@@ -88,9 +92,7 @@ pub fn outsj_l15_comparesj(i1: &[u8], i2: &[u8]) -> i32 {
 }
 
 #[doc = "Original `OutSJ::collapseSJ` at STAR/source/OutSJ.cpp:36. Args: "]
-pub fn outsj_l36_outsj_collapsesj(
-    out_sj: &mut crate::out_sj::OutSJ,
-) -> Result<(), String> {
+pub fn outsj_l36_outsj_collapsesj(out_sj: &mut crate::out_sj::OutSJ) -> Result<(), String> {
     if out_sj.n == 0 {
         return Ok(());
     }
@@ -153,7 +155,7 @@ pub fn outsj_l85_junction_outputstream(
         .record
         .as_ref()
         .ok_or_else(|| "junction outputStream called before junctionPointer".to_string())?;
-    let bin_index = (record.start >> junction.gen_out.p_ge.g_chr_bin_nbits) as usize;
+    let bin_index = (record.start >> junction.gen_out.p_ge.g_chr_bin_nbits as u64) as usize;
     let sj_chr = *junction
         .gen_out
         .chr_bin
@@ -174,8 +176,8 @@ pub fn outsj_l85_junction_outputstream(
     Ok(format!(
         "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n",
         chr_name,
-        record.start as u64 + 1 - chr_start,
-        record.start as u64 + record.gap as u64 - chr_start,
+        record.start + 1 - chr_start,
+        record.start + record.gap as u64 - chr_start,
         record.strand as i32,
         record.motif,
         record.annot,

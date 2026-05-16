@@ -174,9 +174,6 @@ pub fn suffixarrayfuns_l133_maxmappablelength(
     ind_start_end: &mut [u64; 2],
 ) -> u64 {
     let mut comp_res = false;
-    let initial_l = *l;
-    let original_i1 = i1;
-    let original_i2 = i2;
 
     let mut l1 = suffixarrayfuns_l10_compareseqtogenome(
         map_gen,
@@ -272,50 +269,7 @@ pub fn suffixarrayfuns_l133_maxmappablelength(
     ind_start_end[0] = i1;
     ind_start_end[1] = i2;
 
-    let n_rep = i2 - i1 + 1;
-    if initial_l <= 4
-        && original_i2 >= original_i1
-        && original_i2 - original_i1 <= 10_000
-        && *l == initial_l
-        && n_rep > 8
-    {
-        let mut best_l = initial_l;
-        let mut best_start = original_i1;
-        let mut best_end = original_i1;
-        let mut seen_best = false;
-        for i in original_i1..=original_i2 {
-            let li = suffixarrayfuns_l10_compareseqtogenome(
-                map_gen,
-                s,
-                s_offset,
-                n,
-                initial_l,
-                i,
-                dir_r,
-                &mut comp_res,
-            );
-            if li > best_l {
-                best_l = li;
-                best_start = i;
-                best_end = i;
-                seen_best = true;
-            } else if li == best_l {
-                if !seen_best {
-                    best_start = i;
-                    seen_best = true;
-                }
-                best_end = i;
-            }
-        }
-        if seen_best && best_l > initial_l {
-            *l = best_l;
-            ind_start_end[0] = best_start;
-            ind_start_end[1] = best_end;
-            return best_end - best_start + 1;
-        }
-    }
-
-    n_rep
+    i2 - i1 + 1
 }
 
 #[doc = "Original `compareRefEnds` at STAR/source/SuffixArrayFuns.cpp:210. Args: mapGen: Genome, SAstr: uint64, gInsert: uint64, strG: bool, strR: bool"]

@@ -7,7 +7,7 @@ use crate::*;
 #[doc = "Original `Transcriptome::geneFullAlignOverlap` at STAR/source/Transcriptome_geneFullAlignOverlap.cpp:5. Args: nA: uint, aAll: Transcript, strandType: int32, annFeat: ReadAnnotFeature"]
 pub fn transcriptome_genefullalignoverlap_l5_transcriptome_genefullalignoverlap(
     transcriptome: &crate::transcriptome::Transcriptome,
-    n_a: u32,
+    n_a: u64,
     a_all: &[crate::transcript::Transcript],
     strand_type: i32,
     ann_feat: &mut crate::read_annotations::ReadAnnotFeature,

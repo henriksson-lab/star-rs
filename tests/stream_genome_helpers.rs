@@ -782,7 +782,12 @@ fn genome_load_populates_core_arrays_and_redefines_windows() {
     assert_eq!(loaded_sa, vec![4, 2, (1_u64 << 32) | 1]);
     assert!(genome.sa.is_empty());
     assert_eq!(genome.genome_sa_index_start, vec![0, 2]);
-    assert_eq!(genome.sai, vec![7, 9]);
+    // Loader keeps SAi packed (matches C++); verify via sai_value helper.
+    assert!(genome.sai.is_empty());
+    assert_eq!(
+        (0..2).map(|i| genome.sai_value(i)).collect::<Vec<_>>(),
+        vec![7, 9]
+    );
     assert_eq!(genome.sjdb_n, 0);
     assert_eq!(genome.sj_gstart, 9);
     assert_eq!(genome.chr_bin, vec![0]);

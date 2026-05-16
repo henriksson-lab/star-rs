@@ -54,6 +54,22 @@ pub struct Genome {
     pub align_intron_min: u32,
 }
 
+impl Genome {
+    /// SAi[idx]. Matches C++ STAR which keeps SAi as a packed array and
+    /// unpacks on each access. At production load time `sai_packed` is
+    /// populated and `sai` is left empty (saves ~2.86 GB for a human
+    /// genomeSAindexNbases=14). Some leaf tests construct `sai` directly
+    /// without packing; honor those by falling back to the Vec.
+    #[inline]
+    pub fn sai_value(&self, idx: u64) -> u64 {
+        if self.sai_packed.array_allocated {
+            crate::packed_array::packedarray_h18_packedarray_index(&self.sai_packed, idx)
+        } else {
+            self.sai[idx as usize]
+        }
+    }
+}
+
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct GenomeOut {
     pub conv_yes: bool,

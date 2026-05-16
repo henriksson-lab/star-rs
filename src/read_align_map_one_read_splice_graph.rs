@@ -30,9 +30,23 @@ pub fn readalign_maponereadsplicegraph_l6_readalign_maponereadsplicegraph(
     tr_init.i_read = read_align.i_read_all;
     tr_init.l_read = read_align.l_read;
     tr_init.n_exons = 0;
-    tr_init.read_length_original = read_align.read_length_original.clone();
+    for (i, &v) in read_align
+        .read_length_original
+        .iter()
+        .take(crate::include_define::MAX_N_MATES)
+        .enumerate()
+    {
+        tr_init.read_length_original[i] = v;
+    }
     tr_init.read_length_pair_original = read_align.read_length_pair_original;
-    tr_init.read_length = read_align.read_length.clone();
+    for (i, &v) in read_align
+        .read_length
+        .iter()
+        .take(crate::include_define::MAX_N_MATES)
+        .enumerate()
+    {
+        tr_init.read_length[i] = v;
+    }
     tr_init.read_nmates = read_align.read_nmates;
     tr_init.read_name = read_align.read_name.clone();
 

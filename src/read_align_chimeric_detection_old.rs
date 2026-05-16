@@ -10,24 +10,30 @@ pub fn readalign_chimericdetectionold_l7_readalign_chimericdetectionold(
     p: &crate::parameters_chimeric::Parameters,
     map_gen: &crate::genome::Genome,
 ) -> bool {
-    let tr_best = read_align.tr_best.clone();
+    // Defer the tr_best clone until after the cheap early-exit checks below.
+    // Most reads fail the segment_min check at lines 14-29 and never reach the
+    // point where we need an owned copy.
     if read_align.n_tr > p.p_ch.main_segment_mult_nmax as u64 && read_align.n_tr != 2 {
         return false;
     }
 
-    if !(p.p_ch.segment_min > 0
-        && tr_best.r_length >= p.p_ch.segment_min as u64
-        && (tr_best.exons[tr_best.n_exons as usize - 1][EX_R]
-            + tr_best.exons[tr_best.n_exons as usize - 1][EX_L]
-            + p.p_ch.segment_min as u64
-            <= read_align.l_read
-            || tr_best.exons[0][EX_R] >= p.p_ch.segment_min as u64)
-        && tr_best.intron_motifs[0] == 0
-        && (tr_best.intron_motifs[1] == 0 || tr_best.intron_motifs[2] == 0))
     {
-        return false;
+        let tr_best = &read_align.tr_best;
+        if !(p.p_ch.segment_min > 0
+            && tr_best.r_length >= p.p_ch.segment_min as u64
+            && (tr_best.exons[tr_best.n_exons as usize - 1][EX_R]
+                + tr_best.exons[tr_best.n_exons as usize - 1][EX_L]
+                + p.p_ch.segment_min as u64
+                <= read_align.l_read
+                || tr_best.exons[0][EX_R] >= p.p_ch.segment_min as u64)
+            && tr_best.intron_motifs[0] == 0
+            && (tr_best.intron_motifs[1] == 0 || tr_best.intron_motifs[2] == 0))
+        {
+            return false;
+        }
     }
 
+    let tr_best = read_align.tr_best.clone();
     let mut chim_score_best = 0_i32;
     let mut chim_score_next = 0_i32;
     if read_align.tr_chim.len() < 2 {
@@ -35,7 +41,7 @@ pub fn readalign_chimericdetectionold_l7_readalign_chimericdetectionold(
             .tr_chim
             .resize(2, crate::transcript::Transcript::default());
     }
-    read_align.tr_chim[0] = tr_best.clone();
+    read_align.tr_chim[0].clone_from(&tr_best);
     let mut tr_chim1 = crate::transcript::Transcript::default();
     let mut tr_chim1_set = false;
 

@@ -61,7 +61,11 @@ pub fn sjdbbuildindex_l16_sjdbbuildindex(
     type IterOut = (u64, Option<(usize, u32)>, Vec<[u64; 2]>);
 
     let compute_one = |isj: u32| -> IterOut {
-        let isj1 = if isj < sjdb_n { isj } else { 2 * sjdb_n - 1 - isj };
+        let isj1 = if isj < sjdb_n {
+            isj
+        } else {
+            2 * sjdb_n - 1 - isj
+        };
         let sjdb_ind = if map_gen1.sjdb_n == 0 {
             -1
         } else {
@@ -93,10 +97,7 @@ pub fn sjdbbuildindex_l16_sjdbbuildindex(
                     n_sa_search_high,
                     &mut l,
                 );
-                entries.push([
-                    sa_index,
-                    (isj as u64) * sjdb_length as u64 + istart as u64,
-                ]);
+                entries.push([sa_index, (isj as u64) * sjdb_length as u64 + istart as u64]);
             }
             (1, None, entries)
         } else if (sjdb_ind as usize) < old_sj_ind.len() {
@@ -255,7 +256,7 @@ pub fn sjdbbuildindex_l16_sjdbbuildindex(
                     }
                     while i_sj < ind_array.len()
                         && ind1 < (ii - start) as i64
-                        && ind_array[i_sj][0].saturating_sub(1) < i_sa2
+                        && ind_array[i_sj][0].wrapping_sub(1) < i_sa2
                     {
                         i_sj += 1;
                         if i_sj < ind_array.len() {
@@ -266,7 +267,7 @@ pub fn sjdbbuildindex_l16_sjdbbuildindex(
                         }
                     }
                     if i_sj < ind_array.len() && ind1 == (ii - start) as i64 {
-                        let value = ind_array[i_sj][0].saturating_sub(1) + i_sj as u64 + 1;
+                        let value = ind_array[i_sj][0].wrapping_sub(1) + i_sj as u64 + 1;
                         packedarray_l17_packedarray_writepacked(
                             &mut map_gen.sai_packed,
                             ii as u64,
@@ -285,13 +286,13 @@ pub fn sjdbbuildindex_l16_sjdbbuildindex(
                         i_sj = i_sj1;
                     }
                 } else {
-                    while i_sj < ind_array.len() && ind_array[i_sj][0].saturating_sub(1) + 1 < i_sa2
-                    {
+                    // STAR's C++ does `indArray[2*iSJ]-1+1` in u64; the -1+1 wraps around
+                    // at 0 and the net effect equals `indArray[2*iSJ]`. Saturating arithmetic
+                    // breaks at 0, so use the raw value directly.
+                    while i_sj < ind_array.len() && ind_array[i_sj][0] < i_sa2 {
                         i_sj += 1;
                     }
-                    while i_sj < ind_array.len()
-                        && ind_array[i_sj][0].saturating_sub(1) + 1 == i_sa2
-                    {
+                    while i_sj < ind_array.len() && ind_array[i_sj][0] == i_sa2 {
                         if suffixarrayfuns_l397_funcalcsai(&gsj[ind_array[i_sj][1] as usize..], i_l)
                             >= (ii - start) as i64
                         {

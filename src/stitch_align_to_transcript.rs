@@ -19,25 +19,11 @@ pub fn stitchaligntotranscript_l9_stitchaligntotranscript(
     tr_a: &mut crate::transcript::Transcript,
     out_filter_mismatch_nmax_total: u64,
 ) -> i32 {
-    if tr_a.n_exons >= MAX_N_EXONS {
+    if tr_a.n_exons as usize >= MAX_N_EXONS {
         return -1_000_010;
     }
 
-    if tr_a.exons.len() <= tr_a.n_exons as usize {
-        tr_a.exons.resize(tr_a.n_exons as usize + 1, [0; EX_SIZE]);
-    }
-    if tr_a.canon_sj.len() <= tr_a.n_exons as usize {
-        tr_a.canon_sj.resize(tr_a.n_exons as usize + 1, 0);
-    }
-    if tr_a.sj_annot.len() <= tr_a.n_exons as usize {
-        tr_a.sj_annot.resize(tr_a.n_exons as usize + 1, 0);
-    }
-    if tr_a.shift_sj.len() <= tr_a.n_exons as usize {
-        tr_a.shift_sj.resize(tr_a.n_exons as usize + 1, [0; 2]);
-    }
-    if tr_a.sj_str.len() <= tr_a.n_exons as usize {
-        tr_a.sj_str.resize(tr_a.n_exons as usize + 1, 0);
-    }
+    // Fixed-size arrays: slots already exist; no resize needed.
 
     let g = &map_gen.g;
     let mut score = 0_i32;
@@ -96,23 +82,23 @@ pub fn stitchaligntotranscript_l9_stitchaligntotranscript(
                 score += 1;
             }
 
-            let g_gap = g_bstart as i32 - g_aend as i32 - 1;
-            let r_gap = r_bstart as i32 - r_aend as i32 - 1;
+            let g_gap = g_bstart as i64 - g_aend as i64 - 1;
+            let r_gap = r_bstart as i64 - r_aend as i64 - 1;
             let mut n_match = l;
             let mut n_mm = 0_u64;
             let mut del = 0_u64;
             let mut ins = 0_u64;
             let mut n_ins = 0_u64;
             let mut n_del = 0_u64;
-            let mut j_r = 0_i32;
+            let mut j_r = 0_i64;
             let mut j_can = 999_i32;
-            let g_bstart1 = g_bstart as i32 - r_gap - 1;
+            let g_bstart1 = g_bstart as i64 - r_gap - 1;
 
             if g_gap == 0 && r_gap == 0 {
             } else if g_gap > 0 && r_gap > 0 && r_gap == g_gap {
                 for ii in 1..=r_gap {
-                    let gp = (g_aend as i32 + ii) as usize;
-                    let rp = (r_aend as i32 + ii) as usize;
+                    let gp = (g_aend as i64 + ii) as usize;
+                    let rp = (r_aend as i64 + ii) as usize;
                     if g[gp] < 4 && r[rp] < 4 {
                         if r[rp] == g[gp] {
                             score += 1;
@@ -131,12 +117,12 @@ pub fn stitchaligntotranscript_l9_stitchaligntotranscript(
                 }
 
                 let mut score1 = 0_i32;
-                let mut j_r1 = 1_i32;
+                let mut j_r1 = 1_i64;
                 loop {
                     j_r1 -= 1;
-                    let rp_i = r_aend as i32 + j_r1;
+                    let rp_i = r_aend as i64 + j_r1;
                     let gb_i = g_bstart1 + j_r1;
-                    let ga_i = g_aend as i32 + j_r1;
+                    let ga_i = g_aend as i64 + j_r1;
                     if rp_i < 0
                         || gb_i < 0
                         || ga_i < 0
@@ -153,7 +139,7 @@ pub fn stitchaligntotranscript_l9_stitchaligntotranscript(
                         score1 -= 1;
                     }
                     if !(score1 + p.score_stitch_sj_shift >= 0
-                        && tr_a.exons[last][EX_L] as i32 + j_r1 > 1)
+                        && tr_a.exons[last][EX_L] as i64 + j_r1 > 1)
                     {
                         break;
                     }
@@ -162,9 +148,10 @@ pub fn stitchaligntotranscript_l9_stitchaligntotranscript(
                 let mut max_score2 = -999_999_i32;
                 score1 = 0;
                 let mut j_pen = 0_i32;
-                while j_r1 < r_bend as i32 - r_aend as i32 {
-                    let rp_i = r_aend as i32 + j_r1;
-                    let ga_i = g_aend as i32 + j_r1;
+                // STAR's do-while: body runs once even if `j_r1 < r_bend-r_aend` is false at entry.
+                loop {
+                    let rp_i = r_aend as i64 + j_r1;
+                    let ga_i = g_aend as i64 + j_r1;
                     let gb_i = g_bstart1 + j_r1;
                     if rp_i < 0
                         || ga_i < 0
@@ -189,8 +176,8 @@ pub fn stitchaligntotranscript_l9_stitchaligntotranscript(
                     let mut j_pen1 = 0_i32;
                     let mut score2 = score1;
                     if del >= p.align_intron_min as u64 {
-                        let d1_i = g_aend as i32 + j_r1 + 1;
-                        let d2_i = g_aend as i32 + j_r1 + 2;
+                        let d1_i = g_aend as i64 + j_r1 + 1;
+                        let d2_i = g_aend as i64 + j_r1 + 2;
                         let a1_i = g_bstart1 + j_r1 - 1;
                         let a2_i = g_bstart1 + j_r1;
                         if d1_i >= 0
@@ -240,21 +227,24 @@ pub fn stitchaligntotranscript_l9_stitchaligntotranscript(
                         j_pen = j_pen1;
                     }
                     j_r1 += 1;
+                    if (j_r1) >= r_bend as i64 - r_aend as i64 {
+                        break;
+                    }
                 }
 
                 let mut jj_l = 0_u64;
                 let mut jj_r = 0_u64;
-                while g_aend as i32 + j_r >= jj_l as i32
-                    && g[(g_aend as i32 - jj_l as i32 + j_r) as usize]
-                        == g[(g_bstart1 - jj_l as i32 + j_r) as usize]
-                    && g[(g_aend as i32 - jj_l as i32 + j_r) as usize] < 4
+                while g_aend as i64 + j_r >= jj_l as i64
+                    && g[(g_aend as i64 - jj_l as i64 + j_r) as usize]
+                        == g[(g_bstart1 - jj_l as i64 + j_r) as usize]
+                    && g[(g_aend as i64 - jj_l as i64 + j_r) as usize] < 4
                     && jj_l <= MAX_SJ_REPEAT_SEARCH as u64
                 {
                     jj_l += 1;
                 }
                 while {
-                    let ga = g_aend as i64 + jj_r as i64 + j_r as i64 + 1;
-                    let gb = g_bstart1 as i64 + jj_r as i64 + j_r as i64 + 1;
+                    let ga = g_aend as i64 + jj_r as i64 + j_r + 1;
+                    let gb = g_bstart1 + jj_r as i64 + j_r + 1;
                     ga >= 0
                         && gb >= 0
                         && (ga as u64) < map_gen.n_genome
@@ -267,8 +257,8 @@ pub fn stitchaligntotranscript_l9_stitchaligntotranscript(
                 }
 
                 if j_can <= 0 {
-                    j_r -= jj_l as i32;
-                    if tr_a.exons[last][EX_L] as i32 + j_r < 1 {
+                    j_r -= jj_l as i64;
+                    if tr_a.exons[last][EX_L] as i64 + j_r < 1 {
                         return -1_000_005;
                     }
                     jj_r += jj_l;
@@ -277,11 +267,11 @@ pub fn stitchaligntotranscript_l9_stitchaligntotranscript(
 
                 for ii in std::cmp::min(1, j_r + 1)..=std::cmp::max(r_gap, j_r) {
                     let g1 = if ii <= j_r {
-                        g_aend as i32 + ii
+                        g_aend as i64 + ii
                     } else {
                         g_bstart1 + ii
                     } as usize;
-                    let rp = (r_aend as i32 + ii) as usize;
+                    let rp = (r_aend as i64 + ii) as usize;
                     if g[g1] < 4 && r[rp] < 4 {
                         if r[rp] == g[g1] {
                             if ii >= 1 && ii <= r_gap {
@@ -300,8 +290,8 @@ pub fn stitchaligntotranscript_l9_stitchaligntotranscript(
                 }
 
                 if map_gen.sjdb_n > 0 {
-                    let j_s = (g_aend as i64 + j_r as i64 + 1) as u64;
-                    let j_e = (g_bstart1 + j_r) as i64 as u64;
+                    let j_s = (g_aend as i64 + j_r + 1) as u64;
+                    let j_e = (g_bstart1 + j_r) as u64;
                     let sjdb_ind = binarysearch2_l3_binarysearch2(
                         j_s,
                         j_e,
@@ -326,8 +316,8 @@ pub fn stitchaligntotranscript_l9_stitchaligntotranscript(
                             {
                                 return -1_000_006;
                             }
-                            j_r += map_gen.sjdb_shift_left[sj] as i32;
-                            if r_aend as i32 + j_r >= r_bend as i32 {
+                            j_r += map_gen.sjdb_shift_left[sj] as i64;
+                            if r_aend as i64 + j_r >= r_bend as i64 {
                                 return -1_000_006;
                             }
                             jj_l = map_gen.sjdb_shift_left[sj] as u64;
@@ -365,10 +355,10 @@ pub fn stitchaligntotranscript_l9_stitchaligntotranscript(
                     let mut score1 = 0_i32;
                     let mut max_score1 = 0_i32;
                     for j_r1 in 1..=g_gap {
-                        let gp = (g_aend as i32 + j_r1) as usize;
+                        let gp = (g_aend as i64 + j_r1) as usize;
                         if g[gp] < 4 {
-                            let r1 = (r_aend as i32 + j_r1) as usize;
-                            let r2 = (r_aend as i32 + ins as i32 + j_r1) as usize;
+                            let r1 = (r_aend as i64 + j_r1) as usize;
+                            let r2 = (r_aend as i64 + ins as i64 + j_r1) as usize;
                             score1 += if r[r1] == g[gp] { 1 } else { -1 };
                             score1 += if r[r2] == g[gp] { -1 } else { 1 };
                         }
@@ -381,8 +371,8 @@ pub fn stitchaligntotranscript_l9_stitchaligntotranscript(
                     }
                     for ii in 1..=g_gap {
                         let r1 =
-                            (r_aend as i32 + ii + if ii <= j_r { 0 } else { ins as i32 }) as usize;
-                        let gp = (g_aend as i32 + ii) as usize;
+                            (r_aend as i64 + ii + if ii <= j_r { 0 } else { ins as i64 }) as usize;
+                        let gp = (g_aend as i64 + ii) as usize;
                         if g[gp] < 4 && r[r1] < 4 {
                             if r[r1] == g[gp] {
                                 score += 1;
@@ -396,15 +386,15 @@ pub fn stitchaligntotranscript_l9_stitchaligntotranscript(
                 }
 
                 if p.align_insertion_flush.flush_right {
-                    while j_r < r_bend as i32 - r_aend as i32 - ins as i32 {
-                        let rp = (r_aend as i32 + j_r + 1) as usize;
-                        let gp = (g_aend as i32 + j_r + 1) as usize;
+                    while j_r < r_bend as i64 - r_aend as i64 - ins as i64 {
+                        let rp = (r_aend as i64 + j_r + 1) as usize;
+                        let gp = (g_aend as i64 + j_r + 1) as usize;
                         if r[rp] != g[gp] || g[gp] == 4 {
                             break;
                         }
                         j_r += 1;
                     }
-                    if j_r == r_bend as i32 - r_aend as i32 - ins as i32 {
+                    if j_r == r_bend as i64 - r_aend as i64 - ins as i64 {
                         return -1_000_009;
                     }
                 }
@@ -434,21 +424,21 @@ pub fn stitchaligntotranscript_l9_stitchaligntotranscript(
                 if del == 0 && ins == 0 {
                     tr_a.exons[last][EX_L] += r_bend - r_aend;
                 } else if del > 0 {
-                    tr_a.exons[last][EX_L] = (tr_a.exons[last][EX_L] as i32 + j_r) as u64;
+                    tr_a.exons[last][EX_L] = (tr_a.exons[last][EX_L] as i64 + j_r) as u64;
                     let out = tr_a.n_exons as usize;
-                    tr_a.exons[out][EX_L] = (r_bend as i32 - r_aend as i32 - j_r) as u64;
-                    tr_a.exons[out][EX_R] = (r_aend as i32 + j_r + 1) as u64;
+                    tr_a.exons[out][EX_L] = (r_bend as i64 - r_aend as i64 - j_r) as u64;
+                    tr_a.exons[out][EX_R] = (r_aend as i64 + j_r + 1) as u64;
                     tr_a.exons[out][EX_G] = (g_bstart1 + j_r + 1) as u64;
                     tr_a.n_exons += 1;
                 } else if ins > 0 {
                     tr_a.n_ins += n_ins;
                     tr_a.l_ins += ins;
-                    tr_a.exons[last][EX_L] = (tr_a.exons[last][EX_L] as i32 + j_r) as u64;
+                    tr_a.exons[last][EX_L] = (tr_a.exons[last][EX_L] as i64 + j_r) as u64;
                     let out = tr_a.n_exons as usize;
                     tr_a.exons[out][EX_L] =
-                        (r_bend as i32 - r_aend as i32 - j_r - ins as i32) as u64;
-                    tr_a.exons[out][EX_R] = (r_aend as i32 + j_r + ins as i32 + 1) as u64;
-                    tr_a.exons[out][EX_G] = (g_aend as i32 + 1 + j_r) as u64;
+                        (r_bend as i64 - r_aend as i64 - j_r - ins as i64) as u64;
+                    tr_a.exons[out][EX_R] = (r_aend as i64 + j_r + ins as i64 + 1) as u64;
+                    tr_a.exons[out][EX_G] = (g_aend as i64 + 1 + j_r) as u64;
                     tr_a.canon_sj[last] = -2;
                     tr_a.sj_annot[last] = 0;
                     tr_a.n_exons += 1;

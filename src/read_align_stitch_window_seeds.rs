@@ -52,21 +52,7 @@ pub fn readalign_stitchwindowseeds_l12_readalign_stitchwindowseeds(
             if i_s2 < i_s1 {
                 tr_a1.n_exons = 1;
                 tr_a1.n_mm = read_align.score_seed_best_mm[i_s2];
-                if tr_a1.exons.is_empty() {
-                    tr_a1.exons.resize(1, [0; EX_SIZE]);
-                }
-                if tr_a1.canon_sj.is_empty() {
-                    tr_a1.canon_sj.resize(1, 0);
-                }
-                if tr_a1.sj_annot.is_empty() {
-                    tr_a1.sj_annot.resize(1, 0);
-                }
-                if tr_a1.shift_sj.is_empty() {
-                    tr_a1.shift_sj.resize(1, [0; 2]);
-                }
-                if tr_a1.sj_str.is_empty() {
-                    tr_a1.sj_str.resize(1, 0);
-                }
+                // Fixed-size arrays: slots already exist; no resize needed.
                 let wa2 = read_align.wa[i_w_usize][i_s2];
                 let wa1 = read_align.wa[i_w_usize][i_s1];
                 tr_a1.exons[0][EX_R] = wa2[WA_R_START];
@@ -92,8 +78,8 @@ pub fn readalign_stitchwindowseeds_l12_readalign_stitchwindowseeds(
                 if p.out_filter_by_sjout_stage == 2 && tr_a1.n_exons > 1 {
                     let iex = 0usize;
                     if tr_a1.canon_sj[iex] >= 0 && tr_a1.sj_annot[iex] == 0 {
-                        let j_s = (tr_a1.exons[iex][EX_G] + tr_a1.exons[iex][EX_L]) as u32;
-                        let j_e = (tr_a1.exons[iex + 1][EX_G] - 1) as u32;
+                        let j_s = tr_a1.exons[iex][EX_G] + tr_a1.exons[iex][EX_L];
+                        let j_e = tr_a1.exons[iex + 1][EX_G] - 1;
                         if binarysearch2_l3_binarysearch2(
                             j_s,
                             j_e,
@@ -209,21 +195,7 @@ pub fn readalign_stitchwindowseeds_l12_readalign_stitchwindowseeds(
     tr_a.max_score = score;
     tr_a.n_match = first_wa[WA_LENGTH];
     tr_a.n_mm = 0;
-    if tr_a.exons.is_empty() {
-        tr_a.exons.resize(1, [0; EX_SIZE]);
-    }
-    if tr_a.canon_sj.is_empty() {
-        tr_a.canon_sj.resize(1, 0);
-    }
-    if tr_a.sj_annot.is_empty() {
-        tr_a.sj_annot.resize(1, 0);
-    }
-    if tr_a.shift_sj.is_empty() {
-        tr_a.shift_sj.resize(1, [0; 2]);
-    }
-    if tr_a.sj_str.is_empty() {
-        tr_a.sj_str.resize(1, 0);
-    }
+    // Fixed-size arrays: slots already exist; no resize needed.
     tr_a.exons[0][EX_R] = first_wa[WA_R_START];
     tr_a.r_start = first_wa[WA_R_START];
     tr_a.exons[0][EX_G] = first_wa[WA_G_START];
@@ -397,10 +369,8 @@ pub fn readalign_stitchwindowseeds_l12_readalign_stitchwindowseeds(
     }
     let record_index = if wa_excl.is_none() { 0 } else { 1 };
     if read_align.tr_all[i_wrec_usize].len() <= record_index {
-        read_align.tr_all[i_wrec_usize].resize(
-            record_index + 1,
-            crate::transcript::Transcript::default(),
-        );
+        read_align.tr_all[i_wrec_usize]
+            .resize(record_index + 1, crate::transcript::Transcript::default());
     }
     read_align.tr_all[i_wrec_usize][record_index] = tr_a.clone();
     if read_align.n_win_tr.len() <= i_wrec_usize {

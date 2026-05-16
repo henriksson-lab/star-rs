@@ -615,22 +615,7 @@ pub fn genome_genomegenerate_l98_genome_genomegenerate(
     result.log_main.push_str(&done_msg);
     result.log_stdout.push_str(&done_msg);
 
-    let sai = genomesaindex_from_packed(genome)?;
-    if !sai.is_empty() {
-        packedarray_l8_packedarray_definebits(
-            &mut genome.sai_packed,
-            genome.gstrand_bit as u64 + 3,
-            sai.len() as u64,
-        );
-        packedarray_l31_packedarray_allocatearray(&mut genome.sai_packed);
-        for (ii, value) in sai.iter().enumerate() {
-            packedarray_l17_packedarray_writepacked(
-                &mut genome.sai_packed,
-                ii as u64,
-                *value as u64,
-            );
-        }
-    }
+    let _ = genomesaindex_from_packed(genome)?;
 
     genome.sjdb_n = 0;
     if p.sjdb_insert_yes {

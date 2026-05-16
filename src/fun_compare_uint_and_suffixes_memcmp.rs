@@ -18,11 +18,22 @@ pub fn funcompareuintandsuffixesmemcmp_l7_funcompareuintandsuffixesmemcmp(
     } else {
         let ia = a[1] as usize;
         let ib = b[1] as usize;
-        for ii in 0..l {
-            if g[ia + ii] != g[ib + ii] {
-                return g[ia + ii] as i32 - g[ib + ii] as i32;
-            }
+        if l == 0 {
+            return if a[1] > b[1] { 1 } else { -1 };
         }
-        if a[1] > b[1] { 1 } else { -1 }
+        let comp = unsafe {
+            libc::memcmp(
+                g.as_ptr().add(ia) as *const libc::c_void,
+                g.as_ptr().add(ib) as *const libc::c_void,
+                l,
+            )
+        };
+        if comp != 0 {
+            comp
+        } else if a[1] > b[1] {
+            1
+        } else {
+            -1
+        }
     }
 }

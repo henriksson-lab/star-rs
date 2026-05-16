@@ -263,8 +263,8 @@ pub fn stitchwindowaligns_l8_stitchwindowaligns(
                 if tr_a.canon_sj.get(iex).copied().unwrap_or(-1) >= 0
                     && tr_a.sj_annot.get(iex).copied().unwrap_or(0) == 0
                 {
-                    let js = (tr_a.exons[iex][EX_G] + tr_a.exons[iex][EX_L]) as u32;
-                    let je = (tr_a.exons[iex + 1][EX_G] - 1) as u32;
+                    let js = tr_a.exons[iex][EX_G] + tr_a.exons[iex][EX_L];
+                    let je = tr_a.exons[iex + 1][EX_G] - 1;
                     if binarysearch2_l3_binarysearch2(
                         js,
                         je,
@@ -448,11 +448,12 @@ pub fn stitchwindowaligns_l8_stitchwindowaligns(
             out_filter_mismatch_nmax_total,
         );
     } else {
-        tr_ai.exons.resize(1, [0; EX_SIZE]);
-        tr_ai.canon_sj.resize(1, -1);
-        tr_ai.sj_annot.resize(1, 0);
-        tr_ai.shift_sj.resize(1, [0; 2]);
-        tr_ai.sj_str.resize(1, 0);
+        // Fixed-size arrays: slots already zero-initialized.
+        // C++ STAR resizes canon_sj to 1 with default -1 here; preserve that.
+        tr_ai.canon_sj[0] = -1;
+        tr_ai.sj_annot[0] = 0;
+        tr_ai.shift_sj[0] = [0; 2];
+        tr_ai.sj_str[0] = 0;
         tr_ai.exons[0][EX_R] = wa[i_a as usize][WA_R_START];
         tr_ai.r_start = tr_ai.exons[0][EX_R];
         tr_ai.exons[0][EX_G] = wa[i_a as usize][WA_G_START];

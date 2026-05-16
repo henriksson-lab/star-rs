@@ -10,18 +10,18 @@ pub struct ChimericAlign {
     pub seg1: ChimericSegment,
     pub seg2: ChimericSegment,
     pub chim_score: i32,
-    pub chim_j1: u32,
-    pub chim_j2: u32,
-    pub chim_repeat1: u32,
-    pub chim_repeat2: u32,
+    pub chim_j1: u64,
+    pub chim_j2: u64,
+    pub chim_repeat1: u64,
+    pub chim_repeat2: u64,
     pub chim_motif: i32,
     pub chim_str: i32,
     pub stitching_done: bool,
     pub al1: Transcript,
     pub al2: Transcript,
-    pub ex1: u32,
-    pub ex2: u32,
-    pub junction_overhang_min: u32,
+    pub ex1: u64,
+    pub ex2: u64,
+    pub junction_overhang_min: u64,
 }
 
 #[doc = "Original `ChimericAlign::ChimericAlign` at STAR/source/ChimericAlign.cpp:3. Args: seg1in: ChimericSegment, seg2in: ChimericSegment, chimScoreIn: int, genomeIn: Genome, RAin: ReadAlign"]
@@ -29,7 +29,7 @@ pub fn chimericalign_l3_chimericalign_chimericalign(
     seg1: crate::chimeric_segment::ChimericSegment,
     seg2: crate::chimeric_segment::ChimericSegment,
     chim_score: i32,
-    junction_overhang_min: u32,
+    junction_overhang_min: u64,
 ) -> crate::chimeric_align::ChimericAlign {
     let mut al1 = seg1.align.clone();
     let mut al2 = seg2.align.clone();
@@ -59,8 +59,8 @@ pub fn chimericalign_l3_chimericalign_chimericalign(
         stitching_done: false,
         al1,
         al2,
-        ex1: ex1 as u32,
-        ex2: ex2 as u32,
+        ex1,
+        ex2,
         junction_overhang_min,
     }
 }
@@ -75,7 +75,7 @@ pub fn chimericalign_l17_chimericalign_chimericcheck(
     chim_good = chim_good && chim.al1.exons[ex1][EX_IFRAG] <= chim.al2.exons[ex2][EX_IFRAG];
     chim_good = chim_good
         && (chim.al1.exons[ex1][EX_IFRAG] < chim.al2.exons[ex2][EX_IFRAG]
-            || (chim.al1.exons[ex1][EX_L] >= chim.junction_overhang_min as u64
-                && chim.al2.exons[ex2][EX_L] >= chim.junction_overhang_min as u64));
+            || (chim.al1.exons[ex1][EX_L] >= chim.junction_overhang_min
+                && chim.al2.exons[ex2][EX_L] >= chim.junction_overhang_min));
     chim_good
 }

@@ -67,11 +67,11 @@ pub fn readalign_alignbam_l47_readalign_alignbam(
     p: &crate::parameters_chimeric::Parameters,
     gen_out: &crate::genome::Genome,
     tr_out: &crate::transcript::Transcript,
-    n_tr_out: u32,
-    i_tr_out: u32,
+    n_tr_out: u64,
+    i_tr_out: u64,
     tr_chr_start: u64,
-    mut mate_chr: u32,
-    mut mate_start: u32,
+    mut mate_chr: u64,
+    mut mate_start: u64,
     mut mate_strand: i8,
     align_type: i32,
     mate_map: Option<[bool; 2]>,
@@ -163,8 +163,8 @@ pub fn readalign_alignbam_l47_readalign_alignbam(
                     if tr_out.str_ != (1 - imate) as u64 {
                         sam_flag |= 0x20;
                     }
-                    mate_chr = tr_out.chr as u32;
-                    mate_start = (tr_out.exons[0][EX_G] - tr_chr_start) as u32;
+                    mate_chr = tr_out.chr;
+                    mate_start = tr_out.exons[0][EX_G] - tr_chr_start;
                     mate_strand = if tr_out.str_ == (1 - imate) as u64 {
                         0
                     } else {
@@ -285,7 +285,7 @@ pub fn readalign_alignbam_l47_readalign_alignbam(
             sam_flag = if flag_paired { 0x0001 } else { 0 };
             if flag_paired {
                 if i_ex_mate == tr_out.n_exons - 1 {
-                    if mate_chr > gen_out.n_chr_real {
+                    if mate_chr > gen_out.n_chr_real as u64 {
                         sam_flag |= 0x0008;
                     }
                 } else {
@@ -378,8 +378,8 @@ pub fn readalign_alignbam_l47_readalign_alignbam(
                                 as u8,
                         );
                         sj_intron.push(
-                            (tr_out.exons[prev][EX_G] + tr_out.exons[prev][EX_L] + 1
-                                - tr_chr_start) as i32,
+                            (tr_out.exons[prev][EX_G] + tr_out.exons[prev][EX_L] + 1 - tr_chr_start)
+                                as i32,
                         );
                         sj_intron.push((tr_out.exons[iiu][EX_G] - tr_chr_start) as i32);
                     } else if gap_g > 0 {
@@ -439,7 +439,7 @@ pub fn readalign_alignbam_l47_readalign_alignbam(
                     }
                     ATTR_HI => {
                         attr_n += bamfunctions_l106_bamattrarraywrite(
-                            (i_tr_out + p.out_sam_attr_ih_start) as i32,
+                            (i_tr_out + p.out_sam_attr_ih_start as u64) as i32,
                             b"HI",
                             &mut attr_out_array[attr_n..],
                         ) as usize
@@ -746,9 +746,9 @@ pub fn readalign_alignbam_l47_readalign_alignbam(
                 0
             }][EX_G]
                 - tr_chr_start) as u32;
-        } else if mate_chr < gen_out.n_chr_real {
-            core[6] = mate_chr;
-            core[7] = mate_start;
+        } else if mate_chr < gen_out.n_chr_real as u64 {
+            core[6] = mate_chr as u32;
+            core[7] = mate_start as u32;
         } else {
             core[6] = u32::MAX;
             core[7] = u32::MAX;
@@ -806,7 +806,7 @@ pub fn readalign_alignbam_l47_readalign_alignbam(
                 pos: core[2],
                 flag: flag_out,
                 cigar: packed_cigar,
-                nh: Some(n_tr_out),
+                nh: Some(n_tr_out as u32),
             });
         }
     }

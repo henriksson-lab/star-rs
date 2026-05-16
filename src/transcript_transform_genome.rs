@@ -28,25 +28,17 @@ pub fn transcript_transformgenome_l4_transcript_transformgenome(
         let b1o = co_bl[c_bit][2];
 
         if g1 <= b2 {
-            if a.exons.len() <= n_b {
-                a.exons.resize(n_b + 1, [0; EX_SIZE]);
-            }
+            // Fixed-size array: slot already exists; no resize needed.
             a.exons[n_b][EX_IFRAG] = source.exons[i_a][EX_IFRAG];
             a.exons[n_b][EX_R] = r1;
             a.exons[n_b][EX_G] = b1o + g1 - b1;
-            a.exons[n_b][EX_L] = if g2 <= b2 {
-                len
-            } else {
-                b2 - g1 + 1
-            };
+            a.exons[n_b][EX_L] = if g2 <= b2 { len } else { b2 - g1 + 1 };
             n_b += 1;
         }
 
         c_bit += 1;
         while g2 >= co_bl[c_bit][0] {
-            if a.exons.len() <= n_b {
-                a.exons.resize(n_b + 1, [0; EX_SIZE]);
-            }
+            // Fixed-size array: slot already exists; no resize needed.
             a.exons[n_b][EX_IFRAG] = source.exons[i_a][EX_IFRAG];
             a.exons[n_b][EX_G] = co_bl[c_bit][2];
             a.exons[n_b][EX_R] = r1 + co_bl[c_bit][0] - g1;
@@ -99,16 +91,11 @@ pub fn transcript_transformgenome_l4_transcript_transformgenome(
     }
 
     a.n_exons = n_b as u64;
-    a.exons.truncate(n_b);
+    // Fixed-size array: n_exons tracks logical length; no truncate needed.
     a.str_ = source.str_;
     a.chr = gen_out.chr_bin[(a.exons[0][EX_G] >> gen_out.p_ge.g_chr_bin_nbits) as usize] as u64;
 
-    if a.canon_sj.len() < a.n_exons.saturating_sub(1) as usize {
-        a.canon_sj.resize(a.n_exons.saturating_sub(1) as usize, 0);
-    }
-    if a.sj_annot.len() < a.n_exons.saturating_sub(1) as usize {
-        a.sj_annot.resize(a.n_exons.saturating_sub(1) as usize, 0);
-    }
+    // Fixed-size arrays: slots already exist; no resize needed.
 
     for ia in 0..a.n_exons.saturating_sub(1) as usize {
         a.sj_annot[ia] = 0;

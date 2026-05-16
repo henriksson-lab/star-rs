@@ -7,10 +7,10 @@ use crate::*;
 #[doc = "Original `ReadAlign::outputTranscriptSAM` at STAR/source/ReadAlign_outputTranscriptSAM.cpp:5. Args: trOut: Transcript, nTrOut: uint, iTrOut: uint, mateChr: uint, mateStart: uint, mateStrand: char, unmapType: int, mateMap: bool, outStream: ostream"]
 pub fn readalign_outputtranscriptsam_l5_readalign_outputtranscriptsam(
     tr_out: &crate::transcript::Transcript,
-    n_tr_out: u32,
-    i_tr_out: u32,
-    mate_chr: u32,
-    mate_start: u32,
+    n_tr_out: u64,
+    i_tr_out: u64,
+    mate_chr: u64,
+    mate_start: u64,
     mate_strand: i8,
     unmap_type: i32,
     mate_map: Option<&[bool]>,
@@ -126,7 +126,7 @@ pub fn readalign_outputtranscriptsam_l5_readalign_outputtranscriptsam(
     if flag_paired {
         sam_flag_common = 0x0001;
         if i_ex_mate == tr_out.n_exons - 1 {
-            if mate_chr > gen_out.n_chr_real {
+            if mate_chr > gen_out.n_chr_real as u64 {
                 sam_flag_common += 0x0008;
             }
         } else if p.align_ends_protrude_concordant_pair
@@ -368,7 +368,7 @@ pub fn readalign_outputtranscriptsam_l5_readalign_outputtranscriptsam(
                     + tr_out.exons[tr_out.n_exons as usize - 1][EX_L]
                     - tr_out.exons[0][EX_G]
             ));
-        } else if mate_chr < gen_out.n_chr_real {
+        } else if mate_chr < gen_out.n_chr_real as u64 {
             out_stream.push_str(&format!(
                 "\t{}\t{}\t0",
                 gen_out.chr_name[mate_chr as usize],
@@ -436,9 +436,10 @@ pub fn readalign_outputtranscriptsam_l5_readalign_outputtranscriptsam(
         for attr in &p.out_sam_attr_order {
             match *attr {
                 ATTR_NH => out_stream.push_str(&format!("\tNH:i:{}", n_tr_out)),
-                ATTR_HI => {
-                    out_stream.push_str(&format!("\tHI:i:{}", i_tr_out + p.out_sam_attr_ih_start))
-                }
+                ATTR_HI => out_stream.push_str(&format!(
+                    "\tHI:i:{}",
+                    i_tr_out + p.out_sam_attr_ih_start as u64
+                )),
                 ATTR_AS => out_stream.push_str(&format!("\tAS:i:{}", tr_out.max_score)),
                 ATTR_NM_LOWER => out_stream.push_str(&format!("\tnM:i:{}", tr_out.n_mm)),
                 ATTR_JM => out_stream.push_str(&format!("\tjM:B:c{}", sj_motif)),

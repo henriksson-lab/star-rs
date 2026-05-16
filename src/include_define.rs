@@ -78,7 +78,11 @@ pub const GTF_EX_G: usize = 3;
 
 pub const GTF_EX_L: usize = 4;
 
-pub const MAX_N_EXONS: u64 = 1000;
+/// Per-read max exon count. C++ STAR uses 20 for short reads, 1000 for
+/// `COMPILE_FOR_LONG_READS`. We match the short-read default so the
+/// fixed-size arrays inside `Transcript` stay compact.
+pub const MAX_N_EXONS: usize = 20;
+pub const MAX_N_MATES: usize = 3;
 
 pub const MAX_SJ_REPEAT_SEARCH: u32 = 255;
 

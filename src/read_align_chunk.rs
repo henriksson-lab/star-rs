@@ -90,9 +90,11 @@ pub fn readalignchunk_l5_readalignchunk_readalignchunk(
     let mut ra = readalign_l6_readalign_readalign(p, genome, chunk_tr.as_ref().or(tr_in), i_chunk);
     ra.i_read = 0;
 
+    // STAR allocates each chunkIn[ii] as a buffer of chunkInSizeBytesArray bytes
+    // and memset's it to '\n' so that empty/incomplete reads stream as blank lines.
     let mut chunk_in = Vec::with_capacity(p.read_nends as usize);
     for _ in 0..p.read_nends {
-        chunk_in.push(Vec::new());
+        chunk_in.push(vec![b'\n'; p.chunk_in_size_bytes_array as usize]);
     }
 
     let mut chunk_out_bam = Vec::new();

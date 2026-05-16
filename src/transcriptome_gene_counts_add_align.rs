@@ -7,7 +7,7 @@ use crate::*;
 #[doc = "Original `Transcriptome::geneCountsAddAlign` at STAR/source/Transcriptome_geneCountsAddAlign.cpp:4. Args: nA: uint, aAll: Transcript, gene1: vector<int32>"]
 pub fn transcriptome_genecountsaddalign_l4_transcriptome_genecountsaddalign(
     transcriptome: &mut crate::transcriptome::Transcriptome,
-    n_a: u32,
+    n_a: u64,
     a_all: &[crate::transcript::Transcript],
     gene1: &mut Vec<i32>,
 ) {

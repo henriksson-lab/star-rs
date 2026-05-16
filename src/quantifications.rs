@@ -23,13 +23,13 @@ pub struct QuantificationGeneCounts {
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct QuantTranscriptomeBamRequest {
     pub transcript: Transcript,
-    pub n_align_t: u32,
-    pub i_align_t: u32,
+    pub n_align_t: u64,
+    pub i_align_t: u64,
 }
 
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct QuantTranscriptomeResult {
-    pub n_align_t: u32,
+    pub n_align_t: u64,
     pub align_t: Vec<Transcript>,
     pub bam_requests: Vec<QuantTranscriptomeBamRequest>,
 }
@@ -38,14 +38,14 @@ pub struct QuantTranscriptomeResult {
 pub struct ChimericBamOutputRequest {
     pub al1: Transcript,
     pub al2: Transcript,
-    pub i_tr: u32,
-    pub chim_n: u32,
+    pub i_tr: u64,
+    pub chim_n: u64,
     pub is_best_chim_align: bool,
 }
 
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct ChimericDetectionOldOutputResult {
-    pub chim_n: u32,
+    pub chim_n: u64,
     pub chim_sam: String,
     pub chim_junction: String,
     pub bam_requests: Vec<ChimericBamOutputRequest>,
@@ -55,17 +55,17 @@ pub struct ChimericDetectionOldOutputResult {
 pub struct ReadAlignGenomeTransformResult {
     pub al_best: Transcript,
     pub al_mult: Vec<Transcript>,
-    pub al_n: u32,
+    pub al_n: u64,
 }
 
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct AlignBamRequest {
     pub transcript: Transcript,
-    pub n_tr_out: u32,
-    pub i_tr_out: u32,
+    pub n_tr_out: u64,
+    pub i_tr_out: u64,
     pub tr_chr_start: u64,
-    pub mate_chr: u32,
-    pub mate_start: u32,
+    pub mate_chr: u64,
+    pub mate_start: u64,
     pub mate_strand: i8,
     pub align_type: i32,
     pub mate_map: Option<[bool; 2]>,
@@ -94,8 +94,8 @@ pub struct ChimericBamOutputResult {
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct ChimericDetectionRequest {
     pub detector: String,
-    pub n_w: u32,
-    pub read_length: Vec<u32>,
+    pub n_w: u64,
+    pub read_length: Vec<u64>,
     pub max_non_chim_align_score: i32,
 }
 
@@ -114,7 +114,7 @@ pub struct ChimericDetectionResult {
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct ChimericDetectionMultResult {
     pub chim_record: bool,
-    pub chim_n: u32,
+    pub chim_n: u64,
     pub chim_score_best: i32,
     pub min_score_to_consider: i32,
     pub chim_junction: String,

@@ -5,6 +5,45 @@ use star_rs::{
 };
 use star_rs::{SoloReadFeature, SoloReadFeatureStats};
 
+// --- helpers for filling fixed-size Transcript array fields from slice literals ---
+fn tr_exons_arr(items: &[[u64; 5]]) -> [[u64; 5]; 20] {
+    let mut a = [[0u64; 5]; 20];
+    for (i, v) in items.iter().enumerate() {
+        a[i] = *v;
+    }
+    a
+}
+fn tr_canon_sj_arr(items: &[i32]) -> [i32; 20] {
+    let mut a = [0i32; 20];
+    for (i, v) in items.iter().enumerate() {
+        a[i] = *v;
+    }
+    a
+}
+fn tr_sj_u8_arr(items: &[u8]) -> [u8; 20] {
+    let mut a = [0u8; 20];
+    for (i, v) in items.iter().enumerate() {
+        a[i] = *v;
+    }
+    a
+}
+#[allow(dead_code)]
+fn tr_shift_sj_arr(items: &[[u64; 2]]) -> [[u64; 2]; 20] {
+    let mut a = [[0u64; 2]; 20];
+    for (i, v) in items.iter().enumerate() {
+        a[i] = *v;
+    }
+    a
+}
+#[allow(dead_code)]
+fn tr_read_length_arr(items: &[u64]) -> [u64; 3] {
+    let mut a = [0u64; 3];
+    for (i, v) in items.iter().enumerate() {
+        a[i] = *v;
+    }
+    a
+}
+
 fn bam_record(name: &[u8], pos: u32, flag: u32, cigar: &[u32]) -> Vec<u32> {
     bam_record_with_seq(name, pos, flag, cigar, 0, &[])
 }
@@ -240,12 +279,12 @@ fn binary_search2_matches_duplicate_x_scan_behavior() {
 fn blocks_overlap_matches_read_and_genome_diagonal_rules() {
     let t1 = Transcript {
         n_exons: 2,
-        exons: vec![[0, 100, 10, 0, 0], [20, 120, 10, 0, 0]],
+        exons: tr_exons_arr(&[[0, 100, 10, 0, 0], [20, 120, 10, 0, 0]]),
         ..Default::default()
     };
     let t2 = Transcript {
         n_exons: 2,
-        exons: vec![[5, 105, 10, 0, 0], [20, 200, 10, 0, 0]],
+        exons: tr_exons_arr(&[[5, 105, 10, 0, 0], [20, 200, 10, 0, 0]]),
         ..Default::default()
     };
     assert_eq!(blocksoverlap_l3_blocksoverlap(&t1, &t2), 5);
@@ -441,9 +480,9 @@ fn transcript_state_primitives_match_original_methods() {
 
     let tr_sj = Transcript {
         n_exons: 3,
-        exons: vec![[0, 100, 10, 0, 0], [20, 140, 15, 0, 0], [40, 200, 10, 0, 0]],
-        canon_sj: vec![1, -1],
-        sj_annot: vec![0, 1],
+        exons: tr_exons_arr(&[[0, 100, 10, 0, 0], [20, 140, 15, 0, 0], [40, 200, 10, 0, 0]]),
+        canon_sj: tr_canon_sj_arr(&[1, -1]),
+        sj_annot: tr_sj_u8_arr(&[0, 1]),
         ..Default::default()
     };
     let mut sj = Vec::new();
@@ -454,7 +493,7 @@ fn transcript_state_primitives_match_original_methods() {
 
     let tr_span = Transcript {
         n_exons: 2,
-        exons: vec![[5, 100, 10, 0, 0], [25, 160, 20, 0, 0]],
+        exons: tr_exons_arr(&[[5, 100, 10, 0, 0], [25, 160, 20, 0, 0]]),
         c_start: 1000,
         l_read: 60,
         ..Default::default()
@@ -583,11 +622,11 @@ fn stitch_gap_indel_scores_deletion_position_and_mismatches() {
 fn stitch_align_to_transcript_uses_annotated_sjdb_fast_path() {
     let mut tr = Transcript {
         n_exons: 1,
-        exons: vec![[0, 10, 3, 0, 0], [0; EX_SIZE]],
-        canon_sj: vec![0; 2],
-        sj_annot: vec![0; 2],
-        shift_sj: vec![[0; 2]; 2],
-        sj_str: vec![0; 2],
+        exons: tr_exons_arr(&[[0, 10, 3, 0, 0], [0; EX_SIZE]]),
+        canon_sj: tr_canon_sj_arr(&[0; 2]),
+        sj_annot: tr_sj_u8_arr(&[0; 2]),
+        shift_sj: tr_shift_sj_arr(&[[0; 2]; 2]),
+        sj_str: tr_sj_u8_arr(&[0; 2]),
         ..Default::default()
     };
     let p = Parameters {
@@ -755,7 +794,7 @@ fn stitch_window_aligns_updates_genomic_end_after_right_extension() {
 fn stitch_window_aligns_replaces_lower_scoring_subset() {
     let old = Transcript {
         n_exons: 1,
-        exons: vec![[0, 10, 3, 0, 0]],
+        exons: tr_exons_arr(&[[0, 10, 3, 0, 0]]),
         mapped_length: 3,
         max_score: 3,
         g_length: 3,
@@ -823,11 +862,11 @@ fn stitch_window_aligns_replaces_lower_scoring_subset() {
 fn stitch_window_aligns_filters_noncanonical_introns_and_reports_bad_mode() {
     let mut tr = Transcript {
         n_exons: 2,
-        exons: vec![[0, 10, 5, 0, 0], [10, 25, 5, 0, 0]],
-        canon_sj: vec![0],
-        sj_annot: vec![0],
-        sj_str: vec![0],
-        shift_sj: vec![[0; 2]],
+        exons: tr_exons_arr(&[[0, 10, 5, 0, 0], [10, 25, 5, 0, 0]]),
+        canon_sj: tr_canon_sj_arr(&[0]),
+        sj_annot: tr_sj_u8_arr(&[0]),
+        sj_str: tr_sj_u8_arr(&[0]),
+        shift_sj: tr_shift_sj_arr(&[[0; 2]]),
         r_start: 0,
         g_start: 10,
         n_match: 10,
@@ -905,11 +944,11 @@ fn stitch_window_aligns_filters_noncanonical_introns_and_reports_bad_mode() {
 fn stitch_align_to_transcript_fills_same_fragment_gap_without_indel() {
     let mut tr = Transcript {
         n_exons: 1,
-        exons: vec![[0, 0, 3, 0, u32::MAX], [0; EX_SIZE]],
-        canon_sj: vec![0; 2],
-        sj_annot: vec![0; 2],
-        shift_sj: vec![[0; 2]; 2],
-        sj_str: vec![0; 2],
+        exons: tr_exons_arr(&[[0, 0, 3, 0, u32::MAX], [0; EX_SIZE]]),
+        canon_sj: tr_canon_sj_arr(&[0; 2]),
+        sj_annot: tr_sj_u8_arr(&[0; 2]),
+        shift_sj: tr_shift_sj_arr(&[[0; 2]; 2]),
+        sj_str: tr_sj_u8_arr(&[0; 2]),
         ..Default::default()
     };
     let p = Parameters {
@@ -948,11 +987,11 @@ fn stitch_align_to_transcript_fills_same_fragment_gap_without_indel() {
 fn stitch_align_to_transcript_records_same_fragment_insertion() {
     let mut tr = Transcript {
         n_exons: 1,
-        exons: vec![[0, 0, 3, 0, u32::MAX], [0; EX_SIZE]],
-        canon_sj: vec![0; 2],
-        sj_annot: vec![0; 2],
-        shift_sj: vec![[0; 2]; 2],
-        sj_str: vec![0; 2],
+        exons: tr_exons_arr(&[[0, 0, 3, 0, u32::MAX], [0; EX_SIZE]]),
+        canon_sj: tr_canon_sj_arr(&[0; 2]),
+        sj_annot: tr_sj_u8_arr(&[0; 2]),
+        shift_sj: tr_shift_sj_arr(&[[0; 2]; 2]),
+        sj_str: tr_sj_u8_arr(&[0; 2]),
         ..Default::default()
     };
     let p = Parameters {
@@ -1102,9 +1141,9 @@ fn transcript_align_score_recomputes_matches_mismatches_and_junction_scores() {
 
     let mut tr = Transcript {
         n_exons: 3,
-        exons: vec![[0, 0, 4, 0, 0], [4, 6, 3, 0, 0], [7, 10, 2, 0, 0]],
-        sj_annot: vec![1, 0],
-        canon_sj: vec![0, -1],
+        exons: tr_exons_arr(&[[0, 0, 4, 0, 0], [4, 6, 3, 0, 0], [7, 10, 2, 0, 0]]),
+        sj_annot: tr_sj_u8_arr(&[1, 0]),
+        canon_sj: tr_canon_sj_arr(&[0, -1]),
         max_score: 99,
         n_match: 99,
         n_mm: 99,
@@ -1120,7 +1159,7 @@ fn transcript_align_score_recomputes_matches_mismatches_and_junction_scores() {
 
     let mut reverse = Transcript {
         n_exons: 1,
-        exons: vec![[1, 12, 3, 0, 0]],
+        exons: tr_exons_arr(&[[1, 12, 3, 0, 0]]),
         ro_str: 1,
         ..Default::default()
     };
@@ -1622,11 +1661,11 @@ fn read_align_mult_map_select_marks_nonfirst_tr_best_primary_after_coordinate_fi
         n_unique: 1,
         n_anchor: 1,
         n_exons: 1,
-        exons: vec![[1, 189665, 45, 0, u32::MAX]],
-        canon_sj: vec![-1],
-        shift_sj: vec![[0, 0]],
-        sj_str: vec![0],
-        sj_annot: vec![0],
+        exons: tr_exons_arr(&[[1, 189665, 45, 0, u32::MAX]]),
+        canon_sj: tr_canon_sj_arr(&[-1]),
+        shift_sj: tr_shift_sj_arr(&[[0, 0]]),
+        sj_str: tr_sj_u8_arr(&[0]),
+        sj_annot: tr_sj_u8_arr(&[0]),
         read_name: "@SRR10143877.15951".to_string(),
         ..Default::default()
     };
@@ -1645,11 +1684,11 @@ fn read_align_mult_map_select_marks_nonfirst_tr_best_primary_after_coordinate_fi
             n_match: 46,
             n_mm: 3,
             n_exons: 2,
-            exons: vec![[1, 165869, 29, 0, u32::MAX], [30, 165899, 20, 0, u32::MAX]],
-            canon_sj: vec![-1, 0],
-            shift_sj: vec![[0, 1], [0, 0]],
-            sj_str: vec![0, 0],
-            sj_annot: vec![0, 0],
+            exons: tr_exons_arr(&[[1, 165869, 29, 0, u32::MAX], [30, 165899, 20, 0, u32::MAX]]),
+            canon_sj: tr_canon_sj_arr(&[-1, 0]),
+            shift_sj: tr_shift_sj_arr(&[[0, 1], [0, 0]]),
+            sj_str: tr_sj_u8_arr(&[0, 0]),
+            sj_annot: tr_sj_u8_arr(&[0, 0]),
             ..Default::default()
         }],
         vec![best.clone()],
@@ -1926,9 +1965,9 @@ fn stats_state_primitives_match_original_methods() {
 
     let tr = Transcript {
         n_exons: 3,
-        exons: vec![[0, 100, 10, 0, 0], [20, 140, 15, 0, 0], [40, 200, 5, 0, 0]],
-        canon_sj: vec![1, -1],
-        sj_annot: vec![1, 0],
+        exons: tr_exons_arr(&[[0, 100, 10, 0, 0], [20, 140, 15, 0, 0], [40, 200, 5, 0, 0]]),
+        canon_sj: tr_canon_sj_arr(&[1, -1]),
+        sj_annot: tr_sj_u8_arr(&[1, 0]),
         n_mm: 2,
         n_ins: 1,
         n_del: 3,
@@ -2026,11 +2065,11 @@ fn chimeric_segment_primitives_match_original_logic() {
         ..Default::default()
     };
     let align = Transcript {
-        exons: vec![[0, 100, 20, 0, 0]],
+        exons: tr_exons_arr(&[[0, 100, 20, 0, 0]]),
         intron_motifs: [0, 1, 0],
         n_exons: 1,
         l_read: 100,
-        read_length: vec![50],
+        read_length: tr_read_length_arr(&[50]),
         r_length: 20,
         max_score: 20,
         str_: 0,
@@ -2043,11 +2082,11 @@ fn chimeric_segment_primitives_match_original_logic() {
     assert!(chimericsegment_l19_chimericsegment_segmentcheck(&seg));
 
     let reverse_align = Transcript {
-        exons: vec![[20, 100, 20, 0, 0]],
+        exons: tr_exons_arr(&[[20, 100, 20, 0, 0]]),
         intron_motifs: [0, 0, 1],
         n_exons: 1,
         l_read: 100,
-        read_length: vec![50],
+        read_length: tr_read_length_arr(&[50]),
         r_length: 20,
         max_score: 25,
         str_: 1,
@@ -2071,7 +2110,7 @@ fn chimeric_segment_primitives_match_original_logic() {
 
     let seg1 = ChimericSegment {
         align: Transcript {
-            read_length: vec![50],
+            read_length: tr_read_length_arr(&[50]),
             max_score: 40,
             ..Default::default()
         },
@@ -2083,7 +2122,7 @@ fn chimeric_segment_primitives_match_original_logic() {
     };
     let seg2 = ChimericSegment {
         align: Transcript {
-            read_length: vec![50],
+            read_length: tr_read_length_arr(&[50]),
             max_score: 35,
             ..Default::default()
         },
@@ -2102,12 +2141,12 @@ fn chimeric_segment_primitives_match_original_logic() {
 #[test]
 fn transcript_generate_cigarp_matches_softclip_indel_junction_and_mate_gap_rules() {
     let tr = Transcript {
-        exons: vec![[2, 100, 8, 0, 0], [12, 118, 5, 0, 0], [20, 130, 4, 0, 0]],
-        canon_sj: vec![-1, 1],
-        sj_annot: vec![0, 0],
+        exons: tr_exons_arr(&[[2, 100, 8, 0, 0], [12, 118, 5, 0, 0], [20, 130, 4, 0, 0]]),
+        canon_sj: tr_canon_sj_arr(&[-1, 1]),
+        sj_annot: tr_sj_u8_arr(&[0, 0]),
         n_exons: 3,
         read_nmates: 1,
-        read_length_original: vec![30],
+        read_length_original: tr_read_length_arr(&[30]),
         read_length_pair_original: 30,
         ..Default::default()
     };
@@ -2117,13 +2156,13 @@ fn transcript_generate_cigarp_matches_softclip_indel_junction_and_mate_gap_rules
     );
 
     let mate_gap = Transcript {
-        exons: vec![[0, 100, 20, 0, 0], [35, 140, 10, 1, 0]],
-        canon_sj: vec![-3],
-        sj_annot: vec![0],
+        exons: tr_exons_arr(&[[0, 100, 20, 0, 0], [35, 140, 10, 1, 0]]),
+        canon_sj: tr_canon_sj_arr(&[-3]),
+        sj_annot: tr_sj_u8_arr(&[0]),
         n_exons: 2,
         read_nmates: 2,
         str_: 0,
-        read_length_original: vec![30, 25],
+        read_length_original: tr_read_length_arr(&[30, 25]),
         read_length_pair_original: 60,
         ..Default::default()
     };
@@ -2133,13 +2172,13 @@ fn transcript_generate_cigarp_matches_softclip_indel_junction_and_mate_gap_rules
     );
 
     let overlap = Transcript {
-        exons: vec![[0, 100, 20, 0, 0], [20, 110, 10, 1, 0]],
-        canon_sj: vec![-3],
-        sj_annot: vec![0],
+        exons: tr_exons_arr(&[[0, 100, 20, 0, 0], [20, 110, 10, 1, 0]]),
+        canon_sj: tr_canon_sj_arr(&[-3]),
+        sj_annot: tr_sj_u8_arr(&[0]),
         n_exons: 2,
         read_nmates: 2,
         str_: 0,
-        read_length_original: vec![30, 25],
+        read_length_original: tr_read_length_arr(&[30, 25]),
         read_length_pair_original: 60,
         ..Default::default()
     };
@@ -2157,9 +2196,9 @@ fn read_align_cigar_helpers_match_transcript_cigarp_and_mate_specific_rules() {
         ..Default::default()
     };
     let tr = Transcript {
-        exons: vec![[0, 100, 20, 0, 0], [35, 140, 10, 1, 0]],
-        canon_sj: vec![-3],
-        sj_annot: vec![0],
+        exons: tr_exons_arr(&[[0, 100, 20, 0, 0], [35, 140, 10, 1, 0]]),
+        canon_sj: tr_canon_sj_arr(&[-3]),
+        sj_annot: tr_sj_u8_arr(&[0]),
         n_exons: 2,
         str_: 0,
         ..Default::default()
@@ -2197,9 +2236,9 @@ fn read_align_cigar_helpers_match_transcript_cigarp_and_mate_specific_rules() {
         ..Default::default()
     };
     let tr = Transcript {
-        exons: vec![[2, 100, 8, 0, 0], [12, 118, 5, 0, 0], [31, 200, 10, 1, 0]],
-        canon_sj: vec![-1, 1],
-        sj_annot: vec![0, 0],
+        exons: tr_exons_arr(&[[2, 100, 8, 0, 0], [12, 118, 5, 0, 0], [31, 200, 10, 1, 0]]),
+        canon_sj: tr_canon_sj_arr(&[-1, 1]),
+        sj_annot: tr_sj_u8_arr(&[0, 0]),
         n_exons: 3,
         str_: 0,
         ..Default::default()
@@ -2292,7 +2331,7 @@ fn transcript_transform_genome_splits_blocks_and_recomputes_deletion_junctions()
         ..Default::default()
     };
     let source = Transcript {
-        exons: vec![[0, 5, 20, 0, 0]],
+        exons: tr_exons_arr(&[[0, 5, 20, 0, 0]]),
         n_exons: 1,
         str_: 1,
         ..Default::default()
@@ -2303,12 +2342,12 @@ fn transcript_transform_genome_splits_blocks_and_recomputes_deletion_junctions()
         &source, &gen_out, &mut out
     ));
     assert_eq!(
-        out.exons,
-        vec![[0, 5, 5, 0, 0], [5, 15, 10, 0, 0], [15, 30, 5, 0, 0]]
+        &out.exons[..3],
+        &[[0, 5, 5, 0, 0], [5, 15, 10, 0, 0], [15, 30, 5, 0, 0]]
     );
     assert_eq!(out.n_exons, 3);
-    assert_eq!(out.canon_sj, vec![-1, -1]);
-    assert_eq!(out.sj_annot, vec![0, 0]);
+    assert_eq!(&out.canon_sj[..2], &[-1, -1]);
+    assert_eq!(&out.sj_annot[..2], &[0u8, 0]);
     assert_eq!(out.str_, 1);
     assert_eq!(out.chr, 3);
 }
@@ -2333,7 +2372,7 @@ fn transcript_transform_genome_rejects_annotated_zero_motif_shift_without_overha
         ..Default::default()
     };
     let source = Transcript {
-        exons: vec![[0, 100, 5, 0, 0], [5, 115, 5, 0, 0]],
+        exons: tr_exons_arr(&[[0, 100, 5, 0, 0], [5, 115, 5, 0, 0]]),
         n_exons: 2,
         ..Default::default()
     };
@@ -2388,8 +2427,8 @@ fn read_align_sam_attr_nm_md_matches_mismatches_n_and_indel_gaps() {
         ..Default::default()
     };
     let tr = Transcript {
-        exons: vec![[0, 0, 5, 0, 0], [6, 8, 2, 0, 0]],
-        canon_sj: vec![-1],
+        exons: tr_exons_arr(&[[0, 0, 5, 0, 0], [6, 8, 2, 0, 0]]),
+        canon_sj: tr_canon_sj_arr(&[-1]),
         ro_str: 0,
         ..Default::default()
     };
@@ -2416,7 +2455,7 @@ fn read_align_sam_attr_nm_md_uses_reverse_read_buffer() {
         ..Default::default()
     };
     let tr = Transcript {
-        exons: vec![[0, 0, 4, 0, 0]],
+        exons: tr_exons_arr(&[[0, 0, 4, 0, 0]]),
         ro_str: 1,
         ..Default::default()
     };
@@ -2469,7 +2508,7 @@ fn read_align_align_bam_writes_mapped_single_end_record_bytes() {
         ..Default::default()
     };
     let tr = Transcript {
-        exons: vec![[0, 0, 4, 0, 0]],
+        exons: tr_exons_arr(&[[0, 0, 4, 0, 0]]),
         n_exons: 1,
         chr: 0,
         str_: 0,
@@ -2546,7 +2585,7 @@ fn read_align_align_bam_writes_unmapped_mate_with_mapped_mate_info() {
         ..Default::default()
     };
     let tr = Transcript {
-        exons: vec![[0, 120, 4, 0, 0]],
+        exons: tr_exons_arr(&[[0, 120, 4, 0, 0]]),
         n_exons: 1,
         chr: 0,
         str_: 0,

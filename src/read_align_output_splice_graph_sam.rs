@@ -7,8 +7,8 @@ use crate::*;
 #[doc = "Original `ReadAlign::outputSpliceGraphSAM` at STAR/source/ReadAlign_outputSpliceGraphSAM.cpp:5. Args: trOut: Transcript, nTrOut: uint, iTrOut: uint, outStream: ostream"]
 pub fn readalign_outputsplicegraphsam_l5_readalign_outputsplicegraphsam(
     tr_out: &crate::transcript::Transcript,
-    n_tr_out: u32,
-    i_tr_out: u32,
+    n_tr_out: u64,
+    i_tr_out: u64,
     read_filter: u8,
     unmap_type: i32,
     read_name: &str,
@@ -18,7 +18,7 @@ pub fn readalign_outputsplicegraphsam_l5_readalign_outputsplicegraphsam(
     p: &crate::parameters_chimeric::Parameters,
     read_files_index: u32,
     read_name_extra: &[String],
-    l_read: u32,
+    l_read: u64,
     gen_out: &crate::genome::Genome,
 ) -> Result<(String, u64), String> {
     let mut out_stream = String::new();
@@ -129,9 +129,10 @@ pub fn readalign_outputsplicegraphsam_l5_readalign_outputsplicegraphsam(
     for attr in &p.out_sam_attr_order {
         match *attr {
             ATTR_NH => out_stream.push_str(&format!("\tNH:i:{}", n_tr_out)),
-            ATTR_HI => {
-                out_stream.push_str(&format!("\tHI:i:{}", i_tr_out + p.out_sam_attr_ih_start))
-            }
+            ATTR_HI => out_stream.push_str(&format!(
+                "\tHI:i:{}",
+                i_tr_out + p.out_sam_attr_ih_start as u64
+            )),
             ATTR_AS => out_stream.push_str(&format!("\tAS:i:{}", tr_out.max_score)),
             ATTR_NM_LOWER => out_stream.push_str(&format!("\tnM:i:{}", tr_out.n_mm)),
             ATTR_NM => out_stream.push_str(&format!("\tNM:i:{}", tag_nm)),

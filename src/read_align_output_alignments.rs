@@ -246,7 +246,7 @@ pub fn readalign_outputalignments_l76_readalign_recordsj(
         for i_tr in 0..n_tr_o as usize {
             readalign_outputtranscriptsj_l4_readalign_outputtranscriptsj(
                 &tr_o[i_tr],
-                n_tr_o as u32,
+                n_tr_o,
                 c_sj,
                 sj_read_start_n,
             );
@@ -394,10 +394,10 @@ pub fn readalign_outputalignments_l132_readalign_writesam(
                 result.out_bam_bytes +=
                     readalign_outputtranscriptsam_l5_readalign_outputtranscriptsam(
                         tr,
-                        n_tr_out_sam as u32,
-                        i_tr as u32,
-                        u32::MAX,
-                        u32::MAX,
+                        n_tr_out_sam,
+                        i_tr as u64,
+                        u64::MAX,
+                        u64::MAX,
                         0,
                         -1,
                         None,
@@ -426,8 +426,8 @@ pub fn readalign_outputalignments_l132_readalign_writesam(
                             tr,
                             0,
                             0,
-                            u32::MAX,
-                            u32::MAX,
+                            u64::MAX,
+                            u64::MAX,
                             0,
                             4,
                             Some(&mate_mapped1),
@@ -455,11 +455,11 @@ pub fn readalign_outputalignments_l132_readalign_writesam(
                     .bam_requests
                     .push(crate::quantifications::AlignBamRequest {
                         transcript: tr.clone(),
-                        n_tr_out: n_tr_out_sam as u32,
-                        i_tr_out: i_tr as u32,
+                        n_tr_out: n_tr_out_sam as u64,
+                        i_tr_out: i_tr as u64,
                         tr_chr_start: map_gen.chr_start[tr.chr as usize],
-                        mate_chr: u32::MAX,
-                        mate_start: u32::MAX,
+                        mate_chr: u64::MAX,
+                        mate_start: u64::MAX,
                         mate_strand: 0,
                         align_type: -1,
                         mate_map: None,
@@ -475,8 +475,8 @@ pub fn readalign_outputalignments_l132_readalign_writesam(
                             n_tr_out: 0,
                             i_tr_out: 0,
                             tr_chr_start: map_gen.chr_start[tr.chr as usize],
-                            mate_chr: u32::MAX,
-                            mate_start: u32::MAX,
+                            mate_chr: u64::MAX,
+                            mate_start: u64::MAX,
                             mate_strand: 0,
                             align_type: 4,
                             mate_map: Some(mate_mapped1),
@@ -500,8 +500,8 @@ pub fn readalign_outputalignments_l132_readalign_writesam(
                         tr_best_sam,
                         0,
                         0,
-                        u32::MAX,
-                        u32::MAX,
+                        u64::MAX,
+                        u64::MAX,
                         0,
                         result.unmap_type,
                         Some(&result.mate_mapped),
@@ -531,8 +531,8 @@ pub fn readalign_outputalignments_l132_readalign_writesam(
                         n_tr_out: 0,
                         i_tr_out: 0,
                         tr_chr_start: map_gen.chr_start[tr_best_sam.chr as usize],
-                        mate_chr: u32::MAX,
-                        mate_start: u32::MAX,
+                        mate_chr: u64::MAX,
+                        mate_start: u64::MAX,
                         mate_strand: 0,
                         align_type: result.unmap_type,
                         mate_map: Some(result.mate_mapped),
@@ -548,8 +548,8 @@ pub fn readalign_outputalignments_l132_readalign_writesam(
                     n_tr_out: 0,
                     i_tr_out: 0,
                     tr_chr_start: map_gen.chr_start[tr_best_sam.chr as usize],
-                    mate_chr: u32::MAX,
-                    mate_start: u32::MAX,
+                    mate_chr: u64::MAX,
+                    mate_start: u64::MAX,
                     mate_strand: 0,
                     align_type: result.unmap_type,
                     mate_map: Some(result.mate_mapped),
@@ -561,8 +561,8 @@ pub fn readalign_outputalignments_l132_readalign_writesam(
                 tr_best_sam,
                 0,
                 0,
-                u32::MAX,
-                u32::MAX,
+                u64::MAX,
+                u64::MAX,
                 0,
                 result.unmap_type,
                 Some(&result.mate_mapped),
@@ -653,8 +653,8 @@ pub fn readalign_outputalignments_l277_readalign_splicegraphwritesam(
     for i_tr in 0..n_tr_out_sam as usize {
         let (sam, bytes) = readalign_outputsplicegraphsam_l5_readalign_outputsplicegraphsam(
             &tr_mult[i_tr],
-            n_tr_out_sam as u32,
-            i_tr as u32,
+            n_tr_out_sam,
+            i_tr as u64,
             read_filter,
             unmap_type,
             read_name,
@@ -664,7 +664,7 @@ pub fn readalign_outputalignments_l277_readalign_splicegraphwritesam(
             p,
             read_files_index,
             read_name_extra,
-            l_read as u32,
+            l_read,
             map_gen,
         )?;
         out_sam_stream.push_str(&sam);
@@ -701,7 +701,7 @@ pub fn readalign_outputalignments_l298_readalign_alignedannotation(
         } else {
             transcriptome_genecountsaddalign_l4_transcriptome_genecountsaddalign(
                 transcriptome,
-                n_tr as u32,
+                n_tr,
                 tr_mult,
                 &mut read_annot.gene_exon_overlap,
             );
@@ -711,7 +711,7 @@ pub fn readalign_outputalignments_l298_readalign_alignedannotation(
     if p.quant_gene_full_yes {
         transcriptome_genefullalignoverlap_l5_transcriptome_genefullalignoverlap(
             transcriptome,
-            n_tr as u32,
+            n_tr,
             tr_mult,
             p.p_solo.strand,
             &mut read_annot.annot_features[SOLO_FEATURE_GENE_FULL as usize],
@@ -731,7 +731,7 @@ pub fn readalign_outputalignments_l298_readalign_alignedannotation(
         let gene_concordant = read_annot.annot_features[SOLO_FEATURE_GENE as usize].clone();
         transcriptome_genefullalignoverlap_exonoverintron_l5_transcriptome_genefullalignoverlap_exonoverintron(
             transcriptome,
-            n_tr as u32,
+            n_tr,
             tr_mult,
             p.p_solo.strand,
             &mut read_annot.annot_features[SOLO_FEATURE_GENE_FULL_EXON_OVER_INTRON as usize],
@@ -742,7 +742,7 @@ pub fn readalign_outputalignments_l298_readalign_alignedannotation(
     if p.quant_gene_full_ex50p_as_yes {
         transcriptome_alignexonoverlap_l10_transcriptome_alignexonoverlap(
             transcriptome,
-            n_tr as u32,
+            n_tr,
             tr_mult,
             p.p_solo.strand,
             &mut read_annot.annot_features[SOLO_FEATURE_GENE_FULL_EX50P_AS as usize],

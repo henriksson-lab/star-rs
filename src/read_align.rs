@@ -67,6 +67,17 @@ pub struct ReadAlign {
     pub qual0: Vec<Vec<u8>>,
     pub read_name_mates: Vec<Vec<u8>>,
     pub read_name_extra: Vec<String>,
+    /// Per-read text-format scratch buffers (one entry per mate). Persisted
+    /// across reads so that String capacity is reused instead of reallocated
+    /// on every `oneRead` invocation. Mirrors STAR's Read0/Qual0/readNameMates
+    /// char* members but as String (since readLoad uses `read_line`).
+    pub read0_text: Vec<String>,
+    pub qual0_text: Vec<String>,
+    pub read_name_mates_text: Vec<String>,
+    /// Per-read scratch buffer for stored seed-alignment results, drained each
+    /// maxMappableLength2strands call. Held on ReadAlign so capacity survives
+    /// across reads.
+    pub stored_aligns_buf: Vec<StoredAlign>,
     pub out_bam_one_align_nbytes: Vec<u64>,
     pub out_bam_one_align: Vec<Vec<u8>>,
     pub chunk_out_chim_junction_opened: bool,

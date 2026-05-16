@@ -123,8 +123,8 @@ pub fn readalign_chimericdetectionoldoutput_l5_readalign_chimericdetectionoldout
                 }
 
                 (
-                    tr_chim[other].chr as u32,
-                    tr_chim[other].exons[iex][EX_G] as u32,
+                    tr_chim[other].chr,
+                    tr_chim[other].exons[iex][EX_G],
                     if tr_chim[other].str_ != tr_chim[other].exons[iex][EX_IFRAG] {
                         1
                     } else {
@@ -132,13 +132,13 @@ pub fn readalign_chimericdetectionoldoutput_l5_readalign_chimericdetectionoldout
                     },
                 )
             } else {
-                (u32::MAX, u32::MAX, -1)
+                (u64::MAX, u64::MAX, -1)
             };
 
             readalign_outputtranscriptsam_l5_readalign_outputtranscriptsam(
                 &tr_chim[i_tr],
                 result.chim_n,
-                i_tr as u32,
+                i_tr as u64,
                 mate_chr,
                 mate_start,
                 mate_strand,

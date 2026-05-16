@@ -30,8 +30,8 @@ pub fn readalign_chimericdetection_l16_readalign_chimericdetection(
     if p.p_ch.multimap_nmax == 0 {
         result.request = Some(crate::quantifications::ChimericDetectionRequest {
             detector: "chimericDetectionOld".to_string(),
-            n_w: read_align.n_w as u32,
-            read_length: read_align.read_length.iter().map(|&v| v as u32).collect(),
+            n_w: read_align.n_w,
+            read_length: read_align.read_length.clone(),
             max_non_chim_align_score: read_align.tr_best.max_score,
         });
         read_align.chim_record = if let Some(chim_record) = detector_result {
@@ -45,10 +45,15 @@ pub fn readalign_chimericdetection_l16_readalign_chimericdetection(
                 .tr_chim
                 .resize(2, crate::transcript::Transcript::default());
         }
-        let mut tr_chim = [read_align.tr_chim[0].clone(), read_align.tr_chim[1].clone()];
-        let old_output = if detector_result.is_none()
-            && (!read_align.chim_record || (tr_chim[0].n_exons > 0 && tr_chim[1].n_exons > 0))
-        {
+        // chimericDetectionOldOutput returns early when `chim_record == false`
+        // (see read_align_chimeric_detection_old_output.rs:36). Skip the
+        // expensive Vec<u8>→String and Transcript clones in that case.
+        let run_old_output = detector_result.is_none()
+            && read_align.chim_record
+            && read_align.tr_chim[0].n_exons > 0
+            && read_align.tr_chim[1].n_exons > 0;
+        let old_output = if run_old_output {
+            let mut tr_chim = [read_align.tr_chim[0].clone(), read_align.tr_chim[1].clone()];
             let read0_strings: Vec<String> = read_align
                 .read0
                 .iter()
@@ -59,7 +64,7 @@ pub fn readalign_chimericdetection_l16_readalign_chimericdetection(
                 .iter()
                 .map(|qual| String::from_utf8_lossy(qual).into_owned())
                 .collect();
-            readalign_chimericdetectionoldoutput_l5_readalign_chimericdetectionoldoutput(
+            let out = readalign_chimericdetectionoldoutput_l5_readalign_chimericdetectionoldoutput(
                 read_align.chim_record,
                 &mut tr_chim,
                 read_align,
@@ -85,12 +90,13 @@ pub fn readalign_chimericdetection_l16_readalign_chimericdetection(
                 p.score_gap_gcag,
                 p.score_gap_atac,
                 p.score_genomic_length_log2scale,
-            )?
+            )?;
+            read_align.tr_chim[0].clone_from(&tr_chim[0]);
+            read_align.tr_chim[1].clone_from(&tr_chim[1]);
+            out
         } else {
             crate::quantifications::ChimericDetectionOldOutputResult::default()
         };
-        read_align.tr_chim[0] = tr_chim[0].clone();
-        read_align.tr_chim[1] = tr_chim[1].clone();
         result.old_output = Some(old_output);
     } else {
         let read_len_sum: u64 = read_align.read_length.iter().take(2).copied().sum();
@@ -99,8 +105,8 @@ pub fn readalign_chimericdetection_l16_readalign_chimericdetection(
         {
             result.request = Some(crate::quantifications::ChimericDetectionRequest {
                 detector: "chimericDetectionMult".to_string(),
-                n_w: read_align.n_w as u32,
-                read_length: read_align.read_length.iter().map(|&v| v as u32).collect(),
+                n_w: read_align.n_w,
+                read_length: read_align.read_length.clone(),
                 max_non_chim_align_score: read_align.tr_best.max_score,
             });
             if let Some(chim_record) = detector_result {
@@ -111,16 +117,16 @@ pub fn readalign_chimericdetection_l16_readalign_chimericdetection(
                     .iter()
                     .map(|&n| n.min(u32::MAX as u64) as u32)
                     .collect();
-                let mut chim_det = chimericdetection_l3_chimericdetection_chimericdetection(
-                    p.clone(),
-                    read_align.tr_all.clone(),
+                let mut chim_det = chimericdetection_borrowed(
+                    p,
+                    &read_align.tr_all,
                     n_win_tr,
-                    [read_align.read1[0].clone(), read_align.read1[1].clone()],
-                    map_gen.clone(),
+                    [&read_align.read1[0], &read_align.read1[2]],
+                    map_gen,
                     p.p_ch.out_junctions,
-                    read_align.clone(),
+                    read_align,
                 );
-                chim_det.n_w = read_align.n_w as u32;
+                chim_det.n_w = read_align.n_w;
                 let mult_output =
                     chimericdetection_chimericdetectionmult_l23_chimericdetection_chimericdetectionmult(
                         &mut chim_det,

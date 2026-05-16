@@ -52,10 +52,9 @@ pub fn readalign_oneread_l8_readalign_oneread(
         read_align.read_name_extra.resize(read_nends, String::new());
     }
     if read_align.clip_mates.len() < read_nends {
-        read_align.clip_mates.resize(
-            read_nends,
-            vec![crate::clip_mate::ClipMate::default(); 2],
-        );
+        read_align
+            .clip_mates
+            .resize(read_nends, vec![crate::clip_mate::ClipMate::default(); 2]);
     }
     if read_align.qual_hist.len() < p.read_nmates as usize {
         read_align
@@ -64,9 +63,19 @@ pub fn readalign_oneread_l8_readalign_oneread(
     }
 
     let mut read_status = vec![0i32; read_nends];
-    let mut read0 = vec![String::new(); read_nends];
-    let mut qual0 = vec![String::new(); read_nends];
-    let mut read_name_mates = vec![String::new(); read_nends];
+    // Reuse capacity from the previous read instead of fresh-allocating each call.
+    let mut read0 = std::mem::take(&mut read_align.read0_text);
+    if read0.len() < read_nends {
+        read0.resize(read_nends, String::new());
+    }
+    let mut qual0 = std::mem::take(&mut read_align.qual0_text);
+    if qual0.len() < read_nends {
+        qual0.resize(read_nends, String::new());
+    }
+    let mut read_name_mates = std::mem::take(&mut read_align.read_name_mates_text);
+    if read_name_mates.len() < read_nends {
+        read_name_mates.resize(read_nends, String::new());
+    }
     let mut read_filter = read_align.read_filter as u8;
 
     for im in 0..read_nends {
@@ -96,14 +105,25 @@ pub fn readalign_oneread_l8_readalign_oneread(
 
     if read_status[0] == -1 {
         result.status = -1;
+        read_align.read0_text = read0;
+        read_align.qual0_text = qual0;
+        read_align.read_name_mates_text = read_name_mates;
         return Ok(result);
     }
 
-    read_align.read_name = read_name_mates.first().cloned().unwrap_or_default();
+    read_align.read_name.clear();
+    if let Some(first) = read_name_mates.first() {
+        read_align.read_name.push_str(first);
+    }
     for im in 0..read_nends {
-        read_align.read0[im] = read0[im].as_bytes().to_vec();
-        read_align.qual0[im] = qual0[im].as_bytes().to_vec();
-        read_align.read_name_mates[im] = read_name_mates[im].as_bytes().to_vec();
+        // Reuse existing Vec<u8> capacity: clear + extend instead of allocating
+        // a new Vec via as_bytes().to_vec().
+        read_align.read0[im].clear();
+        read_align.read0[im].extend_from_slice(read0[im].as_bytes());
+        read_align.qual0[im].clear();
+        read_align.qual0[im].extend_from_slice(qual0[im].as_bytes());
+        read_align.read_name_mates[im].clear();
+        read_align.read_name_mates[im].extend_from_slice(read_name_mates[im].as_bytes());
     }
 
     if p.out_filter_by_sjout_stage != 2 {
@@ -173,7 +193,8 @@ pub fn readalign_oneread_l8_readalign_oneread(
     }
 
     read_align.stats_ra.read_n += 1;
-    read_align.stats_ra.read_bases += (read_align.read_length[0] + read_align.read_length[1]) as u32;
+    read_align.stats_ra.read_bases +=
+        (read_align.read_length[0] + read_align.read_length[1]) as u32;
     let read_bases = read_align.read_length[0] + read_align.read_length[1];
     read_align.out_filter_mismatch_nmax_total = std::cmp::min(
         p.out_filter_mismatch_nmax as u64,
@@ -196,58 +217,26 @@ pub fn readalign_oneread_l8_readalign_oneread(
                 p.out_filter_match_nmin,
                 p.seed_multimap_nmax,
             );
-    } else if let Some(mapped) = mapped_standard_ra {
-        let read_state = (
-            read_align.read_length.clone(),
-            read_align.read_length_original.clone(),
-            read_align.read_length_pair_original,
-            read_align.l_read,
-            read_align.read_name.clone(),
-            read_align.i_read_all,
-            read_align.read_filter,
-            read_align.read_files_index,
-            read_align.read_file_type,
-            read_align.read0.clone(),
-            read_align.qual0.clone(),
-            read_align.read_name_mates.clone(),
-            read_align.read_name_extra.clone(),
-            read_align.read1.clone(),
-            read_align.clip_mates.clone(),
-            read_align.qual_hist.clone(),
-            read_align.stats_ra.clone(),
-            read_align.out_filter_mismatch_nmax_total,
-        );
-        *read_align = mapped.clone();
-        read_align.read_length = read_state.0;
-        read_align.read_length_original = read_state.1;
-        read_align.read_length_pair_original = read_state.2;
-        read_align.l_read = read_state.3;
-        read_align.read_name = read_state.4;
-        read_align.i_read_all = read_state.5;
-        read_align.read_filter = read_state.6;
-        read_align.read_files_index = read_state.7;
-        read_align.read_file_type = read_state.8;
-        read_align.read0 = read_state.9;
-        read_align.qual0 = read_state.10;
-        read_align.read_name_mates = read_state.11;
-        read_align.read_name_extra = read_state.12;
-        read_align.read1 = read_state.13;
-        read_align.clip_mates = read_state.14;
-        read_align.qual_hist = read_state.15;
-        read_align.stats_ra = read_state.16;
-        read_align.out_filter_mismatch_nmax_total = read_state.17;
     } else {
+        // STAR's ReadAlign::oneRead always calls mapOneRead() directly on
+        // its own ReadAlign instance — there is no "substitute a pre-mapped
+        // ReadAlign" branch in the C++ source. Keep this faithful.
+        let _ = mapped_standard_ra;
         result.map_one_read_requested = true;
         readalign_maponeread_l6_readalign_maponeread(read_align, map_gen, p)?;
     }
 
+    // C++ peOverlapMergeMap accesses ReadAlign::trInit via `this->trInit`; the
+    // port has to pass it separately to avoid double-borrowing read_align.
+    // Move it out temporarily (and put it back) instead of deep-cloning per read.
+    let pe_tr_init = std::mem::take(&mut read_align.tr_init);
     result.pe_overlap = readalign_peoverlapmergemap_l4_readalign_peoverlapmergemap(
         read_align,
         pe_merge_ra,
         mapped_pe_merge_ra,
         p,
         map_gen,
-        &read_align.tr_init.clone(),
+        &pe_tr_init,
         &map_gen.g,
         p.p_ge.sjdb_score,
         p.score_ins_base,
@@ -261,22 +250,24 @@ pub fn readalign_oneread_l8_readalign_oneread(
         p.score_genomic_length_log2scale,
         chim_detector_result,
     )?;
+    read_align.tr_init = pe_tr_init;
 
     let rng_snapshot = read_align.rng_uniform_real_0_to_1;
-    result.tr_mult = readalign_multmapselect_inner(
+    readalign_multmapselect_inner(
         &mut read_align.n_tr,
         &mut read_align.tr_best,
         read_align.l_read,
         read_align.n_w,
         &read_align.n_win_tr,
         map_gen,
-        &read_align.tr_all,
+        &mut read_align.tr_all,
         p.out_filter_multimap_score_range,
         p.out_filter_multimap_nmax,
         p.out_multimapper_order_random,
         p.out_sam_mult_nmax_is_limited,
         &p.out_sam_primary_flag,
         &rng_snapshot,
+        &mut result.tr_mult,
     )?;
     if p.read_nmates == 2 {
         expand_collapsed_same_locus_paired_multimaps(
@@ -324,6 +315,9 @@ pub fn readalign_oneread_l8_readalign_oneread(
 
     if p.p_ch.out_bam && read_align.chim_record {
         result.status = 0;
+        read_align.read0_text = read0;
+        read_align.qual0_text = qual0;
+        read_align.read_name_mates_text = read_name_mates;
         return Ok(result);
     }
 
@@ -338,6 +332,7 @@ pub fn readalign_oneread_l8_readalign_oneread(
     );
 
     let mut solo_read = std::mem::take(&mut read_align.solo_read);
+    let read_name_extra = std::mem::take(&mut read_align.read_name_extra);
     let output = readalign_outputalignments_l5_readalign_outputalignments(
         read_align,
         p,
@@ -351,7 +346,7 @@ pub fn readalign_oneread_l8_readalign_oneread(
         chunk_out_filter_by_sjout_files,
         chunk_out_unmapped_reads_stream,
         &read_name_mates,
-        &read_align.read_name_extra.clone(),
+        &read_name_extra,
         &read0,
         &qual0,
         read_align.read_file_type,
@@ -359,6 +354,10 @@ pub fn readalign_oneread_l8_readalign_oneread(
         primary_pick_fraction,
     )?;
     read_align.solo_read = solo_read;
+    read_align.read_name_extra = read_name_extra;
+    read_align.read0_text = read0;
+    read_align.qual0_text = qual0;
+    read_align.read_name_mates_text = read_name_mates;
     read_align.out_bam_bytes += output.out_bam_bytes;
     result.output_alignments = Some(output);
     result.status = 0;

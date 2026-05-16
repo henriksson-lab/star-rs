@@ -16,6 +16,8 @@ pub fn readalign_multmapselect_l8_readalign_multmapselect(
     out_sam_primary_flag: &str,
     rng_uniform_real_0_to_1: &[f64],
 ) -> Result<Vec<crate::transcript::Transcript>, String> {
+    let mut tr_mult = Vec::new();
+    let mut tr_all = tr_all.to_vec();
     readalign_multmapselect_inner(
         &mut read_align.n_tr,
         &mut read_align.tr_best,
@@ -23,14 +25,16 @@ pub fn readalign_multmapselect_l8_readalign_multmapselect(
         read_align.n_w,
         &read_align.n_win_tr,
         map_gen,
-        tr_all,
+        &mut tr_all,
         out_filter_multimap_score_range,
         out_filter_multimap_nmax,
         out_multimapper_order_random,
         out_sam_mult_nmax_is_limited,
         out_sam_primary_flag,
         rng_uniform_real_0_to_1,
-    )
+        &mut tr_mult,
+    )?;
+    Ok(tr_mult)
 }
 
 pub fn readalign_multmapselect_inner(
@@ -40,17 +44,19 @@ pub fn readalign_multmapselect_inner(
     n_w: u64,
     n_win_tr_all: &[u64],
     map_gen: &crate::genome::Genome,
-    tr_all: &[Vec<crate::transcript::Transcript>],
+    tr_all: &mut [Vec<crate::transcript::Transcript>],
     out_filter_multimap_score_range: i32,
     out_filter_multimap_nmax: u64,
     out_multimapper_order_random: bool,
     out_sam_mult_nmax_is_limited: bool,
     out_sam_primary_flag: &str,
     rng_uniform_real_0_to_1: &[f64],
-) -> Result<Vec<crate::transcript::Transcript>, String> {
+    tr_mult: &mut Vec<crate::transcript::Transcript>,
+) -> Result<(), String> {
     *n_tr_out = 0;
     if n_w == 0 {
-        return Ok(Vec::new());
+        tr_mult.truncate(0);
+        return Ok(());
     }
 
     let mut max_score = -10 * l_read as i32;
@@ -64,25 +70,29 @@ pub fn readalign_multmapselect_inner(
         return Err("BUG: maxScore!=trBest->maxScore in multMapSelect".to_string());
     }
 
-    let mut tr_mult = Vec::new();
+    let mut selected = 0usize;
     for iw in 0..n_w as usize {
         let n_win_tr = (n_win_tr_all.get(iw).copied().unwrap_or(0) as usize).min(tr_all[iw].len());
         for itr in 0..n_win_tr {
             if tr_all[iw][itr].max_score + out_filter_multimap_score_range >= max_score {
-                if tr_mult.len() == 100_000 {
+                if selected == 100_000 {
                     return Err("EXITING: Fatal ERROR: number of alignments exceeds MAX_N_MULTMAP, increase it and re-compile STAR".to_string());
                 }
-                let mut tr = tr_all[iw][itr].clone();
-                tr.chr = tr_all[iw][0].chr;
-                tr.str_ = tr_all[iw][0].str_;
-                tr.ro_str = tr_all[iw][0].ro_str;
-                tr_mult.push(tr);
+                if selected == tr_mult.len() {
+                    tr_mult.push(crate::transcript::Transcript::default());
+                }
+                tr_all[iw][itr].chr = tr_all[iw][0].chr;
+                tr_all[iw][itr].str_ = tr_all[iw][0].str_;
+                tr_all[iw][itr].ro_str = tr_all[iw][0].ro_str;
+                tr_mult[selected].copy_from(&tr_all[iw][itr]);
+                selected += 1;
                 *n_tr_out += 1;
             }
         }
     }
+    tr_mult.truncate(selected);
     if *n_tr_out > out_filter_multimap_nmax || *n_tr_out == 0 {
-        return Ok(tr_mult);
+        return Ok(());
     }
 
     for tr in tr_mult.iter_mut() {
@@ -91,9 +101,7 @@ pub fn readalign_multmapselect_inner(
         } else {
             l_read.wrapping_sub(tr.r_start).wrapping_sub(tr.r_length)
         };
-        tr.c_start = tr
-            .g_start
-            .wrapping_sub(map_gen.chr_start[tr.chr as usize]);
+        tr.c_start = tr.g_start.wrapping_sub(map_gen.chr_start[tr.chr as usize]);
     }
     tr_best.ro_start = if tr_best.ro_str == 0 {
         tr_best.r_start
@@ -163,7 +171,7 @@ pub fn readalign_multmapselect_inner(
         }
     }
 
-    Ok(tr_mult)
+    Ok(())
 }
 
 pub fn expand_collapsed_same_locus_paired_multimaps(
@@ -228,9 +236,7 @@ pub fn expand_collapsed_same_locus_paired_multimaps(
                 tr.exons[1][EX_G] = loci[j];
                 tr.g_start = loci[i];
                 tr.g_length = loci[j] + mate0_len - loci[i];
-                tr.c_start = tr
-                    .g_start
-                    .wrapping_sub(map_gen.chr_start[tr.chr as usize]);
+                tr.c_start = tr.g_start.wrapping_sub(map_gen.chr_start[tr.chr as usize]);
                 tr.r_start = tr.exons[0][EX_R];
                 tr.r_length = mate0_len + mate1_len;
                 tr.mapped_length = tr.r_length;
@@ -268,9 +274,7 @@ pub fn expand_collapsed_same_locus_paired_multimaps(
             tr.exons[mate1_exon][EX_G] = loci[j];
             tr.g_start = loci[i];
             tr.g_length = loci[j] + mate1_len - loci[i];
-            tr.c_start = tr
-                .g_start
-                .wrapping_sub(map_gen.chr_start[tr.chr as usize]);
+            tr.c_start = tr.g_start.wrapping_sub(map_gen.chr_start[tr.chr as usize]);
             tr.r_start = tr.exons[0][EX_R];
             tr.r_length = mate0_len + mate1_len;
             tr.mapped_length = tr.r_length;
@@ -291,9 +295,7 @@ pub fn expand_collapsed_same_locus_paired_multimaps(
             tr.exons[1][EX_G] = loci[j];
             tr.g_start = loci[i];
             tr.g_length = loci[j] + mate0_len - loci[i];
-            tr.c_start = tr
-                .g_start
-                .wrapping_sub(map_gen.chr_start[tr.chr as usize]);
+            tr.c_start = tr.g_start.wrapping_sub(map_gen.chr_start[tr.chr as usize]);
             tr.r_start = tr.exons[0][EX_R];
             tr.r_length = mate0_len + mate1_len;
             tr.mapped_length = tr.r_length;

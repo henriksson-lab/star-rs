@@ -16,18 +16,22 @@ pub fn readalign_transformgenome_l5_readalign_transformgenome(
     out_sam_primary_flag: &str,
     rng_uniform_real_0_to_1: &[f64],
 ) -> crate::quantifications::ReadAlignGenomeTransformResult {
-    let mut aligns_gen_out = crate::quantifications::ReadAlignGenomeTransformResult {
-        al_best: read_align.tr_best.clone(),
-        ..Default::default()
-    };
+    // STAR's C++ does `alignsGenOut.alBest = trBest` (pointer assignment).
+    // The Rust port has to copy. Defer the copy past the early-exit check so
+    // that reads which skip transformation (the common case when no genome
+    // transformation is configured) don't pay for it.
+    let mut aligns_gen_out = crate::quantifications::ReadAlignGenomeTransformResult::default();
 
     if !map_gen.genome_out.conv_yes
         || map_gen.p_ge.transform.type_ == 0
         || read_align.n_tr > out_filter_multimap_nmax
         || read_align.n_tr == 0
     {
+        aligns_gen_out.al_best.copy_from(&read_align.tr_best);
         return aligns_gen_out;
     }
+
+    aligns_gen_out.al_best.copy_from(&read_align.tr_best);
 
     for i_tr in 0..read_align.n_tr as usize {
         let is_best = tr_mult[i_tr] == read_align.tr_best;
@@ -99,9 +103,9 @@ pub fn readalign_transformgenome_l5_readalign_transformgenome(
             }
         }
         aligns_gen_out.al_mult = kept;
-        aligns_gen_out.al_n = aligns_gen_out.al_mult.len() as u32;
+        aligns_gen_out.al_n = aligns_gen_out.al_mult.len() as u64;
     } else {
-        aligns_gen_out.al_n = aligns_gen_out.al_mult.len() as u32;
+        aligns_gen_out.al_n = aligns_gen_out.al_mult.len() as u64;
     }
 
     funprimaryalignmark_l3_funprimaryalignmark(

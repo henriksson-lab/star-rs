@@ -30,8 +30,7 @@ pub fn outputsj_l20_outputsj(
     };
     let mut all_sj = outsj_l4_outsj_outsj(p.limit_out_sj_collapsed * 2);
     let run_thread_n = p.run_thread_n as usize;
-    let mut sj_chunks =
-        Vec::<Vec<crate::out_sj::JunctionRecord>>::with_capacity(run_thread_n);
+    let mut sj_chunks = Vec::<Vec<crate::out_sj::JunctionRecord>>::with_capacity(run_thread_n);
     let mut sj_index = vec![0usize; run_thread_n];
 
     for chunk in ra_chunk.iter().take(run_thread_n) {
@@ -117,7 +116,7 @@ pub fn outputsj_l20_outputsj(
 
     let mut sj_filter = vec![true; all_sj.n as usize];
     if p.out_filter_by_sjout_stage != 2 {
-        let mut sj_a = Vec::<(u32, usize, u32)>::with_capacity(all_sj.n as usize);
+        let mut sj_a = Vec::<(u64, usize, u32)>::with_capacity(all_sj.n as usize);
         for ii in 0..all_sj.n as usize {
             let record = &all_sj.junctions[ii];
             let x1 = if ii > 0 {
@@ -128,21 +127,21 @@ pub fn outputsj_l20_outputsj(
             let x2 = if ii + 1 < all_sj.n as usize {
                 all_sj.junctions[ii + 1].start
             } else {
-                u32::MAX
+                u64::MAX
             };
             let min_dist = record
                 .start
                 .wrapping_sub(x1)
                 .min(x2.wrapping_sub(record.start));
             let motif_index = ((record.motif + 1) / 2) as usize;
-            sj_filter[ii] = min_dist >= p.out_sjfilter_dist_to_other_sj_min[motif_index] as u32;
+            sj_filter[ii] = min_dist >= p.out_sjfilter_dist_to_other_sj_min[motif_index] as u64;
             let motif_for_acceptor = if record.annot == 0 {
                 record.motif as u32
             } else {
                 SJ_MOTIF_SIZE as u32 + 1
             };
             sj_a.push((
-                record.start.wrapping_add(record.gap),
+                record.start.wrapping_add(record.gap as u64),
                 ii,
                 motif_for_acceptor,
             ));
@@ -157,12 +156,12 @@ pub fn outputsj_l20_outputsj(
                 let x2 = if ii + 1 < sj_a.len() {
                     sj_a[ii + 1].0
                 } else {
-                    u32::MAX
+                    u64::MAX
                 };
                 let min_dist = sj_a[ii].0.wrapping_sub(x1).min(x2.wrapping_sub(sj_a[ii].0));
                 let motif_index = ((motif_for_acceptor + 1) / 2) as usize;
                 sj_filter[original_index] = sj_filter[original_index]
-                    && min_dist >= p.out_sjfilter_dist_to_other_sj_min[motif_index] as u32;
+                    && min_dist >= p.out_sjfilter_dist_to_other_sj_min[motif_index] as u64;
             }
         }
     }
@@ -183,7 +182,7 @@ pub fn outputsj_l20_outputsj(
                     all_sj.junctions[ii].start, all_sj.junctions[ii].gap
                 )
                 .unwrap();
-                p.sj_all[0].push(all_sj.junctions[ii].start as u64);
+                p.sj_all[0].push(all_sj.junctions[ii].start);
                 p.sj_all[1].push(all_sj.junctions[ii].gap as u64);
             }
         }
@@ -210,7 +209,7 @@ pub fn outputsj_l20_outputsj(
                 p.sj_novel_end.push(
                     all_sj.junctions[ii]
                         .start
-                        .wrapping_add(all_sj.junctions[ii].gap)
+                        .wrapping_add(all_sj.junctions[ii].gap as u64)
                         .wrapping_sub(1),
                 );
             }
@@ -220,9 +219,7 @@ pub fn outputsj_l20_outputsj(
     Ok(result)
 }
 
-pub fn genome_output_sj_snapshot(
-    genome: &crate::genome::Genome,
-) -> crate::genome::Genome {
+pub fn genome_output_sj_snapshot(genome: &crate::genome::Genome) -> crate::genome::Genome {
     let mut p_ge = crate::parameters_genome::ParametersGenome::default();
     p_ge.g_chr_bin_nbits = genome.p_ge.g_chr_bin_nbits;
     crate::genome::Genome {

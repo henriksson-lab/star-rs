@@ -304,9 +304,9 @@ pub fn genome_genomeload_l18_genome_genomeload(
             .resize(genome.sai_packed.length_byte as usize, 0);
     }
     genome.sai_packed.array_allocated = true;
-    genome.sai = (0..n_sai as u64)
-        .map(|ii| packedarray_h18_packedarray_index(&genome.sai_packed, ii))
-        .collect();
+    // STAR uses PackedArray directly for SAi lookups; do not materialize a
+    // Vec<u64> copy (it would cost ~2.86 GB for genomeSAindexNbases=14).
+    genome.sai.clear();
     genome.sai_mark_nmask_c = if genome.gstrand_bit + 1 >= 64 {
         0
     } else {

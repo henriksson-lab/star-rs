@@ -12,8 +12,8 @@ pub fn readalignchunk_processchunks_l11_readalignchunk_processchunks<F>(
     stats_all: &mut crate::stats::Stats,
     time_current: libc::time_t,
     input_mates: &[String],
-    mut one_read: F,
-    mut real_context: Option<(
+    one_read: F,
+    real_context: Option<(
         &crate::genome::Genome,
         &mut crate::transcriptome::Transcriptome,
     )>,
@@ -23,15 +23,45 @@ where
 {
     use std::io::BufRead;
 
+    let mut read_in: Vec<Box<dyn BufRead + '_>> = input_mates
+        .iter()
+        .map(|s| Box::new(std::io::Cursor::new(s.as_bytes())) as Box<dyn BufRead + '_>)
+        .collect();
+    readalignchunk_processchunks_from_readers_l11_readalignchunk_processchunks(
+        chunk,
+        p,
+        thread_chunks,
+        stats_all,
+        time_current,
+        &mut read_in,
+        one_read,
+        real_context,
+    )
+}
+
+pub fn readalignchunk_processchunks_from_readers_l11_readalignchunk_processchunks<F>(
+    chunk: &mut crate::read_align_chunk::ReadAlignChunk,
+    p: &mut crate::parameters_chimeric::Parameters,
+    thread_chunks: &mut crate::thread_control::ThreadControl,
+    stats_all: &mut crate::stats::Stats,
+    time_current: libc::time_t,
+    read_in: &mut Vec<Box<dyn std::io::BufRead + '_>>,
+    mut one_read: F,
+    mut real_context: Option<(
+        &crate::genome::Genome,
+        &mut crate::transcriptome::Transcriptome,
+    )>,
+) -> Result<crate::read_align_chunk::ReadAlignChunkProcessChunksResult, String>
+where
+    F: FnMut(&mut crate::read_align::ReadAlign) -> i32,
+{
     let mut result = crate::read_align_chunk::ReadAlignChunkProcessChunksResult::default();
     chunk.no_reads_left = false;
     let mut new_file = false;
-    let mut read_in: Vec<std::io::Cursor<&[u8]>> = input_mates
-        .iter()
-        .map(|s| std::io::Cursor::new(s.as_bytes()))
-        .collect();
     if read_in.len() < p.read_nends as usize {
-        read_in.resize_with(p.read_nends as usize, || std::io::Cursor::new(&[][..]));
+        read_in.resize_with(p.read_nends as usize, || {
+            Box::new(std::io::Cursor::new(&[][..])) as Box<dyn std::io::BufRead + '_>
+        });
     }
     if chunk.chunk_in.len() < p.read_nends as usize {
         chunk.chunk_in.resize(p.read_nends as usize, Vec::new());
@@ -198,9 +228,7 @@ where
                             p.i_read_all, pass_filter_illumina, p.read_files_index
                         ));
                         for imate in 1..p.read_nends as usize {
-                            let mut discard = String::new();
-                            read_in[imate]
-                                .read_line(&mut discard)
+                            readalignchunk_processchunks_skipline(&mut *read_in[imate])
                                 .map_err(|e| e.to_string())?;
                         }
                         for imate in 0..p.read_nends as usize {
@@ -210,33 +238,25 @@ where
                     }
                     for imate in 0..p.read_nends as usize {
                         if p.out_filter_by_sjout_stage == 2 {
-                            let mut line = Vec::new();
-                            readalignchunk_processchunks_l284_fastqreadoneline(
-                                &mut read_in[imate],
-                                &mut line,
+                            readalignchunk_processchunks_fastqreadonelineappend(
+                                &mut *read_in[imate],
+                                &mut chunk.chunk_in[imate],
                             )
                             .map_err(|e| e.to_string())?;
-                            chunk.chunk_in[imate].extend_from_slice(&line);
                         }
-                        let mut line = Vec::new();
-                        readalignchunk_processchunks_l284_fastqreadoneline(
-                            &mut read_in[imate],
-                            &mut line,
+                        readalignchunk_processchunks_fastqreadonelineappend(
+                            &mut *read_in[imate],
+                            &mut chunk.chunk_in[imate],
                         )
                         .map_err(|e| e.to_string())?;
-                        chunk.chunk_in[imate].extend_from_slice(&line);
-                        let mut discard = String::new();
-                        read_in[imate]
-                            .read_line(&mut discard)
+                        readalignchunk_processchunks_skipline(&mut *read_in[imate])
                             .map_err(|e| e.to_string())?;
                         chunk.chunk_in[imate].extend_from_slice(b"+\n");
-                        line.clear();
-                        readalignchunk_processchunks_l284_fastqreadoneline(
-                            &mut read_in[imate],
-                            &mut line,
+                        readalignchunk_processchunks_fastqreadonelineappend(
+                            &mut *read_in[imate],
+                            &mut chunk.chunk_in[imate],
                         )
                         .map_err(|e| e.to_string())?;
-                        chunk.chunk_in[imate].extend_from_slice(&line);
                         chunk.chunk_in_size_bytes_total[imate] = chunk.chunk_in[imate].len() as u64;
                     }
                 } else if next_char == b'>' {
@@ -270,17 +290,19 @@ where
                             if matches!(fasta_next, b'@' | b'>' | b' ' | b'\n') {
                                 break;
                             }
-                            let mut seq_line = Vec::new();
+                            let start = chunk.chunk_in[imate].len();
                             read_in[imate]
-                                .read_until(b'\n', &mut seq_line)
+                                .read_until(b'\n', &mut chunk.chunk_in[imate])
                                 .map_err(|e| e.to_string())?;
-                            while seq_line
+                            while chunk.chunk_in[imate]
                                 .last()
                                 .is_some_and(|&byte| byte == b'\n' || byte < 33)
                             {
-                                seq_line.pop();
+                                chunk.chunk_in[imate].pop();
                             }
-                            chunk.chunk_in[imate].extend_from_slice(&seq_line);
+                            if chunk.chunk_in[imate].len() == start {
+                                break;
+                            }
                         }
                         chunk.chunk_in[imate].push(b'\n');
                         chunk.chunk_in_size_bytes_total[imate] = chunk.chunk_in[imate].len() as u64;
@@ -433,21 +455,48 @@ pub fn readalignchunk_processchunks_l284_fastqreadoneline<R: std::io::BufRead>(
     arr_in: &mut Vec<u8>,
 ) -> std::io::Result<u64> {
     arr_in.clear();
-    let mut line = Vec::new();
-    if stream_in.read_until(b'\n', &mut line)? == 0 {
+    readalignchunk_processchunks_fastqreadonelineappend(stream_in, arr_in)
+}
+
+pub fn readalignchunk_processchunks_fastqreadonelineappend<R: std::io::BufRead + ?Sized>(
+    stream_in: &mut R,
+    arr_in: &mut Vec<u8>,
+) -> std::io::Result<u64> {
+    let start = arr_in.len();
+    if stream_in.read_until(b'\n', arr_in)? == 0 {
         return Ok(0);
     }
 
-    if line.last() == Some(&b'\n') {
-        line.pop();
+    if arr_in.last() == Some(&b'\n') {
+        arr_in.pop();
     }
-    if line.last().is_some_and(|&byte| byte < 33) {
-        line.pop();
+    if arr_in.last().is_some_and(|&byte| byte < 33) {
+        arr_in.pop();
     }
-    line.push(b'\n');
+    arr_in.push(b'\n');
 
-    arr_in.extend_from_slice(&line);
-    Ok(arr_in.len() as u64)
+    Ok((arr_in.len() - start) as u64)
+}
+
+pub fn readalignchunk_processchunks_skipline<R: std::io::BufRead + ?Sized>(
+    stream_in: &mut R,
+) -> std::io::Result<()> {
+    loop {
+        let (consume, done) = {
+            let buf = stream_in.fill_buf()?;
+            if buf.is_empty() {
+                return Ok(());
+            }
+            match buf.iter().position(|&byte| byte == b'\n') {
+                Some(pos) => (pos + 1, true),
+                None => (buf.len(), false),
+            }
+        };
+        stream_in.consume(consume);
+        if done {
+            return Ok(());
+        }
+    }
 }
 
 #[doc = "Original `removeStringEndControl` at STAR/source/ReadAlignChunk_processChunks.cpp:298. Args: str: string"]

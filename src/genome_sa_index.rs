@@ -32,9 +32,7 @@ pub fn genomesaindex_l6_genomesaindex(
     Ok(sai)
 }
 
-pub fn genomesaindex_from_packed(
-    map_gen: &mut crate::genome::Genome,
-) -> Result<Vec<u64>, String> {
+pub fn genomesaindex_from_packed(map_gen: &mut crate::genome::Genome) -> Result<Vec<u64>, String> {
     map_gen.genome_sa_index_start = vec![0; map_gen.p_ge.g_saindex_nbases as usize + 1];
     for ii in 1..=map_gen.p_ge.g_saindex_nbases as usize {
         map_gen.genome_sa_index_start[ii] =
@@ -46,12 +44,15 @@ pub fn genomesaindex_from_packed(
     map_gen.sai_mark_nmask = !map_gen.sai_mark_nmask_c;
     map_gen.sai_mark_absent_mask_c = 1u64 << (map_gen.gstrand_bit + 2);
 
-    let mut sai = vec![0u64; n_sai as usize];
+    let mut sai_packed = packedarray_l3_packedarray_packedarray();
+    packedarray_l8_packedarray_definebits(&mut sai_packed, map_gen.gstrand_bit as u64 + 3, n_sai);
+    packedarray_l31_packedarray_allocatearray(&mut sai_packed);
     if map_gen.sa_packed.length > 0 {
-        genomesaindexchunk_from_packed(&mut sai, 0, map_gen.sa_packed.length - 1, map_gen)?;
+        genomesaindexchunk_write_packed(&mut sai_packed, 0, map_gen.sa_packed.length - 1, map_gen)?;
     }
-    map_gen.sai = sai.clone();
-    Ok(sai)
+    map_gen.sai.clear();
+    map_gen.sai_packed = sai_packed;
+    Ok(Vec::new())
 }
 
 #[doc = "Original `genomeSAindexChunk` at STAR/source/genomeSAindex.cpp:117. Args: G: char, SA: PackedArray, P: Parameters, SAi: PackedArray, iSA1: uint, iSA2: uint, mapGen: Genome"]
@@ -249,6 +250,106 @@ pub fn genomesaindexchunk_from_packed(
                 return Err("BUG: SA tail-index write is out of bounds\n".to_string());
             }
             sai[ii_usize] = map_gen.n_sa | sai_mark_absent_mask_c;
+            ii = ii.wrapping_add(1);
+        }
+    }
+
+    Ok(())
+}
+
+pub fn genomesaindexchunk_write_packed(
+    sai: &mut crate::packed_array::PackedArray,
+    i_sa1: u64,
+    i_sa2: u64,
+    map_gen: &crate::genome::Genome,
+) -> Result<(), String> {
+    let index_bases = map_gen.p_ge.g_saindex_nbases as usize;
+    if index_bases == 0 {
+        return Ok(());
+    }
+    if map_gen.n_sa == 0 {
+        return Err("BUG: empty suffix array in genomeSAindexChunk\n".to_string());
+    }
+
+    let sai_mark_nmask_c = map_gen.sai_mark_nmask_c;
+    let sai_mark_absent_mask_c = map_gen.sai_mark_absent_mask_c;
+
+    let mut ind0 = vec![u64::MAX; index_bases];
+    let isa_step = map_gen.n_sa as u64 / (1u64 << (2 * map_gen.p_ge.g_saindex_nbases)) + 1;
+    let mut isa = i_sa1;
+    let mut i_l4 = 0;
+    let mut ind_full = suffixarrayfuns_l353_funcalcsaifrompacked(
+        &map_gen.g,
+        &map_gen.sa_packed,
+        map_gen.n_genome,
+        map_gen.gstrand_bit as u8,
+        map_gen.gstrand_mask as u64,
+        isa,
+        map_gen.p_ge.g_saindex_nbases as i32,
+        &mut i_l4,
+    );
+
+    while isa <= i_sa2 {
+        for i_l in 0..index_bases {
+            let shift = 2 * (map_gen.p_ge.g_saindex_nbases as usize - 1 - i_l);
+            let ind_pref = ind_full >> shift;
+
+            if i_l as i32 == i_l4 {
+                for i_l1 in i_l..index_bases {
+                    let jj = map_gen.genome_sa_index_start[i_l1].wrapping_add(ind0[i_l1]);
+                    if jj < sai.length {
+                        let value = packedarray_h18_packedarray_index(sai, jj) | sai_mark_nmask_c;
+                        packedarray_l17_packedarray_writepacked(sai, jj, value);
+                    }
+                }
+                break;
+            }
+
+            if ind_pref > ind0[i_l] || isa == 0 {
+                let jj = map_gen.genome_sa_index_start[i_l].wrapping_add(ind_pref);
+                if jj >= sai.length {
+                    return Err("BUG: SA index write is out of bounds\n".to_string());
+                }
+                packedarray_l17_packedarray_writepacked(sai, jj, isa);
+
+                let mut ii = ind0[i_l].wrapping_add(1);
+                while ii < ind_pref {
+                    let jj_absent = map_gen.genome_sa_index_start[i_l].wrapping_add(ii);
+                    if jj_absent >= sai.length {
+                        return Err("BUG: SA absent-index write is out of bounds\n".to_string());
+                    }
+                    packedarray_l17_packedarray_writepacked(
+                        sai,
+                        jj_absent,
+                        isa | sai_mark_absent_mask_c,
+                    );
+                    ii = ii.wrapping_add(1);
+                }
+                ind0[i_l] = ind_pref;
+            } else if ind_pref < ind0[i_l] {
+                return Err("BUG: next index is smaller than previous, EXITING\n".to_string());
+            }
+        }
+
+        funsaifindnextindex_from_packed(
+            &map_gen.sa_packed,
+            isa_step,
+            &mut isa,
+            &mut ind_full,
+            &mut i_l4,
+            map_gen,
+        );
+    }
+
+    for i_l in 0..index_bases {
+        let mut ii = map_gen.genome_sa_index_start[i_l]
+            .wrapping_add(ind0[i_l])
+            .wrapping_add(1);
+        while ii < map_gen.genome_sa_index_start[i_l + 1] {
+            if ii >= sai.length {
+                return Err("BUG: SA tail-index write is out of bounds\n".to_string());
+            }
+            packedarray_l17_packedarray_writepacked(sai, ii, map_gen.n_sa | sai_mark_absent_mask_c);
             ii = ii.wrapping_add(1);
         }
     }

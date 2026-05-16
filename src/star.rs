@@ -810,8 +810,8 @@ pub fn star_l58_main(
     let mut thread_chunks = crate::thread_control::ThreadControl::default();
 
     if p.run_restart_type != 1 {
-        let input_mates = if map_chunks_injected {
-            Vec::new()
+        let (input_mates, mut input_readers) = if map_chunks_injected {
+            (Vec::new(), None)
         } else if !p.read_files_command_string.is_empty() {
             let mut input_mates = vec![String::new(); p.read_nends as usize];
             for imate in 0..p.read_nends as usize {
@@ -878,9 +878,9 @@ pub fn star_l58_main(
                     }
                 }
             }
-            input_mates
+            (input_mates, None)
         } else {
-            let mut input_mates = Vec::new();
+            let mut input_readers = Vec::new();
             for imate in 0..p.read_nends as usize {
                 let rf_name = p
                     .read_files_names
@@ -894,16 +894,16 @@ pub fn star_l58_main(
                             p.read_files_in.get(imate).cloned().unwrap_or_default()
                         )
                     });
-                input_mates.push(crate::io_utils::read_to_string_auto_gzip(&rf_name).map_err(
-                    |_| {
+                input_readers.push(
+                    crate::io_utils::open_bufread_auto_gzip(&rf_name).map_err(|_| {
                         format!(
                             "EXITING because of fatal input ERROR: could not open readFilesIn={}\n",
                             rf_name
                         )
-                    },
-                )?);
+                    })?,
+                );
             }
-            input_mates
+            (Vec::new(), Some(input_readers))
         };
         let mut process_chunks_result =
             Option::<crate::read_align_chunk::ReadAlignChunkProcessChunksResult>::None;
@@ -917,16 +917,29 @@ pub fn star_l58_main(
                     if map_chunks_injected || ra_chunks.is_empty() {
                         return Ok(String::new());
                     }
-                    let process = readalignchunk_processchunks_l11_readalignchunk_processchunks(
-                        &mut ra_chunks[0],
-                        &mut p,
-                        &mut thread_chunks,
-                        &mut stats_all,
-                        raw_time_map,
-                        &input_mates,
-                        |_ra| -1,
-                        Some((&genome_main, &mut transcriptome_main)),
-                    )?;
+                    let process = if let Some(readers) = input_readers.as_mut() {
+                        readalignchunk_processchunks_from_readers_l11_readalignchunk_processchunks(
+                            &mut ra_chunks[0],
+                            &mut p,
+                            &mut thread_chunks,
+                            &mut stats_all,
+                            raw_time_map,
+                            readers,
+                            |_ra| -1,
+                            Some((&genome_main, &mut transcriptome_main)),
+                        )?
+                    } else {
+                        readalignchunk_processchunks_l11_readalignchunk_processchunks(
+                            &mut ra_chunks[0],
+                            &mut p,
+                            &mut thread_chunks,
+                            &mut stats_all,
+                            raw_time_map,
+                            &input_mates,
+                            |_ra| -1,
+                            Some((&genome_main, &mut transcriptome_main)),
+                        )?
+                    };
                     let log_main = process.log_main.clone();
                     process_chunks_result = Some(process);
                     Ok(log_main)

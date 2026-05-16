@@ -32,9 +32,7 @@ pub fn transcriptome_quantalign_l5_aligntotranscript(
     a_t.n_exons = 0;
     a_t.primary_flag = false;
 
-    if a_g.canon_sj.len() < a_g.n_exons as usize {
-        a_g.canon_sj.resize(a_g.n_exons as usize, 0);
-    }
+    // Fixed-size array: slots already exist; no resize needed.
     a_g.canon_sj[a_g.n_exons as usize - 1] = -999;
 
     for iab in 0..a_g.n_exons as usize {
@@ -46,16 +44,11 @@ pub fn transcriptome_quantalign_l5_aligntotranscript(
 
         if iab == 0 || a_g.canon_sj[iab - 1] < 0 {
             let at_exon = a_t.n_exons as usize;
-            if a_t.exons.len() <= at_exon {
-                a_t.exons.resize(at_exon + 1, [0; EX_SIZE]);
-            }
-            if a_t.canon_sj.len() <= at_exon {
-                a_t.canon_sj.resize(at_exon + 1, 0);
-            }
+            // Fixed-size arrays: slots already exist; no resize needed.
             a_t.exons[at_exon][EX_R] = a_g.exons[iab][EX_R];
-            a_t.exons[at_exon][EX_G] = a_g.exons[iab][EX_G] - tr_s1 as u64
-                - ex_se1[2 * ex1 as usize] as u64
-                + ex_len_cum1[ex1 as usize] as u64;
+            a_t.exons[at_exon][EX_G] =
+                a_g.exons[iab][EX_G] - tr_s1 as u64 - ex_se1[2 * ex1 as usize] as u64
+                    + ex_len_cum1[ex1 as usize] as u64;
             a_t.exons[at_exon][EX_L] = a_g.exons[iab][EX_L];
             a_t.exons[at_exon][EX_IFRAG] = a_g.exons[iab][EX_IFRAG];
             if a_t.n_exons > 0 {
@@ -91,9 +84,7 @@ pub fn transcriptome_quantalign_l5_aligntotranscript(
                 }
 
                 let n_at = a_t.n_exons as usize;
-                a_t.sj_annot.resize(n_at, 0);
-                a_t.shift_sj.resize(n_at, [0; 2]);
-                a_t.sj_str.resize(n_at, 0);
+                // Fixed-size arrays: slots already exist; no resize needed.
                 for iex in 0..n_at {
                     a_t.sj_annot[iex] = 0;
                     a_t.shift_sj[iex] = [0, 0];

@@ -39,14 +39,14 @@ pub fn chimericalign_chimericstitching_l3_chimericalign_chimericstitching(
     if chim.al1.exons[ex1][EX_IFRAG] < chim.al2.exons[ex2][EX_IFRAG] {
         chim.chim_motif = -1;
         chim.chim_j1 = if chim.al1.str_ == 1 {
-            (chim.al1.exons[ex1][EX_G] - 1) as u32
+            chim.al1.exons[ex1][EX_G] - 1
         } else {
-            (chim.al1.exons[ex1][EX_G] + chim.al1.exons[ex1][EX_L]) as u32
+            chim.al1.exons[ex1][EX_G] + chim.al1.exons[ex1][EX_L]
         };
         chim.chim_j2 = if chim.al2.str_ == 0 {
-            (chim.al2.exons[ex2][EX_G] - 1) as u32
+            chim.al2.exons[ex2][EX_G] - 1
         } else {
-            (chim.al2.exons[ex2][EX_G] + chim.al2.exons[ex2][EX_L]) as u32
+            chim.al2.exons[ex2][EX_G] + chim.al2.exons[ex2][EX_L]
         };
     } else {
         let ro_start0 = if chim.al1.str_ == 0 {
@@ -179,10 +179,10 @@ pub fn chimericalign_chimericstitching_l3_chimericalign_chimericstitching(
             chim.al1.exons[ex1][EX_R] += chim.al1.exons[ex1][EX_L] - j_rbest - 1;
             chim.al1.exons[ex1][EX_G] += chim.al1.exons[ex1][EX_L] - j_rbest - 1;
             chim.al1.exons[ex1][EX_L] = j_rbest + 1;
-            chim.chim_j1 = (chim.al1.exons[ex1][EX_G] - 1) as u32;
+            chim.chim_j1 = chim.al1.exons[ex1][EX_G] - 1;
         } else {
             chim.al1.exons[ex1][EX_L] = j_rbest + 1;
-            chim.chim_j1 = (chim.al1.exons[ex1][EX_G] + chim.al1.exons[ex1][EX_L]) as u32;
+            chim.chim_j1 = chim.al1.exons[ex1][EX_G] + chim.al1.exons[ex1][EX_L];
         }
 
         if chim.al2.str_ == 0 {
@@ -190,11 +190,11 @@ pub fn chimericalign_chimericstitching_l3_chimericalign_chimericstitching(
             chim.al2.exons[ex2][EX_G] += ro_start0 + j_rbest + 1 - ro_start1;
             chim.al2.exons[ex2][EX_L] =
                 ro_start1 + chim.al2.exons[ex2][EX_L] - ro_start0 - j_rbest - 1;
-            chim.chim_j2 = (chim.al2.exons[ex2][EX_G] - 1) as u32;
+            chim.chim_j2 = chim.al2.exons[ex2][EX_G] - 1;
         } else {
             chim.al2.exons[ex2][EX_L] =
                 ro_start1 + chim.al2.exons[ex2][EX_L] - ro_start0 - j_rbest - 1;
-            chim.chim_j2 = (chim.al2.exons[ex2][EX_G] + chim.al2.exons[ex2][EX_L]) as u32;
+            chim.chim_j2 = chim.al2.exons[ex2][EX_G] + chim.al2.exons[ex2][EX_L];
         }
 
         let mut repeat = 0_u64;
@@ -220,7 +220,7 @@ pub fn chimericalign_chimericstitching_l3_chimericalign_chimericstitching(
             }
             repeat += 1;
         }
-        chim.chim_repeat2 = repeat as u32;
+        chim.chim_repeat2 = repeat;
 
         repeat = 0;
         while repeat < 100 {
@@ -245,12 +245,12 @@ pub fn chimericalign_chimericstitching_l3_chimericalign_chimericstitching(
             }
             repeat += 1;
         }
-        chim.chim_repeat1 = repeat as u32;
+        chim.chim_repeat1 = repeat;
     }
 
     if chim.chim_motif >= 0
-        && (chim.al1.exons[ex1][EX_L] < p_ch.junction_overhang_min as u64
-            || chim.al2.exons[ex2][EX_L] < p_ch.junction_overhang_min as u64)
+        && (chim.al1.exons[ex1][EX_L] < p_ch.junction_overhang_min
+            || chim.al2.exons[ex2][EX_L] < p_ch.junction_overhang_min)
     {
         chim.chim_score = 0;
         return;

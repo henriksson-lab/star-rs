@@ -8,11 +8,11 @@ use crate::*;
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct ChimericSegment {
     pub align: Transcript,
-    pub ro_s: u32,
-    pub ro_e: u32,
-    pub str_: u32,
-    pub segment_min: u32,
-    pub segment_read_gap_max: u32,
+    pub ro_s: u64,
+    pub ro_e: u64,
+    pub str_: u64,
+    pub segment_min: u64,
+    pub segment_read_gap_max: u64,
 }
 
 #[doc = "Original `ChimericSegment::ChimericSegment` at STAR/source/ChimericSegment.cpp:3. Args: Pin: Parameters, alignIn: Transcript"]
@@ -38,23 +38,23 @@ pub fn chimericsegment_l3_chimericsegment_chimericsegment(
     }
 
     seg.ro_s = if seg.align.str_ == 0 {
-        seg.align.exons[0][EX_R] as u32
+        seg.align.exons[0][EX_R]
     } else {
-        (seg.align.l_read
+        seg.align.l_read
             - seg.align.exons[seg.align.n_exons as usize - 1][EX_R]
-            - seg.align.exons[seg.align.n_exons as usize - 1][EX_L]) as u32
+            - seg.align.exons[seg.align.n_exons as usize - 1][EX_L]
     };
     seg.ro_e = if seg.align.str_ == 0 {
-        (seg.align.exons[seg.align.n_exons as usize - 1][EX_R]
+        seg.align.exons[seg.align.n_exons as usize - 1][EX_R]
             + seg.align.exons[seg.align.n_exons as usize - 1][EX_L]
-            - 1) as u32
+            - 1
     } else {
-        (seg.align.l_read - seg.align.exons[0][EX_R] - 1) as u32
+        seg.align.l_read - seg.align.exons[0][EX_R] - 1
     };
-    if seg.ro_s as u64 > seg.align.read_length[0] {
+    if seg.ro_s > seg.align.read_length[0] {
         seg.ro_s -= 1;
     }
-    if seg.ro_e as u64 > seg.align.read_length[0] {
+    if seg.ro_e > seg.align.read_length[0] {
         seg.ro_e -= 1;
     }
     seg
@@ -65,7 +65,7 @@ pub fn chimericsegment_l19_chimericsegment_segmentcheck(
     seg: &crate::chimeric_segment::ChimericSegment,
 ) -> bool {
     let mut seg_good = true;
-    seg_good = seg_good && seg.align.r_length >= seg.segment_min as u64;
+    seg_good = seg_good && seg.align.r_length >= seg.segment_min;
     seg_good = seg_good && seg.align.intron_motifs[0] == 0;
     seg_good
 }

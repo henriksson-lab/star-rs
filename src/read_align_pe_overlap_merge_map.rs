@@ -203,21 +203,7 @@ pub fn readalign_peoverlapmergemap_l136_transcript_peoverlapsetope(
             }
 
             let out_exon = transcript.n_exons as usize;
-            if transcript.exons.len() <= out_exon {
-                transcript.exons.resize(out_exon + 1, [0; EX_SIZE]);
-            }
-            if transcript.canon_sj.len() <= out_exon {
-                transcript.canon_sj.resize(out_exon + 1, 0);
-            }
-            if transcript.sj_annot.len() <= out_exon {
-                transcript.sj_annot.resize(out_exon + 1, 0);
-            }
-            if transcript.sj_str.len() <= out_exon {
-                transcript.sj_str.resize(out_exon + 1, 0);
-            }
-            if transcript.shift_sj.len() <= out_exon {
-                transcript.shift_sj.resize(out_exon + 1, [0; 2]);
-            }
+            // Fixed-size arrays sized at MAX_N_EXONS need no resize; bounds check below.
 
             transcript.exons[out_exon][EX_IFRAG] = if imate == 0 { t.str_ } else { 1 - t.str_ };
             transcript.exons[out_exon][EX_SJA] = t.exons[iex][EX_SJA];
@@ -246,7 +232,7 @@ pub fn readalign_peoverlapmergemap_l136_transcript_peoverlapsetope(
             }
 
             transcript.n_exons += 1;
-            if transcript.n_exons > MAX_N_EXONS {
+            if transcript.n_exons as usize > MAX_N_EXONS {
                 transcript.max_score = 0;
                 transcript.n_exons = 0;
                 return;
@@ -430,9 +416,7 @@ pub fn readalign_peoverlapmergemap_l308_readalign_peoverlapchimericsetope(
 
     if i2 == 1 {
         temp_tr_chim[i1].n_exons = seg_ex[i1] + 1;
-        temp_tr_chim[i1]
-            .exons
-            .truncate(temp_tr_chim[i1].n_exons as usize);
+        // Fixed-size array: no truncate needed; n_exons tracks logical length.
     } else {
         let start = seg_ex[i1] as usize + 1;
         let old_n = temp_tr_chim[i1].n_exons as usize;
@@ -440,21 +424,13 @@ pub fn readalign_peoverlapmergemap_l308_readalign_peoverlapchimericsetope(
         for iex in 0..new_n {
             let iex1 = iex + start;
             temp_tr_chim[i1].exons[iex] = temp_tr_chim[i1].exons[iex1];
-            if temp_tr_chim[i1].canon_sj.len() > iex1 {
-                temp_tr_chim[i1].canon_sj[iex] = temp_tr_chim[i1].canon_sj[iex1];
-            }
-            if temp_tr_chim[i1].sj_annot.len() > iex1 {
-                temp_tr_chim[i1].sj_annot[iex] = temp_tr_chim[i1].sj_annot[iex1];
-            }
-            if temp_tr_chim[i1].sj_str.len() > iex1 {
-                temp_tr_chim[i1].sj_str[iex] = temp_tr_chim[i1].sj_str[iex1];
-            }
-            if temp_tr_chim[i1].shift_sj.len() > iex1 {
-                temp_tr_chim[i1].shift_sj[iex] = temp_tr_chim[i1].shift_sj[iex1];
-            }
+            temp_tr_chim[i1].canon_sj[iex] = temp_tr_chim[i1].canon_sj[iex1];
+            temp_tr_chim[i1].sj_annot[iex] = temp_tr_chim[i1].sj_annot[iex1];
+            temp_tr_chim[i1].sj_str[iex] = temp_tr_chim[i1].sj_str[iex1];
+            temp_tr_chim[i1].shift_sj[iex] = temp_tr_chim[i1].shift_sj[iex1];
         }
         temp_tr_chim[i1].n_exons = new_n as u64;
-        temp_tr_chim[i1].exons.truncate(new_n);
+        // Fixed-size array: no truncate needed; n_exons tracks logical length.
     }
 
     *pe_tr_out1 = temp_tr_chim[0].clone();

@@ -2,6 +2,7 @@
 
 Rust translation of the STAR RNA-seq aligner 
 
+**more auditing needed; uint mistranslated**
 * 2026-05-16: Restructured code, fixed STAR index bug + multithreading
 * 2026-05-13: Automatically detects gzip files if provided by name (not piped, CLI). Binary is now an optional feature
 * 2026-05-02: Passes basic tests but a larger battery is needed before we can assert that this translation is fully functional

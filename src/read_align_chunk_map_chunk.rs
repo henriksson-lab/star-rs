@@ -142,10 +142,9 @@ where
                                         )?;
                                     }
                                     if p_one_read.out_bam_coord {
-                                        let mut p_coord = p_one_read.clone();
                                         bamoutput_l77_bamoutput_coordonealign(
                                             &mut chunk.chunk_out_bam_coord,
-                                            &mut p_coord,
+                                            &mut p_one_read,
                                             &bam.records[iline],
                                             bam_size,
                                             chunk.ra.i_read_all,
@@ -192,10 +191,9 @@ where
                                         )?;
                                     }
                                     if p_one_read.out_bam_coord {
-                                        let mut p_coord = p_one_read.clone();
                                         bamoutput_l77_bamoutput_coordonealign(
                                             &mut chunk.chunk_out_bam_coord,
-                                            &mut p_coord,
+                                            &mut p_one_read,
                                             &bam.records[iline],
                                             bam_size,
                                             chunk.ra.i_read_all,
@@ -256,10 +254,9 @@ where
                                         )?;
                                     }
                                     if p_one_read.out_bam_coord {
-                                        let mut p_coord = p_one_read.clone();
                                         bamoutput_l77_bamoutput_coordonealign(
                                             &mut chunk.chunk_out_bam_coord,
-                                            &mut p_coord,
+                                            &mut p_one_read,
                                             &bam.records[iline],
                                             bam_size,
                                             chunk.ra.i_read_all,
@@ -306,10 +303,9 @@ where
                                         )?;
                                     }
                                     if p_one_read.out_bam_coord {
-                                        let mut p_coord = p_one_read.clone();
                                         bamoutput_l77_bamoutput_coordonealign(
                                             &mut chunk.chunk_out_bam_coord,
-                                            &mut p_coord,
+                                            &mut p_one_read,
                                             &bam.records[iline],
                                             bam_size,
                                             chunk.ra.i_read_all,
@@ -351,10 +347,9 @@ where
                                 )?;
                             }
                             if p_one_read.out_bam_coord {
-                                let mut p_coord = p_one_read.clone();
                                 bamoutput_l77_bamoutput_coordonealign(
                                     &mut chunk.chunk_out_bam_coord,
-                                    &mut p_coord,
+                                    &mut p_one_read,
                                     &bam.records[iline],
                                     bam_size,
                                     chunk.ra.i_read_all,
@@ -377,8 +372,8 @@ where
                                 request.n_align_t,
                                 request.i_align_t,
                                 0,
-                                u32::MAX,
-                                u32::MAX,
+                                u64::MAX,
+                                u64::MAX,
                                 0,
                                 -1,
                                 None,
@@ -508,8 +503,10 @@ where
         bamoutput_l70_bamoutput_unsortedflush(out_bam_quant);
     }
     if p.out_bam_coord {
-        let mut p_coord = p.clone();
-        bamoutput_l168_bamoutput_coordflush(&mut chunk.chunk_out_bam_coord, &mut p_coord)?;
+        // p_one_read carries the bin-sorting mutations accumulated during the
+        // per-record coordOneAlign calls above; flush against that state, not
+        // a fresh clone of p (which would discard them).
+        bamoutput_l168_bamoutput_coordflush(&mut chunk.chunk_out_bam_coord, &mut p_one_read)?;
     }
     if p.out_reads_unmapped == "Fastx" {
         result.unmapped_fastx_outputs = chunk_out_unmapped_reads_stream;

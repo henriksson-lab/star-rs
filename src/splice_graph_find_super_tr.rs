@@ -41,14 +41,14 @@ pub fn splicegraph_findsupertr_l5_splicegraph_findsupertr(
         }
 
         let sai_index = map_gen.genome_sa_index_start[seed_len as usize - 1] as u64 + ind1;
-        let i_sa1 = map_gen.sai[sai_index as usize] as u64;
+        let i_sa1 = map_gen.sai_value(sai_index);
         if (i_sa1 & map_gen.sai_mark_absent_mask_c as u64) != 0 {
             iseed += seed_spacing as u64;
             continue;
         }
 
         let i_sa2 = if sai_index + 1 < map_gen.genome_sa_index_start[seed_len as usize] as u64 {
-            ((map_gen.sai[sai_index as usize + 1] as u64 & map_gen.sai_mark_nmask as u64)
+            ((map_gen.sai_value(sai_index + 1) & map_gen.sai_mark_nmask as u64)
                 & !(map_gen.sai_mark_absent_mask_c as u64))
                 - 1
         } else {

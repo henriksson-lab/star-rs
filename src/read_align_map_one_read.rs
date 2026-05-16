@@ -42,19 +42,45 @@ pub fn readalign_maponeread_l6_readalign_maponeread(
     read_align.tr_init.i_read = read_align.i_read;
     read_align.tr_init.l_read = read_align.l_read;
     read_align.tr_init.n_exons = 0;
-    read_align.tr_init.read_length_original = read_align.read_length_original.clone();
+    // Copy per-mate read lengths into the fixed-size array (matches C++ STAR layout).
+    for (i, &v) in read_align
+        .read_length_original
+        .iter()
+        .take(crate::include_define::MAX_N_MATES)
+        .enumerate()
+    {
+        read_align.tr_init.read_length_original[i] = v;
+    }
     read_align.tr_init.read_length_pair_original = read_align.read_length_pair_original;
-    read_align.tr_init.read_length = read_align.read_length.clone();
+    for (i, &v) in read_align
+        .read_length
+        .iter()
+        .take(crate::include_define::MAX_N_MATES)
+        .enumerate()
+    {
+        read_align.tr_init.read_length[i] = v;
+    }
     read_align.tr_init.read_nmates = read_align.read_nmates;
-    read_align.tr_init.read_name = read_align.read_name.clone();
-    read_align.tr_best = (*read_align.tr_init).clone();
+    read_align
+        .tr_init
+        .read_name
+        .clone_from(&read_align.read_name);
+    // tr_best mirrors tr_init's initial state (C++: `trBest = trInit` pointer-aliasing).
+    // Reuse tr_best's existing Vec capacity instead of allocating fresh.
+    {
+        let crate::read_align::ReadAlign {
+            tr_init, tr_best, ..
+        } = read_align;
+        tr_best.copy_from(tr_init);
+    }
 
     let seed_search_start_lmax = std::cmp::min(
         p.seed_search_start_lmax as u64,
         (p.seed_search_start_lmax_over_lread * read_align.l_read.saturating_sub(1) as f64) as u64,
     );
 
-    let mut stored_aligns = Vec::new();
+    let mut stored_aligns = std::mem::take(&mut read_align.stored_aligns_buf);
+    stored_aligns.clear();
     for ip in 0..read_align.n_split as usize {
         let n_start =
             if p.seed_search_start_lmax > 0 && seed_search_start_lmax < read_align.split_r[1][ip] {
@@ -205,5 +231,6 @@ pub fn readalign_maponeread_l6_readalign_maponeread(
         )?;
     }
 
+    read_align.stored_aligns_buf = stored_aligns;
     Ok(0)
 }

@@ -21,9 +21,21 @@ pub fn readalign_maxmappablelength2strands_l5_readalign_maxmappablelength2strand
     let mut nrep: u64 = 0;
     let mut ind_start_end = [0u64; 2];
     let sparse_d = (p_ge.g_sasparse_d as u64).min(piece_length_in);
-    let mut nrep_all = vec![0u64; sparse_d as usize];
-    let mut ind_start_end_all = vec![[0u64; 2]; sparse_d as usize];
-    let mut max_l_all = vec![0u64; sparse_d as usize];
+    // STAR uses VLAs sized by `gSAsparseD` (typically 1, occasionally up to a
+    // handful). Avoid the per-seed Vec allocations by using a stack-allocated
+    // fixed-size array. If a user ever sets gSAsparseD beyond this cap we
+    // would need to grow it (or fall back to a Vec); none of the STAR
+    // documentation suggests values anywhere near MAX_SA_SPARSE_D.
+    const MAX_SA_SPARSE_D: usize = 16;
+    if sparse_d as usize > MAX_SA_SPARSE_D {
+        return Err(format!(
+            "EXITING because of FATAL ERROR: --genomeSAsparseD={} exceeds compiled MAX_SA_SPARSE_D={}\nSOLUTION: lower --genomeSAsparseD or raise MAX_SA_SPARSE_D and recompile.\n",
+            sparse_d, MAX_SA_SPARSE_D
+        ));
+    }
+    let mut nrep_all = [0u64; MAX_SA_SPARSE_D];
+    let mut ind_start_end_all = [[0u64; 2]; MAX_SA_SPARSE_D];
+    let mut max_l_all = [0u64; MAX_SA_SPARSE_D];
     *max_lbest = 0;
 
     let dir_r = i_dir == 0;
@@ -56,8 +68,8 @@ pub fn readalign_maxmappablelength2strands_l5_readalign_maxmappablelength2strand
             i_sa2_raw = map_gen.n_sa.saturating_sub(1) as u64;
         } else {
             while l_ind > 0 {
-                i_sa1_raw = map_gen.sai
-                    [(map_gen.genome_sa_index_start[(l_ind - 1) as usize] + ind1 as u64) as usize];
+                i_sa1_raw = map_gen
+                    .sai_value(map_gen.genome_sa_index_start[(l_ind - 1) as usize] + ind1 as u64);
                 if (i_sa1_raw & map_gen.sai_mark_absent_mask_c) == 0 {
                     break;
                 }
@@ -71,8 +83,9 @@ pub fn readalign_maxmappablelength2strands_l5_readalign_maxmappablelength2strand
             } else if map_gen.genome_sa_index_start[(l_ind - 1) as usize] + ind1 as u64 + 1
                 < map_gen.genome_sa_index_start[l_ind as usize]
             {
-                i_sa2_raw = map_gen.sai
-                    [(map_gen.genome_sa_index_start[(l_ind - 1) as usize] + ind1 as u64 + 1) as usize];
+                i_sa2_raw = map_gen.sai_value(
+                    map_gen.genome_sa_index_start[(l_ind - 1) as usize] + ind1 as u64 + 1,
+                );
                 if (i_sa2_raw & map_gen.sai_mark_absent_mask_c) == 0 {
                     i_sa2_raw = (i_sa2_raw & map_gen.sai_mark_nmask).saturating_sub(1);
                 } else {
@@ -91,8 +104,7 @@ pub fn readalign_maxmappablelength2strands_l5_readalign_maxmappablelength2strand
             i_sa1_search &= !map_gen.sai_mark_absent_mask_c;
             i_sa2_search &= !map_gen.sai_mark_absent_mask_c;
         }
-        let search_bounds_valid =
-            i_sa1_search < map_gen.n_sa && i_sa2_search < map_gen.n_sa;
+        let search_bounds_valid = i_sa1_search < map_gen.n_sa && i_sa2_search < map_gen.n_sa;
         if !search_bounds_valid || i_sa1_search > i_sa2_search {
             i_sa1_search = 0;
             i_sa2_search = map_gen.n_sa.saturating_sub(1);

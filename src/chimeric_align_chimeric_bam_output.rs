@@ -10,8 +10,8 @@ pub fn chimericalign_chimericbamoutput_l7_chimericalign_chimericbamoutput(
     al2: &crate::transcript::Transcript,
     read_align: &crate::read_align::ReadAlign,
     map_gen: &crate::genome::Genome,
-    i_tr: u32,
-    chim_n: u32,
+    i_tr: u64,
+    chim_n: u64,
     is_best_chim_align: bool,
     p: &crate::parameters_chimeric::Parameters,
 ) -> crate::quantifications::ChimericBamOutputResult {
@@ -47,19 +47,19 @@ pub fn chimericalign_chimericbamoutput_l7_chimericalign_chimericbamoutput(
 
     for itr in 0..2usize {
         tr_chim[itr].primary_flag = is_best_chim_align;
-        let mate_chr: u32;
-        let mate_start_abs: u32;
+        let mate_chr: u64;
+        let mate_start_abs: u64;
         let mate_strand: i8;
         let align_type: i32;
 
         if result.chim_type == 2 {
-            mate_chr = tr_chim[1 - itr].chr as u32;
-            mate_start_abs = tr_chim[1 - itr].exons[0][EX_G] as u32;
+            mate_chr = tr_chim[1 - itr].chr;
+            mate_start_abs = tr_chim[1 - itr].exons[0][EX_G];
             mate_strand = i8::from(tr_chim[1 - itr].str_ != tr_chim[1 - itr].exons[0][EX_IFRAG]);
             align_type = -10;
         } else {
-            mate_chr = u32::MAX;
-            mate_start_abs = u32::MAX;
+            mate_chr = u64::MAX;
+            mate_start_abs = u64::MAX;
             mate_strand = 0;
             if result.chim_represent == itr as i32 {
                 align_type = -10;
@@ -86,15 +86,15 @@ pub fn chimericalign_chimericbamoutput_l7_chimericalign_chimericbamoutput(
                         }
                         iex += 1;
                     }
-                    let mate_chr1 = tr_chim[chim_represent].chr as u32;
-                    let mate_start1 = tr_chim[chim_represent].exons[iex][EX_G] as u32;
+                    let mate_chr1 = tr_chim[chim_represent].chr;
+                    let mate_start1 = tr_chim[chim_represent].exons[iex][EX_G];
                     let mate_strand1 = i8::from(
                         tr_chim[chim_represent].str_
                             != tr_chim[chim_represent].exons[iex][EX_IFRAG],
                     );
                     let tr_chr_start = map_gen.chr_start[tr_chim[itr].chr as usize];
                     let mate_start = mate_start1.wrapping_sub(
-                        map_gen.chr_start[mate_chr1.min(map_gen.n_chr_real - 1) as usize] as u32,
+                        map_gen.chr_start[mate_chr1.min(map_gen.n_chr_real as u64 - 1) as usize],
                     );
                     result
                         .bam_requests
@@ -115,13 +115,12 @@ pub fn chimericalign_chimericbamoutput_l7_chimericalign_chimericbamoutput(
         }
 
         let tr_chr_start = map_gen.chr_start[tr_chim[itr].chr as usize];
-        let mate_chr_index = if mate_chr < map_gen.n_chr_real {
+        let mate_chr_index = if mate_chr < map_gen.n_chr_real as u64 {
             mate_chr
         } else {
             0
         };
-        let mate_start =
-            mate_start_abs.wrapping_sub(map_gen.chr_start[mate_chr_index as usize] as u32);
+        let mate_start = mate_start_abs.wrapping_sub(map_gen.chr_start[mate_chr_index as usize]);
         result
             .bam_requests
             .push(crate::quantifications::AlignBamRequest {

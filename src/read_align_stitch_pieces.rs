@@ -321,7 +321,7 @@ pub fn readalign_stitchpieces_l12_readalign_stitchpieces(
             }
         }
     }
-    read_align.tr_best = (*read_align.tr_init).clone();
+    read_align.tr_best.copy_from(&read_align.tr_init);
     let mut i_w1 = 0usize;
     let mut tr_n_total = 0u64;
 
@@ -400,7 +400,7 @@ pub fn readalign_stitchpieces_l12_readalign_stitchpieces(
             || (w_tr[0].max_score == read_align.tr_best.max_score
                 && w_tr[0].g_length < read_align.tr_best.g_length)
         {
-            read_align.tr_best = w_tr[0].clone();
+            read_align.tr_best.copy_from(&w_tr[0]);
         }
 
         if read_align.tr_all.len() <= i_w1 {

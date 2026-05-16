@@ -23,20 +23,21 @@ pub fn readalign_chimericdetectionpemerged_l5_readalign_chimericdetectionpemerge
         result.mapped_filter_requested = true;
         if detector_result.is_none() {
             let rng_snapshot = se_ra.rng_uniform_real_0_to_1;
-            let _tr_mult = readalign_multmapselect_inner(
+            readalign_multmapselect_inner(
                 &mut se_ra.n_tr,
                 &mut se_ra.tr_best,
                 se_ra.l_read,
                 se_ra.n_w,
                 &se_ra.n_win_tr,
                 map_gen,
-                &se_ra.tr_all,
+                &mut se_ra.tr_all,
                 p.out_filter_multimap_score_range,
                 p.out_filter_multimap_nmax,
                 p.out_multimapper_order_random,
                 p.out_sam_mult_nmax_is_limited,
                 &p.out_sam_primary_flag,
                 &rng_snapshot,
+                &mut se_ra.tr_mult,
             )?;
             readalign_mappedfilter_l3_readalign_mappedfilter(
                 se_ra,
@@ -50,8 +51,8 @@ pub fn readalign_chimericdetectionpemerged_l5_readalign_chimericdetectionpemerge
         }
         result.request = Some(crate::quantifications::ChimericDetectionRequest {
             detector: "chimericDetectionOld".to_string(),
-            n_w: se_ra.n_w as u32,
-            read_length: se_ra.read_length.iter().map(|&v| v as u32).collect(),
+            n_w: se_ra.n_w,
+            read_length: se_ra.read_length.clone(),
             max_non_chim_align_score: se_ra.tr_best.max_score,
         });
         read_align.chim_record = if let Some(chim_record) = detector_result {
@@ -135,8 +136,8 @@ pub fn readalign_chimericdetectionpemerged_l5_readalign_chimericdetectionpemerge
         {
             result.request = Some(crate::quantifications::ChimericDetectionRequest {
                 detector: "chimericDetectionMult".to_string(),
-                n_w: se_ra.n_w as u32,
-                read_length: se_ra.read_length.iter().map(|&v| v as u32).collect(),
+                n_w: se_ra.n_w,
+                read_length: se_ra.read_length.clone(),
                 max_non_chim_align_score: se_ra.tr_best.max_score,
             });
             if let Some(chim_record) = detector_result {
@@ -147,24 +148,23 @@ pub fn readalign_chimericdetectionpemerged_l5_readalign_chimericdetectionpemerge
                     .iter()
                     .map(|&n| n.min(u32::MAX as u64) as u32)
                     .collect();
-                let mut chim_det = chimericdetection_l3_chimericdetection_chimericdetection(
-                    p.clone(),
-                    se_ra.tr_all.clone(),
+                let mut chim_det = chimericdetection_borrowed(
+                    p,
+                    &se_ra.tr_all,
                     n_win_tr,
-                    [se_ra.read1[0].clone(), se_ra.read1[1].clone()],
-                    map_gen.clone(),
+                    [&se_ra.read1[0], &se_ra.read1[2]],
+                    map_gen,
                     p.p_ch.out_junctions,
-                    se_ra.clone(),
+                    se_ra,
                 );
-                chim_det.n_w = se_ra.n_w as u32;
-                let pe_ra_snapshot = read_align.clone();
+                chim_det.n_w = se_ra.n_w;
                 let mult_output =
                     chimericdetection_chimericdetectionmult_l23_chimericdetection_chimericdetectionmult(
                         &mut chim_det,
                         se_ra.n_w,
                         &se_ra.read_length,
                         se_ra.tr_best.max_score,
-                        Some(&pe_ra_snapshot),
+                        Some(read_align),
                         None,
                         p.p_ge.sjdb_score,
                         p.score_ins_base,

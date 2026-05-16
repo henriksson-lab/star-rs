@@ -14,7 +14,7 @@ pub fn readalign_quanttranscriptome_l7_readalign_quanttranscriptome(
     primary_pick_fraction: f64,
 ) -> crate::quantifications::QuantTranscriptomeResult {
     let mut align_t = Vec::<crate::transcript::Transcript>::new();
-    let mut n_align_t = 0_u32;
+    let mut n_align_t = 0_u64;
 
     for align1_in in align_g {
         if !p.quant_tr_sam_indel && (align1_in.n_del > 0 || align1_in.n_ins > 0) {
@@ -100,7 +100,7 @@ pub fn readalign_quanttranscriptome_l7_readalign_quanttranscriptome(
             align1,
             &mut align_t,
         );
-        n_align_t += added;
+        n_align_t += added as u64;
     }
 
     let mut bam_requests = Vec::new();
@@ -117,7 +117,7 @@ pub fn readalign_quanttranscriptome_l7_readalign_quanttranscriptome(
             bam_requests.push(crate::quantifications::QuantTranscriptomeBamRequest {
                 transcript: align_t[iatr].clone(),
                 n_align_t,
-                i_align_t: iatr as u32,
+                i_align_t: iatr as u64,
             });
         }
     }

@@ -796,9 +796,9 @@ pub fn parameters_l310_parameters_inputparameters(
             }
             "peOverlapNbasesMin" => p.pe_overlap_nbases_min = parse_u32(value)?,
             "peOverlapMMp" => p.pe_overlap_mmp = parse_f64(value)?,
-            "chimSegmentMin" => p.p_ch.segment_min = parse_u32(value)?,
-            "chimJunctionOverhangMin" => p.p_ch.junction_overhang_min = parse_u32(value)?,
-            "chimSegmentReadGapMax" => p.p_ch.segment_read_gap_max = parse_u32(value)?,
+            "chimSegmentMin" => p.p_ch.segment_min = parse_u64(value)?,
+            "chimJunctionOverhangMin" => p.p_ch.junction_overhang_min = parse_u64(value)?,
+            "chimSegmentReadGapMax" => p.p_ch.segment_read_gap_max = parse_u64(value)?,
             "chimScoreMin" => p.p_ch.score_min = parse_i32(value)?,
             "chimScoreDropMax" => p.p_ch.score_drop_max = parse_i32(value)?,
             "chimScoreSeparation" => p.p_ch.score_separation = parse_i32(value)?,
@@ -815,9 +815,9 @@ pub fn parameters_l310_parameters_inputparameters(
                     .collect::<Result<Vec<_>, _>>()?;
             }
             "chimFilter" => p.p_ch.filter_string_in = words(value),
-            "chimMultimapNmax" => p.p_ch.multimap_nmax = parse_u32(value)?,
-            "chimMultimapScoreRange" => p.p_ch.multimap_score_range = parse_u32(value)?,
-            "chimNonchimScoreDropMin" => p.p_ch.nonchim_score_drop_min = parse_u32(value)?,
+            "chimMultimapNmax" => p.p_ch.multimap_nmax = parse_u64(value)?,
+            "chimMultimapScoreRange" => p.p_ch.multimap_score_range = parse_u64(value)?,
+            "chimNonchimScoreDropMin" => p.p_ch.nonchim_score_drop_min = parse_u64(value)?,
             "varVCFfile" => {
                 p.var_yes = value != "-";
             }

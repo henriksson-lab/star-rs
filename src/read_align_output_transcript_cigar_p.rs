@@ -12,7 +12,14 @@ pub fn readalign_outputtranscriptcigarp_l4_readalign_outputtranscriptcigarp(
 ) -> String {
     let mut tr = tr_out.clone();
     tr.read_nmates = if read_files_in_n > 1 { 2 } else { 1 };
-    tr.read_length_original = read_align.read_length_original.clone();
+    for (i, &v) in read_align
+        .read_length_original
+        .iter()
+        .take(crate::include_define::MAX_N_MATES)
+        .enumerate()
+    {
+        tr.read_length_original[i] = v;
+    }
     tr.read_length_pair_original = read_align.read_length_pair_original;
     transcript_generatecigarp_l4_transcript_generatecigarp(&tr)
 }

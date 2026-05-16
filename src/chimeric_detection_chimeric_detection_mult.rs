@@ -40,7 +40,7 @@ pub fn chimericdetection_chimericdetectionmult_l6_chimericalignscore(
 
 #[doc = "Original `ChimericDetection::chimericDetectionMult` at STAR/source/ChimericDetection_chimericDetectionMult.cpp:23. Args: nW: uint, readLength: uint, maxNonChimAlignScore: int, PEunmergedRA: ReadAlign"]
 pub fn chimericdetection_chimericdetectionmult_l23_chimericdetection_chimericdetectionmult(
-    chim_det: &mut crate::chimeric_detection::ChimericDetection,
+    chim_det: &mut crate::chimeric_detection::ChimericDetection<'_>,
     n_w: u64,
     read_length: &[u64],
     max_non_chim_align_score: i32,
@@ -124,7 +124,7 @@ pub fn chimericdetection_chimericdetectionmult_l23_chimericdetection_chimericdet
                         chimericalign_chimericstitching_l3_chimericalign_chimericstitching(
                             &mut ch_al,
                             &chim_det.out_gen.g,
-                            [&chim_det.read1[0], &chim_det.read1[1]],
+                            [&*chim_det.read1[0], &*chim_det.read1[1]],
                             p_ch,
                             sjdb_score,
                             score_ins_base,
@@ -162,7 +162,7 @@ pub fn chimericdetection_chimericdetectionmult_l23_chimericdetection_chimericdet
         return result;
     }
 
-    let mut chim_n = 0_u32;
+    let mut chim_n = 0_u64;
     for ch_al in &chim_det.chim_aligns {
         if ch_al.chim_score >= min_score_to_consider {
             chim_n += 1;
@@ -173,16 +173,16 @@ pub fn chimericdetection_chimericdetectionmult_l23_chimericdetection_chimericdet
         return result;
     }
 
-    let mut i_tr = 0_u32;
+    let mut i_tr = 0_u64;
     for i in 0..chim_det.chim_aligns.len() {
         if chim_det.chim_aligns[i].chim_score >= min_score_to_consider {
             if p_ch.out_junctions {
-                if let Some(ra) = chim_det.ra.as_ref().or(pe_unmerged_ra) {
+                if let Some(ra) = chim_det.ra.as_deref().or(pe_unmerged_ra) {
                     result.chim_junction.push_str(
                         &chimericalign_chimericjunctionoutput_l4_chimericalign_chimericjunctionoutput(
                             &chim_det.chim_aligns[i],
-                            &chim_det.out_gen,
-                            &chim_det.p,
+                            &*chim_det.out_gen,
+                            &*chim_det.p,
                             &ra.read_name,
                             ra.read_files_index,
                             chim_n,
@@ -211,7 +211,7 @@ pub fn chimericdetection_chimericdetectionmult_l23_chimericdetection_chimericdet
                         &mut al2,
                     );
                     pe_ra
-                } else if let Some(ra) = chim_det.ra.as_ref() {
+                } else if let Some(ra) = chim_det.ra.as_deref() {
                     ra
                 } else {
                     i_tr += 1;
@@ -222,11 +222,11 @@ pub fn chimericdetection_chimericdetectionmult_l23_chimericdetection_chimericdet
                         &al1,
                         &al2,
                         ra_for_bam,
-                        &chim_det.out_gen,
+                        &*chim_det.out_gen,
                         i_tr,
                         chim_n,
                         i == best_chim_align,
-                        &chim_det.p,
+                        &*chim_det.p,
                     ),
                 );
             }
