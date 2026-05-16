@@ -5,7 +5,7 @@
 use crate::*;
 
 #[doc = "Original class `Transcript` at STAR/source/Transcript.h:10."]
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub struct Transcript {
     /// Per-exon coordinates. STAR's C++ uses `uint exons[MAX_N_EXONS][EX_SIZE]`
     /// — a fixed-size stack array. We match that layout so `clone()` is a
@@ -112,6 +112,63 @@ impl Default for Transcript {
     }
 }
 
+impl Clone for Transcript {
+    fn clone(&self) -> Self {
+        Self {
+            exons: self.exons,
+            cigar: self.cigar.clone(),
+            canon_sj: self.canon_sj,
+            sj_annot: self.sj_annot,
+            shift_sj: self.shift_sj,
+            sj_str: self.sj_str,
+            sj_yes: self.sj_yes,
+            intron_motifs: self.intron_motifs,
+            sj_motif_strand: self.sj_motif_strand,
+            n_exons: self.n_exons,
+            l_read: self.l_read,
+            read_length: self.read_length,
+            read_nmates: self.read_nmates,
+            read_length_original: self.read_length_original,
+            read_length_pair_original: self.read_length_pair_original,
+            c_start: self.c_start,
+            r_start: self.r_start,
+            ro_start: self.ro_start,
+            ro_str: self.ro_str,
+            r_length: self.r_length,
+            mapped_length: self.mapped_length,
+            g_start: self.g_start,
+            g_length: self.g_length,
+            chr: self.chr,
+            str_: self.str_,
+            i_frag: self.i_frag,
+            primary_flag: self.primary_flag,
+            max_score: self.max_score,
+            n_match: self.n_match,
+            n_mm: self.n_mm,
+            n_gap: self.n_gap,
+            l_gap: self.l_gap,
+            l_del: self.l_del,
+            l_ins: self.l_ins,
+            n_del: self.n_del,
+            n_ins: self.n_ins,
+            n_unique: self.n_unique,
+            n_anchor: self.n_anchor,
+            extend_l: self.extend_l,
+            haplo_type: self.haplo_type,
+            var_ind: self.var_ind.clone(),
+            var_gen_coord: self.var_gen_coord.clone(),
+            var_read_coord: self.var_read_coord.clone(),
+            var_allele: self.var_allele.clone(),
+            i_read: self.i_read,
+            read_name: String::new(),
+        }
+    }
+
+    fn clone_from(&mut self, source: &Self) {
+        self.copy_from(source);
+    }
+}
+
 impl Transcript {
     /// Field-wise copy. STAR's C++ does a struct value-copy here (fixed-size
     /// arrays inline). With our matching fixed-size arrays this is a memcpy
@@ -163,7 +220,10 @@ impl Transcript {
         self.var_read_coord.clone_from(&other.var_read_coord);
         self.var_allele.clone_from(&other.var_allele);
         self.i_read = other.i_read;
-        self.read_name.clone_from(&other.read_name);
+        // STAR stores readName as a char* owned by ReadAlign. The translated
+        // output paths also use ReadAlign.read_name directly, so do not
+        // deep-copy the read name through every recursive Transcript copy.
+        self.read_name.clear();
     }
 }
 

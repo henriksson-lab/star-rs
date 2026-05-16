@@ -17,33 +17,51 @@ pub fn readalign_assignaligntowindow_l6_readalign_assignaligntowindow(
     sj_a: u64,
     win_bin_nbits: u32,
     seed_per_window_nmax: u32,
-) -> Result<(), String> {
-    let i_w = read_align.win_bin[a_str as usize][(a1 >> win_bin_nbits) as usize];
+) {
+    let i_w = unsafe {
+        *read_align
+            .win_bin
+            .get_unchecked(a_str as usize)
+            .get_unchecked((a1 >> win_bin_nbits) as usize)
+    };
 
     if i_w >= UINT_WIN_BIN_MAX || (!a_anchor && a_length < read_align.wal_rec[i_w as usize]) {
-        return Ok(());
+        return;
     }
     let i_w_usize = i_w as usize;
+    let wa = &mut read_align.wa[i_w_usize];
+    let mut n_wa = read_align.n_wa[i_w_usize] as usize;
+    let mut n_wap = read_align.n_wap[i_w_usize];
+    let mut wal_rec = read_align.wal_rec[i_w_usize];
+    let new_wa = [
+        a_length,
+        a_rstart,
+        a1,
+        a_nrep,
+        u64::from(a_anchor),
+        a_frag,
+        sj_a,
+    ];
 
     let mut i_a = 0usize;
-    while i_a < read_align.n_wa[i_w_usize] as usize {
-        let wa = read_align.wa[i_w_usize][i_a];
-        if a_frag == wa[WA_I_FRAG]
-            && wa[WA_SJ_A] == sj_a
-            && a1 + wa[WA_R_START] == wa[WA_G_START] + a_rstart
-            && ((a_rstart >= wa[WA_R_START] && a_rstart < wa[WA_R_START] + wa[WA_LENGTH])
-                || (a_rstart + a_length >= wa[WA_R_START]
-                    && a_rstart + a_length < wa[WA_R_START] + wa[WA_LENGTH]))
+    while i_a < n_wa {
+        let wai = unsafe { *wa.get_unchecked(i_a) };
+        if a_frag == wai[WA_I_FRAG]
+            && wai[WA_SJ_A] == sj_a
+            && a1 + wai[WA_R_START] == wai[WA_G_START] + a_rstart
+            && ((a_rstart >= wai[WA_R_START] && a_rstart < wai[WA_R_START] + wai[WA_LENGTH])
+                || (a_rstart + a_length >= wai[WA_R_START]
+                    && a_rstart + a_length < wai[WA_R_START] + wai[WA_LENGTH]))
         {
             break;
         }
         i_a += 1;
     }
-    if i_a < read_align.n_wa[i_w_usize] as usize {
-        if a_length > read_align.wa[i_w_usize][i_a][WA_LENGTH] {
+    if i_a < n_wa {
+        if a_length > wa[i_a][WA_LENGTH] {
             let mut i_a0 = 0usize;
-            while i_a0 < read_align.n_wa[i_w_usize] as usize {
-                if i_a0 != i_a && a_rstart < read_align.wa[i_w_usize][i_a0][WA_R_START] {
+            while i_a0 < n_wa {
+                if i_a0 != i_a && a_rstart < unsafe { wa.get_unchecked(i_a0) }[WA_R_START] {
                     break;
                 }
                 i_a0 += 1;
@@ -54,91 +72,95 @@ pub fn readalign_assignaligntowindow_l6_readalign_assignaligntowindow(
 
             if i_a0 < i_a {
                 for i_a1 in (i_a0 + 1..=i_a).rev() {
-                    read_align.wa[i_w_usize][i_a1] = read_align.wa[i_w_usize][i_a1 - 1];
+                    unsafe {
+                        *wa.get_unchecked_mut(i_a1) = *wa.get_unchecked(i_a1 - 1);
+                    }
                 }
             } else if i_a0 > i_a {
                 for i_a1 in i_a..i_a0 {
-                    read_align.wa[i_w_usize][i_a1] = read_align.wa[i_w_usize][i_a1 + 1];
+                    unsafe {
+                        *wa.get_unchecked_mut(i_a1) = *wa.get_unchecked(i_a1 + 1);
+                    }
                 }
             }
 
-            read_align.wa[i_w_usize][i_a0][WA_R_START] = a_rstart;
-            read_align.wa[i_w_usize][i_a0][WA_LENGTH] = a_length;
-            read_align.wa[i_w_usize][i_a0][WA_G_START] = a1;
-            read_align.wa[i_w_usize][i_a0][WA_N_REP] = a_nrep;
-            read_align.wa[i_w_usize][i_a0][WA_ANCHOR] = u64::from(a_anchor);
-            read_align.wa[i_w_usize][i_a0][WA_I_FRAG] = a_frag;
-            read_align.wa[i_w_usize][i_a0][WA_SJ_A] = sj_a;
+            unsafe {
+                *wa.get_unchecked_mut(i_a0) = new_wa;
+            }
         }
-        return Ok(());
+        return;
     }
 
-    if read_align.n_wa[i_w_usize] == seed_per_window_nmax as u64 {
-        read_align.wal_rec[i_w_usize] = read_align.l_read + 1;
-        for i_a in 0..read_align.n_wa[i_w_usize] as usize {
-            if read_align.wa[i_w_usize][i_a][WA_ANCHOR] != 1 {
-                read_align.wal_rec[i_w_usize] = std::cmp::min(
-                    read_align.wal_rec[i_w_usize],
-                    read_align.wa[i_w_usize][i_a][WA_LENGTH],
-                );
+    if n_wa == seed_per_window_nmax as usize {
+        wal_rec = read_align.l_read + 1;
+        for i_a in 0..n_wa {
+            let row = unsafe { wa.get_unchecked(i_a) };
+            if row[WA_ANCHOR] != 1 {
+                wal_rec = std::cmp::min(wal_rec, row[WA_LENGTH]);
             }
         }
 
-        if read_align.wal_rec[i_w_usize] == read_align.l_read + 1 {
+        if wal_rec == read_align.l_read + 1 {
+            read_align.wal_rec[i_w_usize] = wal_rec;
             read_align.map_marker = MARKER_TOO_MANY_ANCHORS_PER_WINDOW as u64;
             read_align.n_w = 0;
-            return Ok(());
+            return;
         }
 
-        if !a_anchor && a_length < read_align.wal_rec[i_w_usize] {
-            return Ok(());
+        if !a_anchor && a_length < wal_rec {
+            read_align.wal_rec[i_w_usize] = wal_rec;
+            return;
         }
 
         let mut i_a1 = 0usize;
-        for i_a in 0..read_align.n_wa[i_w_usize] as usize {
-            if read_align.wa[i_w_usize][i_a][WA_ANCHOR] == 1
-                || read_align.wa[i_w_usize][i_a][WA_LENGTH] > read_align.wal_rec[i_w_usize]
-            {
-                read_align.wa[i_w_usize][i_a1] = read_align.wa[i_w_usize][i_a];
+        for i_a in 0..n_wa {
+            let row = unsafe { *wa.get_unchecked(i_a) };
+            if row[WA_ANCHOR] == 1 || row[WA_LENGTH] > wal_rec {
+                unsafe {
+                    *wa.get_unchecked_mut(i_a1) = row;
+                }
                 i_a1 += 1;
             }
         }
-        read_align.n_wa[i_w_usize] = i_a1 as u64;
+        n_wa = i_a1;
 
-        if !a_anchor && a_length <= read_align.wal_rec[i_w_usize] {
-            read_align.n_wap[i_w_usize] = 0;
+        if !a_anchor && a_length <= wal_rec {
+            n_wap = 0;
         }
     }
 
-    if a_anchor || a_length > read_align.wal_rec[i_w_usize] {
-        if read_align.n_wa[i_w_usize] >= seed_per_window_nmax as u64 {
-            return Err("BUG: iA>=P.seedPerWindowNmax in stitchPieces, exiting".to_string());
+    if a_anchor || a_length > wal_rec {
+        if n_wa >= seed_per_window_nmax as usize {
+            panic!("BUG: iA>=P.seedPerWindowNmax in stitchPieces, exiting");
         }
 
         let mut i_a = 0usize;
-        while i_a < read_align.n_wa[i_w_usize] as usize {
-            if a_rstart < read_align.wa[i_w_usize][i_a][WA_R_START] {
+        while i_a < n_wa {
+            if a_rstart < unsafe { wa.get_unchecked(i_a) }[WA_R_START] {
                 break;
             }
             i_a += 1;
         }
-        for i_a1 in (i_a + 1..=read_align.n_wa[i_w_usize] as usize).rev() {
-            read_align.wa[i_w_usize][i_a1] = read_align.wa[i_w_usize][i_a1 - 1];
+        for i_a1 in (i_a + 1..=n_wa).rev() {
+            unsafe {
+                *wa.get_unchecked_mut(i_a1) = *wa.get_unchecked(i_a1 - 1);
+            }
         }
 
-        read_align.wa[i_w_usize][i_a][WA_R_START] = a_rstart;
-        read_align.wa[i_w_usize][i_a][WA_LENGTH] = a_length;
-        read_align.wa[i_w_usize][i_a][WA_G_START] = a1;
-        read_align.wa[i_w_usize][i_a][WA_N_REP] = a_nrep;
-        read_align.wa[i_w_usize][i_a][WA_ANCHOR] = u64::from(a_anchor);
-        read_align.wa[i_w_usize][i_a][WA_I_FRAG] = a_frag;
-        read_align.wa[i_w_usize][i_a][WA_SJ_A] = sj_a;
+        unsafe {
+            *wa.get_unchecked_mut(i_a) = new_wa;
+        }
 
-        read_align.n_wa[i_w_usize] += 1;
-        read_align.n_wap[i_w_usize] += 1;
+        n_wa += 1;
+        if n_wap == 0 {
+            read_align.n_wap_touched.push(i_w_usize);
+        }
+        n_wap += 1;
         if a_anchor && read_align.w_last_anchor[i_w_usize] < i_a as u64 {
             read_align.w_last_anchor[i_w_usize] = i_a as u64;
         }
     }
-    Ok(())
+    read_align.n_wa[i_w_usize] = n_wa as u64;
+    read_align.n_wap[i_w_usize] = n_wap;
+    read_align.wal_rec[i_w_usize] = wal_rec;
 }

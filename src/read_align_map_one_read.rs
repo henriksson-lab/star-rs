@@ -61,10 +61,6 @@ pub fn readalign_maponeread_l6_readalign_maponeread(
         read_align.tr_init.read_length[i] = v;
     }
     read_align.tr_init.read_nmates = read_align.read_nmates;
-    read_align
-        .tr_init
-        .read_name
-        .clone_from(&read_align.read_name);
     // tr_best mirrors tr_init's initial state (C++: `trBest = trInit` pointer-aliasing).
     // Reuse tr_best's existing Vec capacity instead of allocating fresh.
     {

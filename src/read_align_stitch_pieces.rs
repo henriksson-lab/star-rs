@@ -70,9 +70,15 @@ pub fn readalign_stitchpieces_l12_readalign_stitchpieces(
     if read_align.wa.len() < align_windows {
         read_align.wa.resize(align_windows, Vec::new());
     }
-    for i_w in 0..align_windows {
-        if read_align.wa[i_w].len() < seed_per_window {
-            read_align.wa[i_w].resize(seed_per_window, [0; WA_SIZE]);
+    if read_align
+        .wa
+        .first()
+        .map_or(true, |row| row.len() < seed_per_window)
+    {
+        for i_w in 0..align_windows {
+            if read_align.wa[i_w].len() < seed_per_window {
+                read_align.wa[i_w].resize(seed_per_window, [0; WA_SIZE]);
+            }
         }
     }
     if read_align.wa_incl.len() < seed_per_window {
@@ -222,8 +228,8 @@ pub fn readalign_stitchpieces_l12_readalign_stitchpieces(
         let a_dir = read_align.pc[i_p][PC_DIR];
         let a_anchor = read_align.pc[i_p][PC_NREP] <= p.win_anchor_multimap_nmax as u64;
 
-        for ii in 0..read_align.n_w as usize {
-            read_align.n_wap[ii] = 0;
+        for i_wap in read_align.n_wap_touched.drain(..) {
+            read_align.n_wap[i_wap] = 0;
         }
 
         for i_sa in read_align.pc[i_p][PC_SASTART]..=read_align.pc[i_p][PC_SAEND] {
@@ -287,7 +293,7 @@ pub fn readalign_stitchpieces_l12_readalign_stitchpieces(
                         isj1,
                         p.win_bin_nbits,
                         p.seed_per_window_nmax,
-                    )?;
+                    );
                     readalign_assignaligntowindow_l6_readalign_assignaligntowindow(
                         read_align,
                         a1_a,
@@ -300,7 +306,7 @@ pub fn readalign_stitchpieces_l12_readalign_stitchpieces(
                         isj1,
                         p.win_bin_nbits,
                         p.seed_per_window_nmax,
-                    )?;
+                    );
                 } else {
                     continue;
                 }
@@ -317,7 +323,7 @@ pub fn readalign_stitchpieces_l12_readalign_stitchpieces(
                     u64::MAX,
                     p.win_bin_nbits,
                     p.seed_per_window_nmax,
-                )?;
+                );
             }
         }
     }

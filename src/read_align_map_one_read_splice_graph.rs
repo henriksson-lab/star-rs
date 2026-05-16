@@ -48,8 +48,6 @@ pub fn readalign_maponereadsplicegraph_l6_readalign_maponereadsplicegraph(
         tr_init.read_length[i] = v;
     }
     tr_init.read_nmates = read_align.read_nmates;
-    tr_init.read_name = read_align.read_name.clone();
-
     read_align.tr_best = tr_init;
     splice_graph.ra = Some(read_align.clone());
 
