@@ -14,14 +14,14 @@ pub fn transcriptome_quantalign_l5_aligntotranscript(
     ex_n1: u16,
     a_t: &mut crate::transcript::Transcript,
 ) -> i32 {
-    let g1 = a_g.exons[0][EX_G] - tr_s1;
-    let mut ex1 = servicefuns_l192_binarysearch1(g1, ex_se1, 2 * ex_n1 as u32);
+    let g1 = a_g.exons[0][EX_G] - tr_s1 as u64;
+    let mut ex1 = servicefuns_l192_binarysearch1(g1 as u32, ex_se1, 2 * ex_n1 as u32);
     if ex1 >= 2 * ex_n1 as u32 {
         return 0;
     }
 
     if ex1 % 2 == 1 {
-        if ex_se1[ex1 as usize] == g1 {
+        if ex_se1[ex1 as usize] as u64 == g1 {
             ex1 -= 1;
         } else {
             return 0;
@@ -38,7 +38,9 @@ pub fn transcriptome_quantalign_l5_aligntotranscript(
     a_g.canon_sj[a_g.n_exons as usize - 1] = -999;
 
     for iab in 0..a_g.n_exons as usize {
-        if a_g.exons[iab][EX_G] + a_g.exons[iab][EX_L] > ex_se1[2 * ex1 as usize + 1] + tr_s1 + 1 {
+        if a_g.exons[iab][EX_G] + a_g.exons[iab][EX_L]
+            > ex_se1[2 * ex1 as usize + 1] as u64 + tr_s1 as u64 + 1
+        {
             return 0;
         }
 
@@ -51,8 +53,9 @@ pub fn transcriptome_quantalign_l5_aligntotranscript(
                 a_t.canon_sj.resize(at_exon + 1, 0);
             }
             a_t.exons[at_exon][EX_R] = a_g.exons[iab][EX_R];
-            a_t.exons[at_exon][EX_G] =
-                a_g.exons[iab][EX_G] - tr_s1 - ex_se1[2 * ex1 as usize] + ex_len_cum1[ex1 as usize];
+            a_t.exons[at_exon][EX_G] = a_g.exons[iab][EX_G] - tr_s1 as u64
+                - ex_se1[2 * ex1 as usize] as u64
+                + ex_len_cum1[ex1 as usize] as u64;
             a_t.exons[at_exon][EX_L] = a_g.exons[iab][EX_L];
             a_t.exons[at_exon][EX_IFRAG] = a_g.exons[iab][EX_IFRAG];
             if a_t.n_exons > 0 {
@@ -67,9 +70,9 @@ pub fn transcriptome_quantalign_l5_aligntotranscript(
         match a_g.canon_sj[iab] {
             -999 => {
                 if tr_str1 == 2 {
-                    let tr_length = ex_len_cum1[ex_n1 as usize - 1]
-                        + ex_se1[2 * ex_n1 as usize - 1]
-                        - ex_se1[2 * ex_n1 as usize - 2]
+                    let tr_length = ex_len_cum1[ex_n1 as usize - 1] as u64
+                        + ex_se1[2 * ex_n1 as usize - 1] as u64
+                        - ex_se1[2 * ex_n1 as usize - 2] as u64
                         + 1;
                     for iex in 0..a_t.n_exons as usize {
                         a_t.exons[iex][EX_R] =
@@ -100,7 +103,7 @@ pub fn transcriptome_quantalign_l5_aligntotranscript(
             }
             -3 => {
                 ex1 = servicefuns_l192_binarysearch1(
-                    a_g.exons[iab + 1][EX_G] - tr_s1,
+                    (a_g.exons[iab + 1][EX_G] - tr_s1 as u64) as u32,
                     ex_se1,
                     2 * ex_n1 as u32,
                 );
@@ -112,8 +115,9 @@ pub fn transcriptome_quantalign_l5_aligntotranscript(
             -2 | -1 => {}
             _ => {
                 if a_g.exons[iab][EX_G] + a_g.exons[iab][EX_L]
-                    == ex_se1[2 * ex1 as usize + 1] + tr_s1 + 1
-                    && a_g.exons[iab + 1][EX_G] == ex_se1[2 * (ex1 as usize + 1)] + tr_s1
+                    == ex_se1[2 * ex1 as usize + 1] as u64 + tr_s1 as u64 + 1
+                    && a_g.exons[iab + 1][EX_G]
+                        == ex_se1[2 * (ex1 as usize + 1)] as u64 + tr_s1 as u64
                 {
                     ex1 += 1;
                 } else {
@@ -134,7 +138,7 @@ pub fn transcriptome_quantalign_l91_transcriptome_quantalign(
     let mut n_atr = 0_u32;
 
     let mut tr1 = servicefuns_l239_binarysearch1a(
-        a_g.exons[0][EX_G],
+        a_g.exons[0][EX_G] as u32,
         &transcriptome.tr_s,
         transcriptome.n_tr as i32,
     );
@@ -148,7 +152,7 @@ pub fn transcriptome_quantalign_l91_transcriptome_quantalign(
     loop {
         tr1 -= 1;
         let tr = tr1 as usize;
-        if a_g_end <= transcriptome.tr_e[tr] {
+        if a_g_end <= transcriptome.tr_e[tr] as u64 {
             if a_tall.len() <= n_atr as usize {
                 a_tall.resize(n_atr as usize + 1, Default::default());
             }
@@ -164,7 +168,7 @@ pub fn transcriptome_quantalign_l91_transcriptome_quantalign(
                 &mut a_tall[n_atr as usize],
             );
             if status == 1 {
-                a_tall[n_atr as usize].chr = tr1 as u32;
+                a_tall[n_atr as usize].chr = tr1 as u64;
                 a_tall[n_atr as usize].str_ = if transcriptome.tr_str[tr] == 1 {
                     a_g.str_
                 } else {
@@ -174,7 +178,7 @@ pub fn transcriptome_quantalign_l91_transcriptome_quantalign(
             }
         }
 
-        if !(transcriptome.tr_e_max[tr] >= a_g_end && tr1 > 0) {
+        if !((transcriptome.tr_e_max[tr] as u64) >= a_g_end && tr1 > 0) {
             break;
         }
     }

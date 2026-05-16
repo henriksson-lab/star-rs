@@ -59,8 +59,8 @@ pub fn chimericalign_l3_chimericalign_chimericalign(
         stitching_done: false,
         al1,
         al2,
-        ex1,
-        ex2,
+        ex1: ex1 as u32,
+        ex2: ex2 as u32,
         junction_overhang_min,
     }
 }
@@ -75,7 +75,7 @@ pub fn chimericalign_l17_chimericalign_chimericcheck(
     chim_good = chim_good && chim.al1.exons[ex1][EX_IFRAG] <= chim.al2.exons[ex2][EX_IFRAG];
     chim_good = chim_good
         && (chim.al1.exons[ex1][EX_IFRAG] < chim.al2.exons[ex2][EX_IFRAG]
-            || (chim.al1.exons[ex1][EX_L] >= chim.junction_overhang_min
-                && chim.al2.exons[ex2][EX_L] >= chim.junction_overhang_min));
+            || (chim.al1.exons[ex1][EX_L] >= chim.junction_overhang_min as u64
+                && chim.al2.exons[ex2][EX_L] >= chim.junction_overhang_min as u64));
     chim_good
 }

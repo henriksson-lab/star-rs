@@ -8,14 +8,14 @@ use crate::*;
 pub fn readalign_storealigns_l10_readalign_storealigns(
     read_align: &mut crate::read_align::ReadAlign,
     p: &crate::parameters_chimeric::Parameters,
-    i_dir: u32,
-    shift: u32,
-    nrep: u32,
-    l: u32,
-    ind_start_end: [u32; 2],
-    i_frag: u32,
+    i_dir: u64,
+    shift: u64,
+    nrep: u64,
+    l: u64,
+    ind_start_end: [u64; 2],
+    i_frag: u64,
 ) -> Result<(), String> {
-    if nrep > p.seed_multimap_nmax {
+    if nrep > p.seed_multimap_nmax as u64 {
         if nrep < read_align.mult_nmin || read_align.mult_nmin == 0 {
             read_align.mult_nmin = nrep;
             read_align.mult_nmin_l = l;
@@ -50,7 +50,7 @@ pub fn readalign_storealigns_l10_readalign_storealigns(
 
     let ip = (ip + 1) as usize;
     let n_p = read_align.n_p as usize;
-    if read_align.n_p >= p.seed_per_read_nmax {
+    if read_align.n_p >= p.seed_per_read_nmax as u64 {
         return Err(
             "EXITING because of FATAL error: too many pieces pere read\nSOLUTION: increase input parameter --seedPerReadNmax"
                 .to_string(),

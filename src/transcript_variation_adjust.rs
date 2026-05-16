@@ -19,17 +19,20 @@ pub fn transcript_variationadjust_l4_transcript_variationadjust(
 
     for ie in 0..transcript.n_exons as usize {
         let exon = transcript.exons[ie];
-        let mut isnp = servicefuns_l266_binarysearch1b(exon[EX_G], &var.snp.loci, var.snp.n as i32);
+        let mut isnp = servicefuns_l266_binarysearch1b(exon[EX_G] as u32, &var.snp.loci, var.snp.n as i32);
         if isnp >= 0 {
-            while (isnp as u32) < var.snp.n && exon[EX_G] + exon[EX_L] > var.snp.loci[isnp as usize]
+            while (isnp as u32) < var.snp.n
+                && exon[EX_G] + exon[EX_L] > var.snp.loci[isnp as usize] as u64
             {
                 transcript.var_ind.push(isnp);
                 transcript.var_gen_coord.push(
-                    var.snp.loci[isnp as usize] - map_gen.chr_start[transcript.chr as usize] as u32,
+                    (var.snp.loci[isnp as usize] as u64
+                        - map_gen.chr_start[transcript.chr as usize]) as i32,
                 );
 
-                let read_coord = exon[EX_R] + var.snp.loci[isnp as usize] - exon[EX_G];
-                transcript.var_read_coord.push(read_coord);
+                let read_coord =
+                    exon[EX_R] + var.snp.loci[isnp as usize] as u64 - exon[EX_G];
+                transcript.var_read_coord.push(read_coord as i32);
                 let nt_r = r[read_coord as usize];
 
                 let mut igt = if nt_r > 3 { 4 } else { 1 };

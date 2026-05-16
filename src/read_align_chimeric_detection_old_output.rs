@@ -16,11 +16,11 @@ pub fn readalign_chimericdetectionoldoutput_l5_readalign_chimericdetectionoldout
     qual0: &[String],
     read_name_extra: &[String],
     read_files_in_n: usize,
-    chim_j0: u32,
-    chim_j1: u32,
+    chim_j0: u64,
+    chim_j1: u64,
     chim_motif: i32,
-    chim_repeat0: u32,
-    chim_repeat1: u32,
+    chim_repeat0: u64,
+    chim_repeat1: u64,
     sjdb_score: i32,
     score_ins_base: i32,
     score_ins_open: i32,
@@ -123,8 +123,8 @@ pub fn readalign_chimericdetectionoldoutput_l5_readalign_chimericdetectionoldout
                 }
 
                 (
-                    tr_chim[other].chr,
-                    tr_chim[other].exons[iex][EX_G],
+                    tr_chim[other].chr as u32,
+                    tr_chim[other].exons[iex][EX_G] as u32,
                     if tr_chim[other].str_ != tr_chim[other].exons[iex][EX_IFRAG] {
                         1
                     } else {

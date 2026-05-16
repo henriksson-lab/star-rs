@@ -30,8 +30,8 @@ pub fn readalign_chimericdetection_l16_readalign_chimericdetection(
     if p.p_ch.multimap_nmax == 0 {
         result.request = Some(crate::quantifications::ChimericDetectionRequest {
             detector: "chimericDetectionOld".to_string(),
-            n_w: read_align.n_w,
-            read_length: read_align.read_length.clone(),
+            n_w: read_align.n_w as u32,
+            read_length: read_align.read_length.iter().map(|&v| v as u32).collect(),
             max_non_chim_align_score: read_align.tr_best.max_score,
         });
         read_align.chim_record = if let Some(chim_record) = detector_result {
@@ -93,14 +93,14 @@ pub fn readalign_chimericdetection_l16_readalign_chimericdetection(
         read_align.tr_chim[1] = tr_chim[1].clone();
         result.old_output = Some(old_output);
     } else {
-        let read_len_sum: u32 = read_align.read_length.iter().take(2).copied().sum();
+        let read_len_sum: u64 = read_align.read_length.iter().take(2).copied().sum();
         if read_align.tr_best.max_score
             <= read_len_sum as i32 - p.p_ch.nonchim_score_drop_min as i32
         {
             result.request = Some(crate::quantifications::ChimericDetectionRequest {
                 detector: "chimericDetectionMult".to_string(),
-                n_w: read_align.n_w,
-                read_length: read_align.read_length.clone(),
+                n_w: read_align.n_w as u32,
+                read_length: read_align.read_length.iter().map(|&v| v as u32).collect(),
                 max_non_chim_align_score: read_align.tr_best.max_score,
             });
             if let Some(chim_record) = detector_result {
@@ -120,7 +120,7 @@ pub fn readalign_chimericdetection_l16_readalign_chimericdetection(
                     p.p_ch.out_junctions,
                     read_align.clone(),
                 );
-                chim_det.n_w = read_align.n_w;
+                chim_det.n_w = read_align.n_w as u32;
                 let mult_output =
                     chimericdetection_chimericdetectionmult_l23_chimericdetection_chimericdetectionmult(
                         &mut chim_det,

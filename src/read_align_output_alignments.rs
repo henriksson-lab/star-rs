@@ -262,7 +262,7 @@ pub fn readalign_outputalignments_l90_readalign_outfilterbysjout(
     n_tr: u64,
     tr_mult: &[crate::transcript::Transcript],
     stats_ra: &mut crate::stats::Stats,
-    read_length: &[u32],
+    read_length: &[u64],
     read_nends: u32,
     chunk_out_filter_by_sjout_files: &mut [String],
     read_name_mates: &[String],
@@ -300,7 +300,7 @@ pub fn readalign_outputalignments_l90_readalign_outfilterbysjout(
         stats_ra.read_n = stats_ra.read_n.wrapping_sub(1);
         stats_ra.read_bases = stats_ra
             .read_bases
-            .wrapping_sub(read_length[0].wrapping_add(read_length[1]));
+            .wrapping_sub(read_length[0].wrapping_add(read_length[1]) as u32);
 
         for im in 0..read_nends as usize {
             chunk_out_filter_by_sjout_files[im].push_str(&format!(
@@ -357,14 +357,14 @@ pub fn readalign_outputalignments_l132_readalign_writesam(
         if p.out_sam_filter_yes {
             if p.out_sam_filter_keep_only_added_references {
                 for tr in tr_out.iter().take(n_tr_out_sam as usize) {
-                    if tr.chr < p.genome_insert_chr_ind_first {
+                    if tr.chr < p.genome_insert_chr_ind_first as u64 {
                         return Ok(result);
                     }
                 }
             } else if p.out_sam_filter_keep_all_added_references {
                 let mut filtered = Vec::new();
                 for mut tr in tr_out.into_iter().take(n_tr_out_sam as usize) {
-                    if tr.chr >= p.genome_insert_chr_ind_first {
+                    if tr.chr >= p.genome_insert_chr_ind_first as u64 {
                         tr.primary_flag = false;
                         filtered.push(tr);
                     }
@@ -640,7 +640,7 @@ pub fn readalign_outputalignments_l277_readalign_splicegraphwritesam(
     p: &crate::parameters_chimeric::Parameters,
     read_files_index: u32,
     read_name_extra: &[String],
-    l_read: u32,
+    l_read: u64,
     map_gen: &crate::genome::Genome,
 ) -> Result<u64, String> {
     let mut out_bam_bytes = 0_u64;
@@ -664,7 +664,7 @@ pub fn readalign_outputalignments_l277_readalign_splicegraphwritesam(
             p,
             read_files_index,
             read_name_extra,
-            l_read,
+            l_read as u32,
             map_gen,
         )?;
         out_sam_stream.push_str(&sam);

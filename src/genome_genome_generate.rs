@@ -349,7 +349,7 @@ pub fn genome_genomegenerate_l98_genome_genomegenerate(
             n_sa_usize += 1;
         }
     }
-    genome.n_sa = n_sa_usize as u32;
+    genome.n_sa = n_sa_usize as u64;
 
     let total_with_sj =
         genome.n_genome + p.limit_sjdb_insert_nsj as u64 * genome.sjdb_length as u64;
@@ -383,11 +383,11 @@ pub fn genome_genomegenerate_l98_genome_genomegenerate(
         genome.n_sa as u64,
     );
     let sa_pass1_len = if p.sjdb_insert_yes {
-        genome.n_sa as u64
+        genome.n_sa
             + 2 * genome.sjdb_length as u64
                 * std::cmp::min(sjdb_loci.chr.len() as u64, p.limit_sjdb_insert_nsj as u64)
     } else {
-        genome.n_sa as u64
+        genome.n_sa
     };
     packedarray_l8_packedarray_definebits(
         &mut genome.sa_insert,
@@ -473,7 +473,7 @@ pub fn genome_genomegenerate_l98_genome_genomegenerate(
     let sort_one_chunk = |i_chunk: usize| -> Result<(), String> {
         let pref_start = ind_pref_start_ref[i_chunk];
         let pref_end = ind_pref_start_ref[i_chunk + 1];
-        let mut sa_chunk = Vec::<u32>::with_capacity(ind_pref_chunk_count_ref[i_chunk]);
+        let mut sa_chunk = Vec::<u64>::with_capacity(ind_pref_chunk_count_ref[i_chunk]);
         for ii in (0..g_len).step_by(sparse_d) {
             if g_bytes[ii] < 4 {
                 let mut prefix = 0usize;
@@ -486,7 +486,7 @@ pub fn genome_genomegenerate_l98_genome_genomegenerate(
                     prefix = (prefix << 4) | (b as usize & 0xF);
                 }
                 if prefix >= pref_start && prefix < pref_end {
-                    sa_chunk.push(ii as u32);
+                    sa_chunk.push(ii as u64);
                 }
             }
         }
@@ -503,12 +503,12 @@ pub fn genome_genomegenerate_l98_genome_genomegenerate(
         let chunk_file_name = format!("{}/SA_{}", g_dir, i_chunk);
         let mut chunk_file = streamfuns_l91_ofstropen(&chunk_file_name, "ERROR_OUT")?;
         let mut chunk_bytes = Vec::<u8>::with_capacity(
-            std::cmp::min(sa_chunk.len(), 1 << 20) * std::mem::size_of::<u32>(),
+            std::cmp::min(sa_chunk.len(), 1 << 20) * std::mem::size_of::<u64>(),
         );
         for sa_pos in sa_chunk {
-            let sa_in = 2 * n_genome_val - 1 - sa_pos as u64;
-            chunk_bytes.extend_from_slice(&(sa_in as u32).to_ne_bytes());
-            if chunk_bytes.len() >= (1 << 20) * std::mem::size_of::<u32>() {
+            let sa_in = 2 * n_genome_val - 1 - sa_pos;
+            chunk_bytes.extend_from_slice(&sa_in.to_ne_bytes());
+            if chunk_bytes.len() >= (1 << 20) * std::mem::size_of::<u64>() {
                 streamfuns_l51_fstreamwritebig(
                     &mut chunk_file,
                     &chunk_bytes,
@@ -558,23 +558,26 @@ pub fn genome_genomegenerate_l98_genome_genomegenerate(
     let n2bit = 1_u64 << genome.gstrand_bit;
     genome.sa.clear();
     let mut packed_ind = 0u64;
-    let mut read_buffer = vec![0u8; (1 << 20) * std::mem::size_of::<u32>()];
+    let mut read_buffer = vec![0u8; (1 << 20) * std::mem::size_of::<u64>()];
     for i_chunk in 0..sa_chunk_n {
         let chunk_file_name = format!("{}/SA_{}", genome.p_ge.g_dir, i_chunk);
         let mut chunk_file = std::fs::File::open(&chunk_file_name).map_err(|e| e.to_string())?;
+        let mut leftover = 0usize;
         loop {
-            let read_n = std::io::Read::read(&mut chunk_file, &mut read_buffer)
+            let n_more = std::io::Read::read(&mut chunk_file, &mut read_buffer[leftover..])
                 .map_err(|e| e.to_string())?;
-            if read_n == 0 {
+            if n_more == 0 {
+                if leftover != 0 {
+                    return Err(format!(
+                        "EXITING because of FATAL problem while generating the suffix array\nChunk {i_chunk} has a partial suffix-array record\n"
+                    ));
+                }
                 break;
             }
-            if read_n % std::mem::size_of::<u32>() != 0 {
-                return Err(format!(
-                    "EXITING because of FATAL problem while generating the suffix array\nChunk {i_chunk} has a partial suffix-array record\n"
-                ));
-            }
-            for bytes in read_buffer[..read_n].chunks_exact(std::mem::size_of::<u32>()) {
-                let sa_in = u32::from_ne_bytes(bytes.try_into().unwrap()) as u64;
+            let avail = leftover + n_more;
+            let usable = avail - (avail % std::mem::size_of::<u64>());
+            for bytes in read_buffer[..usable].chunks_exact(std::mem::size_of::<u64>()) {
+                let sa_in = u64::from_ne_bytes(bytes.try_into().unwrap());
                 let packed = if sa_in < genome.n_genome {
                     sa_in
                 } else {
@@ -582,6 +585,10 @@ pub fn genome_genomegenerate_l98_genome_genomegenerate(
                 };
                 packedarray_l17_packedarray_writepacked(&mut genome.sa_packed, packed_ind, packed);
                 packed_ind += 1;
+            }
+            leftover = avail - usable;
+            if leftover != 0 {
+                read_buffer.copy_within(usable..avail, 0);
             }
         }
         let _ = std::fs::remove_file(&chunk_file_name);
@@ -592,7 +599,7 @@ pub fn genome_genomegenerate_l98_genome_genomegenerate(
             genome.n_sa
         ));
     }
-    genome.n_sa_byte = genome.sa_packed.length_byte as u32;
+    genome.n_sa_byte = genome.sa_packed.length_byte;
     for ii in 0..n_genome {
         genome.g.swap(ii, g_len - 1 - ii);
     }

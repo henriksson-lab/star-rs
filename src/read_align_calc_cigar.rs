@@ -8,9 +8,9 @@ use crate::*;
 pub fn readalign_calccigar_l3_readalign_calccigar(
     read_align: &mut crate::read_align::ReadAlign,
     tr_out: &crate::transcript::Transcript,
-    n_mates: u32,
-    i_ex_mate: u32,
-    left_mate: u32,
+    n_mates: u64,
+    i_ex_mate: u64,
+    left_mate: u64,
 ) {
     read_align.mates_cigar.clear();
     for imate in 0..n_mates {
@@ -36,7 +36,7 @@ pub fn readalign_calccigar_l3_readalign_calccigar(
         };
 
         let left_mate_usize = left_mate as usize;
-        let trim_l1 = trim_l + tr_out.exons[i_ex1 as usize][EX_R]
+        let trim_l1 = trim_l as u64 + tr_out.exons[i_ex1 as usize][EX_R]
             - if tr_out.exons[i_ex1 as usize][EX_R] < read_align.read_length[left_mate_usize] {
                 0
             } else {
@@ -76,7 +76,7 @@ pub fn readalign_calccigar_l3_readalign_calccigar(
             read_align.read_length[left_mate_usize] + 1 + read_align.read_length_original[mate]
         }) - tr_out.exons[i_ex2_usize][EX_R]
             - tr_out.exons[i_ex2_usize][EX_L]
-            - trim_l;
+            - trim_l as u64;
         if trim_r1 > 0 {
             cigar.push_str(&format!("{}S", trim_r1));
         }

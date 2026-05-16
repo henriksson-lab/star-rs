@@ -13,7 +13,7 @@ pub fn genomesaindex_l6_genomesaindex(
     map_gen.genome_sa_index_start = vec![0; map_gen.p_ge.g_saindex_nbases as usize + 1];
     for ii in 1..=map_gen.p_ge.g_saindex_nbases as usize {
         map_gen.genome_sa_index_start[ii] =
-            map_gen.genome_sa_index_start[ii - 1] + (1u32 << (2 * ii as u32));
+            map_gen.genome_sa_index_start[ii - 1] + (1u64 << (2 * ii as u32));
     }
     let n_sai = map_gen.genome_sa_index_start[map_gen.p_ge.g_saindex_nbases as usize];
 
@@ -21,12 +21,12 @@ pub fn genomesaindex_l6_genomesaindex(
     map_gen.sai_mark_nmask = !map_gen.sai_mark_nmask_c;
     map_gen.sai_mark_absent_mask_c = 1u64 << (map_gen.gstrand_bit + 2);
     if map_gen.n_sa == 0 {
-        map_gen.n_sa = sa.len() as u32;
+        map_gen.n_sa = sa.len() as u64;
     }
 
     let mut sai = vec![0u64; n_sai as usize];
     if !sa.is_empty() {
-        genomesaindex_l117_genomesaindexchunk(g, sa, &mut sai, 0, sa.len() as u32 - 1, map_gen)?;
+        genomesaindex_l117_genomesaindexchunk(g, sa, &mut sai, 0, sa.len() as u64 - 1, map_gen)?;
     }
     map_gen.sai = sai.clone();
     Ok(sai)
@@ -38,7 +38,7 @@ pub fn genomesaindex_from_packed(
     map_gen.genome_sa_index_start = vec![0; map_gen.p_ge.g_saindex_nbases as usize + 1];
     for ii in 1..=map_gen.p_ge.g_saindex_nbases as usize {
         map_gen.genome_sa_index_start[ii] =
-            map_gen.genome_sa_index_start[ii - 1] + (1u32 << (2 * ii as u32));
+            map_gen.genome_sa_index_start[ii - 1] + (1u64 << (2 * ii as u32));
     }
     let n_sai = map_gen.genome_sa_index_start[map_gen.p_ge.g_saindex_nbases as usize];
 
@@ -48,7 +48,7 @@ pub fn genomesaindex_from_packed(
 
     let mut sai = vec![0u64; n_sai as usize];
     if map_gen.sa_packed.length > 0 {
-        genomesaindexchunk_from_packed(&mut sai, 0, map_gen.sa_packed.length as u32 - 1, map_gen)?;
+        genomesaindexchunk_from_packed(&mut sai, 0, map_gen.sa_packed.length - 1, map_gen)?;
     }
     map_gen.sai = sai.clone();
     Ok(sai)
@@ -59,8 +59,8 @@ pub fn genomesaindex_l117_genomesaindexchunk(
     g: &[u8],
     sa: &[u64],
     sai: &mut [u64],
-    i_sa1: u32,
-    i_sa2: u32,
+    i_sa1: u64,
+    i_sa2: u64,
     map_gen: &crate::genome::Genome,
 ) -> Result<(), String> {
     let index_bases = map_gen.p_ge.g_saindex_nbases as usize;
@@ -74,9 +74,9 @@ pub fn genomesaindex_l117_genomesaindexchunk(
     let sai_mark_nmask_c = map_gen.sai_mark_nmask_c;
     let sai_mark_absent_mask_c = map_gen.sai_mark_absent_mask_c;
 
-    let mut ind0 = vec![u32::MAX; index_bases];
+    let mut ind0 = vec![u64::MAX; index_bases];
     let isa_step = map_gen.n_sa as u64 / (1u64 << (2 * map_gen.p_ge.g_saindex_nbases)) + 1;
-    let mut isa = i_sa1 as u64;
+    let mut isa = i_sa1;
     let mut i_l4 = 0;
     let mut ind_full = suffixarrayfuns_l353_funcalcsaifromsa(
         g,
@@ -89,10 +89,10 @@ pub fn genomesaindex_l117_genomesaindexchunk(
         &mut i_l4,
     );
 
-    while isa <= i_sa2 as u64 {
+    while isa <= i_sa2 {
         for i_l in 0..index_bases {
             let shift = 2 * (map_gen.p_ge.g_saindex_nbases as usize - 1 - i_l);
-            let ind_pref = (ind_full >> shift) as u32;
+            let ind_pref = ind_full >> shift;
 
             if i_l as i32 == i_l4 {
                 for i_l1 in i_l..index_bases {
@@ -149,7 +149,7 @@ pub fn genomesaindex_l117_genomesaindexchunk(
             if ii_usize >= sai.len() {
                 return Err("BUG: SA tail-index write is out of bounds\n".to_string());
             }
-            sai[ii_usize] = map_gen.n_sa as u64 | sai_mark_absent_mask_c;
+            sai[ii_usize] = map_gen.n_sa | sai_mark_absent_mask_c;
             ii = ii.wrapping_add(1);
         }
     }
@@ -159,8 +159,8 @@ pub fn genomesaindex_l117_genomesaindexchunk(
 
 pub fn genomesaindexchunk_from_packed(
     sai: &mut [u64],
-    i_sa1: u32,
-    i_sa2: u32,
+    i_sa1: u64,
+    i_sa2: u64,
     map_gen: &crate::genome::Genome,
 ) -> Result<(), String> {
     let index_bases = map_gen.p_ge.g_saindex_nbases as usize;
@@ -174,9 +174,9 @@ pub fn genomesaindexchunk_from_packed(
     let sai_mark_nmask_c = map_gen.sai_mark_nmask_c;
     let sai_mark_absent_mask_c = map_gen.sai_mark_absent_mask_c;
 
-    let mut ind0 = vec![u32::MAX; index_bases];
+    let mut ind0 = vec![u64::MAX; index_bases];
     let isa_step = map_gen.n_sa as u64 / (1u64 << (2 * map_gen.p_ge.g_saindex_nbases)) + 1;
-    let mut isa = i_sa1 as u64;
+    let mut isa = i_sa1;
     let mut i_l4 = 0;
     let mut ind_full = suffixarrayfuns_l353_funcalcsaifrompacked(
         &map_gen.g,
@@ -189,10 +189,10 @@ pub fn genomesaindexchunk_from_packed(
         &mut i_l4,
     );
 
-    while isa <= i_sa2 as u64 {
+    while isa <= i_sa2 {
         for i_l in 0..index_bases {
             let shift = 2 * (map_gen.p_ge.g_saindex_nbases as usize - 1 - i_l);
-            let ind_pref = (ind_full >> shift) as u32;
+            let ind_pref = ind_full >> shift;
 
             if i_l as i32 == i_l4 {
                 for i_l1 in i_l..index_bases {
@@ -248,7 +248,7 @@ pub fn genomesaindexchunk_from_packed(
             if ii_usize >= sai.len() {
                 return Err("BUG: SA tail-index write is out of bounds\n".to_string());
             }
-            sai[ii_usize] = map_gen.n_sa as u64 | sai_mark_absent_mask_c;
+            sai[ii_usize] = map_gen.n_sa | sai_mark_absent_mask_c;
             ii = ii.wrapping_add(1);
         }
     }

@@ -38,23 +38,23 @@ pub fn chimericsegment_l3_chimericsegment_chimericsegment(
     }
 
     seg.ro_s = if seg.align.str_ == 0 {
-        seg.align.exons[0][EX_R]
+        seg.align.exons[0][EX_R] as u32
     } else {
-        seg.align.l_read
+        (seg.align.l_read
             - seg.align.exons[seg.align.n_exons as usize - 1][EX_R]
-            - seg.align.exons[seg.align.n_exons as usize - 1][EX_L]
+            - seg.align.exons[seg.align.n_exons as usize - 1][EX_L]) as u32
     };
     seg.ro_e = if seg.align.str_ == 0 {
-        seg.align.exons[seg.align.n_exons as usize - 1][EX_R]
+        (seg.align.exons[seg.align.n_exons as usize - 1][EX_R]
             + seg.align.exons[seg.align.n_exons as usize - 1][EX_L]
-            - 1
+            - 1) as u32
     } else {
-        seg.align.l_read - seg.align.exons[0][EX_R] - 1
+        (seg.align.l_read - seg.align.exons[0][EX_R] - 1) as u32
     };
-    if seg.ro_s > seg.align.read_length[0] {
+    if seg.ro_s as u64 > seg.align.read_length[0] {
         seg.ro_s -= 1;
     }
-    if seg.ro_e > seg.align.read_length[0] {
+    if seg.ro_e as u64 > seg.align.read_length[0] {
         seg.ro_e -= 1;
     }
     seg
@@ -65,7 +65,7 @@ pub fn chimericsegment_l19_chimericsegment_segmentcheck(
     seg: &crate::chimeric_segment::ChimericSegment,
 ) -> bool {
     let mut seg_good = true;
-    seg_good = seg_good && seg.align.r_length >= seg.segment_min;
+    seg_good = seg_good && seg.align.r_length >= seg.segment_min as u64;
     seg_good = seg_good && seg.align.intron_motifs[0] == 0;
     seg_good
 }

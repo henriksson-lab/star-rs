@@ -50,8 +50,8 @@ pub fn readalign_chimericdetectionpemerged_l5_readalign_chimericdetectionpemerge
         }
         result.request = Some(crate::quantifications::ChimericDetectionRequest {
             detector: "chimericDetectionOld".to_string(),
-            n_w: se_ra.n_w,
-            read_length: se_ra.read_length.clone(),
+            n_w: se_ra.n_w as u32,
+            read_length: se_ra.read_length.iter().map(|&v| v as u32).collect(),
             max_non_chim_align_score: se_ra.tr_best.max_score,
         });
         read_align.chim_record = if let Some(chim_record) = detector_result {
@@ -129,14 +129,14 @@ pub fn readalign_chimericdetectionpemerged_l5_readalign_chimericdetectionpemerge
             result.old_output = Some(old_output);
         }
     } else {
-        let read_len_sum: u32 = read_align.read_length.iter().take(2).copied().sum();
+        let read_len_sum: u64 = read_align.read_length.iter().take(2).copied().sum();
         if read_align.tr_best.max_score
             <= read_len_sum as i32 - p.p_ch.nonchim_score_drop_min as i32
         {
             result.request = Some(crate::quantifications::ChimericDetectionRequest {
                 detector: "chimericDetectionMult".to_string(),
-                n_w: se_ra.n_w,
-                read_length: se_ra.read_length.clone(),
+                n_w: se_ra.n_w as u32,
+                read_length: se_ra.read_length.iter().map(|&v| v as u32).collect(),
                 max_non_chim_align_score: se_ra.tr_best.max_score,
             });
             if let Some(chim_record) = detector_result {
@@ -156,7 +156,7 @@ pub fn readalign_chimericdetectionpemerged_l5_readalign_chimericdetectionpemerge
                     p.p_ch.out_junctions,
                     se_ra.clone(),
                 );
-                chim_det.n_w = se_ra.n_w;
+                chim_det.n_w = se_ra.n_w as u32;
                 let pe_ra_snapshot = read_align.clone();
                 let mult_output =
                     chimericdetection_chimericdetectionmult_l23_chimericdetection_chimericdetectionmult(

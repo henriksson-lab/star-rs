@@ -8,25 +8,25 @@ use crate::*;
 pub fn extendalign_l6_extendalign(
     r: &[u8],
     g: &[u8],
-    r_start: u32,
-    g_start: u32,
+    r_start: u64,
+    g_start: u64,
     d_r: i32,
     d_g: i32,
-    l: u32,
-    l_prev: u32,
-    n_mm_prev: u32,
-    n_mm_max: u32,
+    l: u64,
+    l_prev: u64,
+    n_mm_prev: u64,
+    n_mm_max: u64,
     p_mm_max: f64,
     extend_to_end: bool,
     tr_a: &mut crate::transcript::Transcript,
 ) -> bool {
     let mut score = 0i32;
-    let mut n_match = 0u32;
-    let mut n_mm = 0u32;
+    let mut n_match = 0u64;
+    let mut n_mm = 0u64;
     tr_a.max_score = 0;
 
     if extend_to_end {
-        let mut i_ext = 0u32;
+        let mut i_ext = 0u64;
         while i_ext < l {
             let i_s = d_r as i64 * i_ext as i64;
             let i_g = d_g as i64 * i_ext as i64;

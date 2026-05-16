@@ -8,7 +8,7 @@ use crate::*;
 pub fn blocksoverlap_l3_blocksoverlap(
     t1: &crate::transcript::Transcript,
     t2: &crate::transcript::Transcript,
-) -> u32 {
+) -> u64 {
     let mut i1 = 0usize;
     let mut i2 = 0usize;
     let mut n_overlap = 0;

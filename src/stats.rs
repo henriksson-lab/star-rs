@@ -98,19 +98,19 @@ pub fn stats_l21_stats_addstats(
 pub fn stats_l35_stats_transcriptstats(
     stats: &mut crate::stats::Stats,
     t: &crate::transcript::Transcript,
-    l_read: u32,
+    l_read: u64,
 ) {
-    stats.mapped_mismatches_n += t.n_mm;
-    stats.mapped_ins_n += t.n_ins;
-    stats.mapped_del_n += t.n_del;
-    stats.mapped_ins_l += t.l_ins;
-    stats.mapped_del_l += t.l_del;
+    stats.mapped_mismatches_n += t.n_mm as u32;
+    stats.mapped_ins_n += t.n_ins as u32;
+    stats.mapped_del_n += t.n_del as u32;
+    stats.mapped_ins_l += t.l_ins as u32;
+    stats.mapped_del_l += t.l_del as u32;
 
     if t.n_exons == 0 {
         return;
     }
 
-    let mut mapped_l = 0;
+    let mut mapped_l = 0_u64;
     for ii in 0..t.n_exons as usize {
         mapped_l += t.exons[ii][EX_L];
     }
@@ -123,7 +123,7 @@ pub fn stats_l35_stats_transcriptstats(
         }
     }
 
-    stats.mapped_bases += mapped_l;
+    stats.mapped_bases += mapped_l as u32;
     stats.mapped_portion += mapped_l as f64 / l_read as f64;
 }
 

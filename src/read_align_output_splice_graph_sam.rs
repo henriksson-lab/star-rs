@@ -84,7 +84,7 @@ pub fn readalign_outputsplicegraphsam_l5_readalign_outputsplicegraphsam(
         )
     } else {
         let mut seq_rev = vec![0u8; l_read as usize];
-        sequencefuns_l16_revcomplementnucleotides(read0[0].as_bytes(), &mut seq_rev, l_read);
+        sequencefuns_l16_revcomplementnucleotides(read0[0].as_bytes(), &mut seq_rev, l_read as u64);
         (
             String::from_utf8(seq_rev).unwrap(),
             qual0[0]

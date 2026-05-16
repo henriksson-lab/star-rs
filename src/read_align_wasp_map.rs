@@ -89,15 +89,15 @@ pub fn readalign_waspmap_l3_readalign_waspmap(
             let isnp = align1.var_ind[iv] as usize;
             let allele = v_a1[iv] as usize;
             let mut nt2 = var1.snp.nt[isnp][allele];
-            let mut vr = align1.var_read_coord[iv];
+            let mut vr = align1.var_read_coord[iv] as i64;
             if align1.str_ == 1 {
                 nt2 = 3 - nt2;
-                vr = read_align.l_read - 1 - vr;
+                vr = read_align.l_read as i64 - 1 - vr;
             }
             let vr_usize = vr as usize;
             wasp_ra.read1[0][vr_usize] = nt2;
             wasp_ra.read1[1][vr_usize] = 3 - nt2;
-            let rev_index = (read_align.l_read - 1 - vr) as usize;
+            let rev_index = (read_align.l_read as i64 - 1 - vr) as usize;
             wasp_ra.read1[2][rev_index] = 3 - nt2;
         }
 

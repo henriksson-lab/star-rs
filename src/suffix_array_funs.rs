@@ -5,7 +5,7 @@
 use crate::*;
 
 #[doc = "Original `medianUint2` at STAR/source/SuffixArrayFuns.cpp:4. Args: a: uint, b: uint"]
-pub fn suffixarrayfuns_l4_medianuint2(a: u32, b: u32) -> u32 {
+pub fn suffixarrayfuns_l4_medianuint2(a: u64, b: u64) -> u64 {
     a / 2 + b / 2 + (a % 2 + b % 2) / 2
 }
 
@@ -13,17 +13,17 @@ pub fn suffixarrayfuns_l4_medianuint2(a: u32, b: u32) -> u32 {
 pub fn suffixarrayfuns_l10_compareseqtogenome(
     map_gen: &crate::genome::Genome,
     s2: [&[u8]; 2],
-    s: u32,
-    n: u32,
-    l: u32,
-    i_sa: u32,
+    s: u64,
+    n: u64,
+    l: u64,
+    i_sa: u64,
     dir_r: bool,
     comp_res: &mut bool,
-) -> u32 {
+) -> u64 {
     if l >= n {
         return n;
     }
-    let mut sastr = genome_sa_index_value(map_gen, i_sa as u64);
+    let mut sastr = genome_sa_index_value(map_gen, i_sa);
     let dir_g = (sastr >> map_gen.gstrand_bit) == 0;
     sastr &= map_gen.gstrand_mask as u64;
     let s_usize = s as usize;
@@ -40,7 +40,7 @@ pub fn suffixarrayfuns_l10_compareseqtogenome(
             let gb = unsafe { *g_ptr.add(ii) };
             if sb != gb {
                 *comp_res = sb > gb;
-                return ii as u32 + l;
+                return ii as u64 + l;
             }
         }
         n
@@ -50,7 +50,7 @@ pub fn suffixarrayfuns_l10_compareseqtogenome(
             .n_genome
             .checked_sub(1)
             .and_then(|v| v.checked_sub(sastr))
-            .and_then(|v| v.checked_sub(l as u64))
+            .and_then(|v| v.checked_sub(l))
             .map(|v| v as usize)
         else {
             *comp_res = false;
@@ -63,7 +63,7 @@ pub fn suffixarrayfuns_l10_compareseqtogenome(
             let gb = unsafe { *g_ptr.sub(ii) };
             if sb != gb {
                 *comp_res = !(sb > gb || gb > 3);
-                return ii as u32 + l;
+                return ii as u64 + l;
             }
         }
         n
@@ -80,7 +80,7 @@ pub fn suffixarrayfuns_l10_compareseqtogenome(
             let gb = unsafe { *g_ptr.add(ii) };
             if sb != gb {
                 *comp_res = sb > gb;
-                return ii as u32 + l;
+                return ii as u64 + l;
             }
         }
         n
@@ -93,7 +93,7 @@ pub fn suffixarrayfuns_l10_compareseqtogenome(
             .n_genome
             .checked_sub(1)
             .and_then(|v| v.checked_sub(sastr))
-            .and_then(|v| v.checked_sub(l as u64))
+            .and_then(|v| v.checked_sub(l))
             .map(|v| v as usize)
         else {
             *comp_res = false;
@@ -106,7 +106,7 @@ pub fn suffixarrayfuns_l10_compareseqtogenome(
             let gb = unsafe { *g_ptr.sub(ii) };
             if sb != gb {
                 *comp_res = !(sb > gb || gb > 3);
-                return ii as u32 + l;
+                return ii as u64 + l;
             }
         }
         n
@@ -116,18 +116,18 @@ pub fn suffixarrayfuns_l10_compareseqtogenome(
 #[doc = "Original `findMultRange` at STAR/source/SuffixArrayFuns.cpp:106. Args: mapGen: Genome, i3: uint, L3: uint, i1: uint, L1: uint, i1a: uint, L1a: uint, i1b: uint, L1b: uint, s: char, dirR: bool, S: uint"]
 pub fn suffixarrayfuns_l106_findmultrange(
     map_gen: &crate::genome::Genome,
-    i3: u32,
-    l3: u32,
-    i1: u32,
-    l1: u32,
-    mut i1a: u32,
-    l1a: u32,
-    mut i1b: u32,
-    mut l1b: u32,
+    i3: u64,
+    l3: u64,
+    i1: u64,
+    l1: u64,
+    mut i1a: u64,
+    l1a: u64,
+    mut i1b: u64,
+    mut l1b: u64,
     s: [&[u8]; 2],
     dir_r: bool,
-    s_offset: u32,
-) -> u32 {
+    s_offset: u64,
+) -> u64 {
     if l1 < l3 {
         l1b = l1;
         i1b = i1;
@@ -165,14 +165,14 @@ pub fn suffixarrayfuns_l106_findmultrange(
 pub fn suffixarrayfuns_l133_maxmappablelength(
     map_gen: &crate::genome::Genome,
     s: [&[u8]; 2],
-    s_offset: u32,
-    n: u32,
-    mut i1: u32,
-    mut i2: u32,
+    s_offset: u64,
+    n: u64,
+    mut i1: u64,
+    mut i2: u64,
     dir_r: bool,
-    l: &mut u32,
-    ind_start_end: &mut [u32; 2],
-) -> u32 {
+    l: &mut u64,
+    ind_start_end: &mut [u64; 2],
+) -> u64 {
     let mut comp_res = false;
     let initial_l = *l;
     let original_i1 = i1;
@@ -356,18 +356,18 @@ pub fn genome_sa_index_value(map_gen: &crate::genome::Genome, i_sa: u64) -> u64 
 pub fn suffixarrayfuns_l221_compareseqtogenome1(
     map_gen: &crate::genome::Genome,
     s2: [&[u8]; 2],
-    s: u32,
-    n: u32,
-    l: u32,
-    i_sa: u32,
+    s: u64,
+    n: u64,
+    l: u64,
+    i_sa: u64,
     dir_r: bool,
     g_insert: u64,
     comp_res: &mut i32,
-) -> u32 {
+) -> u64 {
     if l >= n {
         return n;
     }
-    let mut sastr = genome_sa_index_value(map_gen, i_sa as u64);
+    let mut sastr = genome_sa_index_value(map_gen, i_sa);
     let dir_g = (sastr >> map_gen.gstrand_bit) == 0;
     sastr &= map_gen.gstrand_mask as u64;
     let s_start = s as usize + l as usize;
@@ -379,16 +379,16 @@ pub fn suffixarrayfuns_l221_compareseqtogenome1(
             let gb = map_gen.g[g_start + ii];
             if sb != gb {
                 *comp_res = if sb > gb { 1 } else { -1 };
-                return ii as u32 + l;
+                return ii as u64 + l;
             } else if sb == GENOME_SPACING_CHAR {
                 *comp_res = suffixarrayfuns_l210_comparerefends(
                     map_gen.n_genome,
-                    sastr as u64,
+                    sastr,
                     g_insert,
                     dir_g,
                     dir_r,
                 );
-                return ii as u32 + l;
+                return ii as u64 + l;
             }
         }
         n
@@ -397,7 +397,7 @@ pub fn suffixarrayfuns_l221_compareseqtogenome1(
             .n_genome
             .checked_sub(1)
             .and_then(|v| v.checked_sub(sastr))
-            .and_then(|v| v.checked_sub(l as u64))
+            .and_then(|v| v.checked_sub(l))
             .map(|v| v as usize)
         else {
             *comp_res = -1;
@@ -411,7 +411,7 @@ pub fn suffixarrayfuns_l221_compareseqtogenome1(
                 .copied()
             else {
                 *comp_res = -1;
-                return ii as u32 + l;
+                return ii as u64 + l;
             };
             if sb != gb {
                 let mut s1 = sb;
@@ -423,16 +423,16 @@ pub fn suffixarrayfuns_l221_compareseqtogenome1(
                     g1 = 3 - g1;
                 }
                 *comp_res = if s1 > g1 { 1 } else { -1 };
-                return ii as u32 + l;
+                return ii as u64 + l;
             } else if sb == GENOME_SPACING_CHAR {
                 *comp_res = suffixarrayfuns_l210_comparerefends(
                     map_gen.n_genome,
-                    sastr as u64,
+                    sastr,
                     g_insert,
                     dir_g,
                     dir_r,
                 );
-                return ii as u32 + l;
+                return ii as u64 + l;
             }
         }
         n
@@ -443,13 +443,13 @@ pub fn suffixarrayfuns_l221_compareseqtogenome1(
 pub fn suffixarrayfuns_l297_suffixarraysearch1(
     map_gen: &crate::genome::Genome,
     s: [&[u8]; 2],
-    s_offset: u32,
-    n: u32,
+    s_offset: u64,
+    n: u64,
     g_insert: u64,
     str_r: bool,
-    mut i1: u32,
-    mut i2: u32,
-    l: &mut u32,
+    mut i1: u64,
+    mut i2: u64,
+    l: &mut u64,
 ) -> u64 {
     let mut comp_res = 0i32;
 
@@ -501,7 +501,7 @@ pub fn suffixarrayfuns_l297_suffixarraysearch1(
         );
         if l3 == n {
             *l = n;
-            return i3 as u64;
+            return i3;
         }
 
         if comp_res > 0 {
@@ -513,7 +513,7 @@ pub fn suffixarrayfuns_l297_suffixarraysearch1(
         }
         *l = std::cmp::min(l1, l2);
     }
-    i2 as u64
+    i2
 }
 
 #[doc = "Original `funCalcSAiFromSA` at STAR/source/SuffixArrayFuns.cpp:353. Args: gSeq: char, gSA: PackedArray, mapGen: Genome, iSA: uint, L: int, iL4: int"]

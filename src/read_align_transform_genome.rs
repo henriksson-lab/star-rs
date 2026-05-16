@@ -31,7 +31,7 @@ pub fn readalign_transformgenome_l5_readalign_transformgenome(
 
     for i_tr in 0..read_align.n_tr as usize {
         let is_best = tr_mult[i_tr] == read_align.tr_best;
-        tr_mult[i_tr].haplo_type = if tr_mult[i_tr].chr < map_gen.n_chr_real / 2 {
+        tr_mult[i_tr].haplo_type = if tr_mult[i_tr].chr < (map_gen.n_chr_real / 2) as u64 {
             1
         } else {
             2

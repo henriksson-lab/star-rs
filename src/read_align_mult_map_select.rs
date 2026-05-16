@@ -36,8 +36,8 @@ pub fn readalign_multmapselect_l8_readalign_multmapselect(
 pub fn readalign_multmapselect_inner(
     n_tr_out: &mut u64,
     tr_best: &mut crate::transcript::Transcript,
-    l_read: u32,
-    n_w: u32,
+    l_read: u64,
+    n_w: u64,
     n_win_tr_all: &[u64],
     map_gen: &crate::genome::Genome,
     tr_all: &[Vec<crate::transcript::Transcript>],
@@ -93,7 +93,7 @@ pub fn readalign_multmapselect_inner(
         };
         tr.c_start = tr
             .g_start
-            .wrapping_sub(map_gen.chr_start[tr.chr as usize] as u32);
+            .wrapping_sub(map_gen.chr_start[tr.chr as usize]);
     }
     tr_best.ro_start = if tr_best.ro_str == 0 {
         tr_best.r_start
@@ -104,7 +104,7 @@ pub fn readalign_multmapselect_inner(
     };
     tr_best.c_start = tr_best
         .g_start
-        .wrapping_sub(map_gen.chr_start[tr_best.chr as usize] as u32);
+        .wrapping_sub(map_gen.chr_start[tr_best.chr as usize]);
 
     if *n_tr_out == 1 {
         tr_mult[0].primary_flag = true;
@@ -191,7 +191,7 @@ pub fn expand_collapsed_same_locus_paired_multimaps(
     let same_locus_collapsed = tr_mult
         .iter()
         .all(|tr| tr.exons[0][EX_G] == tr.exons[1][EX_G]);
-    let mut loci: Vec<u32> = tr_mult
+    let mut loci: Vec<u64> = tr_mult
         .iter()
         .flat_map(|tr| [tr.exons[0][EX_G], tr.exons[1][EX_G]])
         .collect();
@@ -230,7 +230,7 @@ pub fn expand_collapsed_same_locus_paired_multimaps(
                 tr.g_length = loci[j] + mate0_len - loci[i];
                 tr.c_start = tr
                     .g_start
-                    .wrapping_sub(map_gen.chr_start[tr.chr as usize] as u32);
+                    .wrapping_sub(map_gen.chr_start[tr.chr as usize]);
                 tr.r_start = tr.exons[0][EX_R];
                 tr.r_length = mate0_len + mate1_len;
                 tr.mapped_length = tr.r_length;
@@ -270,7 +270,7 @@ pub fn expand_collapsed_same_locus_paired_multimaps(
             tr.g_length = loci[j] + mate1_len - loci[i];
             tr.c_start = tr
                 .g_start
-                .wrapping_sub(map_gen.chr_start[tr.chr as usize] as u32);
+                .wrapping_sub(map_gen.chr_start[tr.chr as usize]);
             tr.r_start = tr.exons[0][EX_R];
             tr.r_length = mate0_len + mate1_len;
             tr.mapped_length = tr.r_length;
@@ -293,7 +293,7 @@ pub fn expand_collapsed_same_locus_paired_multimaps(
             tr.g_length = loci[j] + mate0_len - loci[i];
             tr.c_start = tr
                 .g_start
-                .wrapping_sub(map_gen.chr_start[tr.chr as usize] as u32);
+                .wrapping_sub(map_gen.chr_start[tr.chr as usize]);
             tr.r_start = tr.exons[0][EX_R];
             tr.r_length = mate0_len + mate1_len;
             tr.mapped_length = tr.r_length;

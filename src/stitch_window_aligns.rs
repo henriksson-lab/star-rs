@@ -6,22 +6,22 @@ use crate::*;
 
 #[doc = "Original `stitchWindowAligns` at STAR/source/stitchWindowAligns.cpp:8. Args: iA: uint, nA: uint, Score: int, WAincl: bool, tR2: uint, tG2: uint, trA: Transcript, Lread: uint, WA: uiWA, R: char, mapGen: Genome, P: Parameters, wTr: Transcript, nWinTr: uint, RA: ReadAlign"]
 pub fn stitchwindowaligns_l8_stitchwindowaligns(
-    i_a: u32,
-    n_a: u32,
+    i_a: u64,
+    n_a: u64,
     score: i32,
     wa_incl: &mut [bool],
-    t_r2: u32,
-    t_g2: u32,
+    t_r2: u64,
+    t_g2: u64,
     tr_a: crate::transcript::Transcript,
-    l_read: u32,
-    wa: &[[u32; WA_SIZE]],
+    l_read: u64,
+    wa: &[[u64; WA_SIZE]],
     r: &[u8],
     map_gen: &crate::genome::Genome,
     p: &crate::parameters_chimeric::Parameters,
     w_tr: &mut Vec<crate::transcript::Transcript>,
-    n_win_tr: &mut u32,
-    out_filter_mismatch_nmax_total: u32,
-    read_length: &[u32],
+    n_win_tr: &mut u64,
+    out_filter_mismatch_nmax_total: u64,
+    read_length: &[u64],
     max_score_mate: &mut Vec<i32>,
 ) -> Result<(), String> {
     if i_a >= n_a && t_r2 == 0 {
@@ -50,7 +50,7 @@ pub fn stitchwindowaligns_l8_stitchwindowaligns(
                             .align_ends_type
                             .ext
                             .get(imate)
-                            .and_then(|row| row.get((tr_a.str_ != imate as u32) as usize))
+                            .and_then(|row| row.get((tr_a.str_ != imate as u64) as usize))
                             .copied()
                             .unwrap_or(false);
                         if extendalign_l6_extendalign(
@@ -87,7 +87,7 @@ pub fn stitchwindowaligns_l8_stitchwindowaligns(
                             .align_ends_type
                             .ext
                             .get(imate)
-                            .and_then(|row| row.get((imate as u32 == tr_a.str_) as usize))
+                            .and_then(|row| row.get((imate as u64 == tr_a.str_) as usize))
                             .copied()
                             .unwrap_or(false);
                         if extendalign_l6_extendalign(
@@ -123,7 +123,7 @@ pub fn stitchwindowaligns_l8_stitchwindowaligns(
         if !map_gen.chr_bin.is_empty() {
             let bin = (tr_a.exons[0][EX_G] >> map_gen.p_ge.g_chr_bin_nbits) as usize;
             if let Some(chr) = map_gen.chr_bin.get(bin) {
-                tr_a.chr = *chr;
+                tr_a.chr = *chr as u64;
             }
         }
         let chr = tr_a.chr as usize;
@@ -149,12 +149,12 @@ pub fn stitchwindowaligns_l8_stitchwindowaligns(
         for isj in 0..tr_a.n_exons.saturating_sub(1) as usize {
             if tr_a.canon_sj.get(isj).copied().unwrap_or(-1) >= 0 {
                 if tr_a.sj_annot.get(isj).copied().unwrap_or(0) == 1 {
-                    let left_bad = tr_a.exons[isj][EX_L] < p.align_sjdb_overhang_min
+                    let left_bad = tr_a.exons[isj][EX_L] < p.align_sjdb_overhang_min as u64
                         && (isj == 0
                             || tr_a.canon_sj.get(isj - 1).copied().unwrap_or(-1) == -3
                             || (tr_a.sj_annot.get(isj - 1).copied().unwrap_or(0) == 0
                                 && tr_a.canon_sj.get(isj - 1).copied().unwrap_or(-1) >= 0));
-                    let right_bad = tr_a.exons[isj + 1][EX_L] < p.align_sjdb_overhang_min
+                    let right_bad = tr_a.exons[isj + 1][EX_L] < p.align_sjdb_overhang_min as u64
                         && (isj == tr_a.n_exons as usize - 2
                             || tr_a.canon_sj.get(isj + 1).copied().unwrap_or(-1) == -3
                             || (tr_a.sj_annot.get(isj + 1).copied().unwrap_or(0) == 0
@@ -163,9 +163,10 @@ pub fn stitchwindowaligns_l8_stitchwindowaligns(
                         return Ok(());
                     }
                 } else if tr_a.exons[isj][EX_L]
-                    < p.align_sj_overhang_min + tr_a.shift_sj.get(isj).copied().unwrap_or([0; 2])[0]
+                    < p.align_sj_overhang_min as u64
+                        + tr_a.shift_sj.get(isj).copied().unwrap_or([0; 2])[0]
                     || tr_a.exons[isj + 1][EX_L]
-                        < p.align_sj_overhang_min
+                        < p.align_sj_overhang_min as u64
                             + tr_a.shift_sj.get(isj).copied().unwrap_or([0; 2])[1]
                 {
                     return Ok(());
@@ -179,12 +180,12 @@ pub fn stitchwindowaligns_l8_stitchwindowaligns(
                 .copied()
                 .unwrap_or(0)
                 == 1
-            && tr_a.exons[tr_a.n_exons as usize - 1][EX_L] < p.align_sjdb_overhang_min
+            && tr_a.exons[tr_a.n_exons as usize - 1][EX_L] < p.align_sjdb_overhang_min as u64
         {
             return Ok(());
         }
 
-        let mut sj_n = 0_u32;
+        let mut sj_n = 0_u64;
         tr_a.intron_motifs = [0; 3];
         tr_a.sj_yes = false;
         for iex in 0..tr_a.n_exons.saturating_sub(1) as usize {
@@ -234,8 +235,8 @@ pub fn stitchwindowaligns_l8_stitchwindowaligns(
             ));
         }
 
-        let mut nsj = 0_u32;
-        let mut exl = 0_u32;
+        let mut nsj = 0_u64;
+        let mut exl = 0_u64;
         for iex in 0..tr_a.n_exons as usize {
             exl += tr_a.exons[iex][EX_L];
             if iex == tr_a.n_exons as usize - 1
@@ -244,9 +245,9 @@ pub fn stitchwindowaligns_l8_stitchwindowaligns(
                 let mate = tr_a.exons[iex][EX_IFRAG] as usize;
                 let mate_len = read_length.get(mate).copied().unwrap_or(l_read);
                 if nsj > 0
-                    && (exl < p.align_spliced_mate_map_lmin
+                    && (exl < p.align_spliced_mate_map_lmin as u64
                         || exl
-                            < (p.align_spliced_mate_map_lmin_over_lmate * mate_len as f64) as u32)
+                            < (p.align_spliced_mate_map_lmin_over_lmate * mate_len as f64) as u64)
                 {
                     return Ok(());
                 }
@@ -262,8 +263,8 @@ pub fn stitchwindowaligns_l8_stitchwindowaligns(
                 if tr_a.canon_sj.get(iex).copied().unwrap_or(-1) >= 0
                     && tr_a.sj_annot.get(iex).copied().unwrap_or(0) == 0
                 {
-                    let js = tr_a.exons[iex][EX_G] + tr_a.exons[iex][EX_L];
-                    let je = tr_a.exons[iex + 1][EX_G] - 1;
+                    let js = (tr_a.exons[iex][EX_G] + tr_a.exons[iex][EX_L]) as u32;
+                    let je = (tr_a.exons[iex + 1][EX_G] - 1) as u32;
                     if binarysearch2_l3_binarysearch2(
                         js,
                         je,
@@ -298,10 +299,10 @@ pub fn stitchwindowaligns_l8_stitchwindowaligns(
                 if tr_a.exons[0][EX_G]
                     > tr_a.exons[iex_m2][EX_G]
                         + tr_a.exons[0][EX_R]
-                        + p.align_ends_protrude.n_bases_max as u32
+                        + p.align_ends_protrude.n_bases_max as u64
                     || tr_a.exons[iex_m2 - 1][EX_G] + tr_a.exons[iex_m2 - 1][EX_L]
                         > tr_a.exons[last][EX_G] + l_read - tr_a.exons[last][EX_R]
-                            + p.align_ends_protrude.n_bases_max as u32
+                            + p.align_ends_protrude.n_bases_max as u64
                 {
                     return Ok(());
                 }
@@ -416,7 +417,7 @@ pub fn stitchwindowaligns_l8_stitchwindowaligns(
                 } else {
                     p.align_transcripts_per_read_nmax
                 };
-                if max_win == 0 || *n_win_tr < max_win {
+                if max_win == 0 || *n_win_tr < max_win as u64 {
                     *n_win_tr += 1;
                 }
             }

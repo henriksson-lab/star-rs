@@ -19,22 +19,22 @@ pub fn transcriptome_classifyalign_l8_aligntotranscript(
     let mut align_sj_concordant = true;
 
     let mut ex1 = 0_u32;
-    let mut b_e = 0_u32;
-    let mut e_e = 0_u32;
-    let mut en_s = 0_u32;
+    let mut b_e = 0_u64;
+    let mut e_e = 0_u64;
+    let mut en_s = 0_u64;
 
     for iab in 0..a_g.n_exons {
         let b_e_prev = b_e;
 
-        if u64::from(a_g.exons[iab as usize][EX_G]) < tr_s1 {
+        if a_g.exons[iab as usize][EX_G] < tr_s1 {
             return -1;
         }
 
-        let b_s = (u64::from(a_g.exons[iab as usize][EX_G]) - tr_s1) as u32;
+        let b_s = a_g.exons[iab as usize][EX_G] - tr_s1;
         b_e = b_s + a_g.exons[iab as usize][EX_L] - 1;
 
         if iab == 0 || a_g.canon_sj[iab as usize - 1] == -3 {
-            if !servicefuns_l212_binarysearch_leleft(b_s, ex_se1, 2 * ex_n1 as u32, &mut ex1) {
+            if !servicefuns_l212_binarysearch_leleft(b_s as u32, ex_se1, 2 * ex_n1 as u32, &mut ex1) {
                 return -1;
             }
             ex1 /= 2;
@@ -43,16 +43,16 @@ pub fn transcriptome_classifyalign_l8_aligntotranscript(
                 ex1 += 1;
             } else {
                 align_sj_concordant = false;
-                if !servicefuns_l212_binarysearch_leleft(b_s, ex_se1, 2 * ex_n1 as u32, &mut ex1) {
+                if !servicefuns_l212_binarysearch_leleft(b_s as u32, ex_se1, 2 * ex_n1 as u32, &mut ex1) {
                     return -1;
                 }
                 ex1 /= 2;
             }
         }
 
-        e_e = ex_se1[2 * ex1 as usize + 1];
+        e_e = ex_se1[2 * ex1 as usize + 1] as u64;
         en_s = if ex1 + 1 < ex_n1 as u32 {
-            ex_se1[2 * (ex1 as usize + 1)]
+            ex_se1[2 * (ex1 as usize + 1)] as u64
         } else {
             0
         };
@@ -64,7 +64,8 @@ pub fn transcriptome_classifyalign_l8_aligntotranscript(
             align_exonic = true;
 
             if iab == 0 {
-                dist_tr_ends[0] = ex_len_cum1[ex1 as usize] + b_s - ex_se1[2 * ex1 as usize];
+                dist_tr_ends[0] =
+                    (ex_len_cum1[ex1 as usize] as u64 + b_s - ex_se1[2 * ex1 as usize] as u64) as u32;
             }
             let transcript_tail = if ex1 == ex_n1 as u32 - 1 {
                 0
@@ -74,7 +75,7 @@ pub fn transcriptome_classifyalign_l8_aligntotranscript(
                     + ex_len_cum1[ex_n1 as usize - 1]
                     - ex_len_cum1[ex1 as usize + 1]
             };
-            dist_tr_ends[1] = e_e.wrapping_sub(b_e).wrapping_add(transcript_tail);
+            dist_tr_ends[1] = (e_e.wrapping_sub(b_e) as u32).wrapping_add(transcript_tail);
         } else {
             if b_e >= en_s {
                 align_spans_exon_intr = true;
@@ -111,10 +112,10 @@ pub fn transcriptome_classifyalign_l93_aligntotranscriptminoverlap(
     let mut align_spans_exon_intr = false;
     let mut align_sj_concordant = true;
 
-    let mut iab = 0_u32;
+    let mut iab = 0_u64;
     while iab < a_g.n_exons {
-        let b_s = a_g.exons[iab as usize][EX_G] - tr_s1;
-        let ex1 = servicefuns_l192_binarysearch1(b_s, ex_se1, 2 * ex_n1 as u32) / 2;
+        let b_s = a_g.exons[iab as usize][EX_G] - tr_s1 as u64;
+        let ex1 = servicefuns_l192_binarysearch1(b_s as u32, ex_se1, 2 * ex_n1 as u32) / 2;
         if ex1 == ex_n1 as u32 - 1 {
             align_exonic = true;
             break;
@@ -127,34 +128,34 @@ pub fn transcriptome_classifyalign_l93_aligntotranscriptminoverlap(
             iab += 1;
         }
 
-        let b_e = a_g.exons[iab as usize][EX_G] - tr_s1 + a_g.exons[iab as usize][EX_L] - 1;
-        if b_e - b_s < min_overlap_minus_one {
+        let b_e = a_g.exons[iab as usize][EX_G] - tr_s1 as u64 + a_g.exons[iab as usize][EX_L] - 1;
+        if b_e - b_s < min_overlap_minus_one as u64 {
             iab += 1;
             continue;
         }
 
-        let e_e = ex_se1[2 * ex1 as usize + 1];
-        let en_s = ex_se1[2 * ex1 as usize + 2];
-        let en_e = ex_se1[2 * ex1 as usize + 3];
+        let e_e = ex_se1[2 * ex1 as usize + 1] as u64;
+        let en_s = ex_se1[2 * ex1 as usize + 2] as u64;
+        let en_e = ex_se1[2 * ex1 as usize + 3] as u64;
 
-        if b_s + min_overlap_minus_one <= e_e {
-            if b_e <= e_e + min_overlap_minus_one {
+        if b_s + min_overlap_minus_one as u64 <= e_e {
+            if b_e <= e_e + min_overlap_minus_one as u64 {
                 align_exonic = true;
             } else {
                 align_spans_exon_intr = true;
             }
-        } else if b_s + min_overlap_minus_one < en_s {
-            if b_e >= en_s + min_overlap_minus_one {
+        } else if b_s + (min_overlap_minus_one as u64) < en_s {
+            if b_e >= en_s + min_overlap_minus_one as u64 {
                 align_spans_exon_intr = true;
-            } else if b_e > e_e + min_overlap_minus_one {
+            } else if b_e > e_e + min_overlap_minus_one as u64 {
                 if en_s - e_e > 1_000_000 {
                     return -1;
                 }
                 align_intronic = true;
             }
-        } else if b_e > en_e + min_overlap_minus_one {
+        } else if b_e > en_e + min_overlap_minus_one as u64 {
             align_spans_exon_intr = true;
-        } else if b_e >= en_s + min_overlap_minus_one {
+        } else if b_e >= en_s + min_overlap_minus_one as u64 {
             align_exonic = true;
         }
 
@@ -214,7 +215,7 @@ pub fn transcriptome_classifyalign_l177_transcriptome_classifyalign(
 
     for (iag, a_g) in align_g.iter().enumerate() {
         let mut tr1 = servicefuns_l239_binarysearch1a(
-            a_g.exons[0][EX_G],
+            a_g.exons[0][EX_G] as u32,
             &transcriptome.tr_s,
             transcriptome.n_tr as i32,
         );
@@ -235,10 +236,10 @@ pub fn transcriptome_classifyalign_l177_transcriptome_classifyalign(
             } else {
                 1 - a_g.str_
             };
-            if a_g_end > transcriptome.tr_e[tr]
-                || (p_solo.strand >= 0 && tr_stranded != p_solo.strand as u32)
+            if a_g_end > transcriptome.tr_e[tr] as u64
+                || (p_solo.strand >= 0 && tr_stranded != p_solo.strand as u64)
             {
-                if !(transcriptome.tr_e_max[tr] >= a_g_end && tr1 > 0) {
+                if !((transcriptome.tr_e_max[tr] as u64) >= a_g_end && tr1 > 0) {
                     break;
                 }
                 continue;
@@ -306,7 +307,7 @@ pub fn transcriptome_classifyalign_l177_transcriptome_classifyalign(
                 }
             }
 
-            if !(transcriptome.tr_e_max[tr] >= a_g_end && tr1 > 0) {
+            if !((transcriptome.tr_e_max[tr] as u64) >= a_g_end && tr1 > 0) {
                 break;
             }
         }

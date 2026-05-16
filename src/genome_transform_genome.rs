@@ -380,7 +380,7 @@ pub fn genome_transformgenome_l215_genome_transformgandblocks(
                 sequencefuns_l131_convertnucleotidestonumbers(
                     seq[0].as_bytes(),
                     &mut s0,
-                    seq[0].len() as u32,
+                    seq[0].len() as u64,
                 );
                 if genome.g[g0 as usize..g0 as usize + seq[0].len()] != s0[..] {
                     debug.push_str(&format!("{} {}\n", g0, seq[0]));
@@ -390,7 +390,7 @@ pub fn genome_transformgenome_l215_genome_transformgandblocks(
                 sequencefuns_l131_convertnucleotidestonumbers(
                     seq[1].as_bytes(),
                     &mut s1,
-                    seq[1].len() as u32,
+                    seq[1].len() as u64,
                 );
                 g_new[g1 as usize..g1 as usize + s1.len()].copy_from_slice(&s1);
                 g0 += seq[0].len() as u64;

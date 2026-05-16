@@ -9,7 +9,7 @@ pub fn splicegraph_findsupertr_l5_splicegraph_findsupertr(
     splice_graph: &mut crate::splice_graph::SpliceGraph,
     read_seq: &[u8],
     read_seq_rev_compl: &[u8],
-    read_len: u32,
+    read_len: u64,
     read_name: &str,
     map_gen: &crate::genome::Genome,
     seed_multimap_nmax: u32,
@@ -27,10 +27,10 @@ pub fn splicegraph_findsupertr_l5_splicegraph_findsupertr(
         .resize(2 * splice_graph.super_trome.n as usize, 0);
     splice_graph.super_tr_seed_count.fill(0);
 
-    let mut iseed = 0_u32;
+    let mut iseed = 0_u64;
     while iseed < read_len {
         let mut ind1 = 0_u64;
-        for ii in iseed..iseed + seed_len {
+        for ii in iseed..iseed + seed_len as u64 {
             let b = read_seq[ii as usize] as u64;
             if b > 3 {
                 continue;
@@ -43,7 +43,7 @@ pub fn splicegraph_findsupertr_l5_splicegraph_findsupertr(
         let sai_index = map_gen.genome_sa_index_start[seed_len as usize - 1] as u64 + ind1;
         let i_sa1 = map_gen.sai[sai_index as usize] as u64;
         if (i_sa1 & map_gen.sai_mark_absent_mask_c as u64) != 0 {
-            iseed += seed_spacing;
+            iseed += seed_spacing as u64;
             continue;
         }
 
@@ -56,7 +56,7 @@ pub fn splicegraph_findsupertr_l5_splicegraph_findsupertr(
         };
 
         if i_sa2 - i_sa1 >= seed_mult_max as u64 {
-            iseed += seed_spacing;
+            iseed += seed_spacing as u64;
             continue;
         }
 
@@ -105,7 +105,7 @@ pub fn splicegraph_findsupertr_l5_splicegraph_findsupertr(
             }
         }
 
-        iseed += seed_spacing;
+        iseed += seed_spacing as u64;
     }
 
     let mut count_max = 0_u16;
@@ -148,12 +148,12 @@ pub fn splicegraph_findsupertr_l5_splicegraph_findsupertr(
             .as_ref()
             .map(|ra| ra.tr_best.clone())
             .unwrap_or_else(transcript_l3_transcript_transcript);
-        tr_a.chr = sutr1 as u32;
-        tr_a.str_ = str1 as u32;
+        tr_a.chr = sutr1 as u64;
+        tr_a.str_ = str1 as u64;
         let sw_score = splicegraph_swscorespliced_l8_splicegraph_swscorespliced(
             splice_graph,
             read_for_score,
-            read_len,
+            read_len as u32,
             &super_tr,
             &mut tr_a.cigar,
         );
@@ -176,14 +176,14 @@ pub fn splicegraph_findsupertr_l5_splicegraph_findsupertr(
         ));
 
         tr_a.max_score = sw_score;
-        tr_a.n_match = sw_score as u32;
+        tr_a.n_match = sw_score as u64;
         tr_a.n_exons = 0;
         tr_a.g_start =
-            map_gen.chr_start[tr_a.chr as usize] as u32 + splice_graph.align_info.a_start[1];
-        tr_a.n_mm = splice_graph.align_info.n_mm;
-        tr_a.l_ins = splice_graph.align_info.n_i;
-        tr_a.l_del = splice_graph.align_info.n_d;
-        tr_a.r_length = splice_graph.align_info.n_map;
+            map_gen.chr_start[tr_a.chr as usize] + splice_graph.align_info.a_start[1] as u64;
+        tr_a.n_mm = splice_graph.align_info.n_mm as u64;
+        tr_a.l_ins = splice_graph.align_info.n_i as u64;
+        tr_a.l_del = splice_graph.align_info.n_d as u64;
+        tr_a.r_length = splice_graph.align_info.n_map as u64;
 
         if let Some(ra) = splice_graph.ra.as_mut() {
             if ra.tr_all.len() <= n_super_tr {
@@ -204,7 +204,7 @@ pub fn splicegraph_findsupertr_l5_splicegraph_findsupertr(
     }
 
     if let Some(ra) = splice_graph.ra.as_mut() {
-        ra.n_w = n_super_tr as u32;
+        ra.n_w = n_super_tr as u64;
     }
 
     out

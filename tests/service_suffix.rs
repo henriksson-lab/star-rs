@@ -154,8 +154,8 @@ fn service_binary_search_variants_match_boundary_contracts() {
 #[test]
 fn suffix_leaf_math_matches_original_overflow_safe_logic() {
     assert_eq!(
-        suffixarrayfuns_l4_medianuint2(u32::MAX - 1, u32::MAX),
-        u32::MAX - 1
+        suffixarrayfuns_l4_medianuint2(u64::from(u32::MAX) - 1, u64::from(u32::MAX)),
+        u64::from(u32::MAX) - 1
     );
     assert_eq!(suffixarrayfuns_l397_funcalcsai(&[0, 1, 2, 3], 3), 27);
     assert_eq!(suffixarrayfuns_l397_funcalcsai(&[0, 1, 4, 3], 3), -1);
@@ -453,7 +453,7 @@ fn suffix_find_mult_range_and_max_mappable_length_expand_exact_match_range() {
     );
 
     let mut l = 0;
-    let mut range = [u32::MAX; 2];
+    let mut range = [u64::MAX; 2];
     assert_eq!(
         suffixarrayfuns_l133_maxmappablelength(
             &genome,
@@ -683,7 +683,7 @@ fn suffix_max_mappable_length_reports_longest_partial_range() {
     };
     let query = [1u8, 2, 7];
     let mut l = 0;
-    let mut range = [u32::MAX; 2];
+    let mut range = [u64::MAX; 2];
 
     assert_eq!(
         suffixarrayfuns_l133_maxmappablelength(

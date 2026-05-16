@@ -53,8 +53,8 @@ pub fn chimericalign_chimericbamoutput_l7_chimericalign_chimericbamoutput(
         let align_type: i32;
 
         if result.chim_type == 2 {
-            mate_chr = tr_chim[1 - itr].chr;
-            mate_start_abs = tr_chim[1 - itr].exons[0][EX_G];
+            mate_chr = tr_chim[1 - itr].chr as u32;
+            mate_start_abs = tr_chim[1 - itr].exons[0][EX_G] as u32;
             mate_strand = i8::from(tr_chim[1 - itr].str_ != tr_chim[1 - itr].exons[0][EX_IFRAG]);
             align_type = -10;
         } else {
@@ -66,7 +66,7 @@ pub fn chimericalign_chimericbamoutput_l7_chimericalign_chimericbamoutput(
                 result.representative_request_index = result.bam_requests.len() as i32;
             } else {
                 align_type = if p.p_ch.out_bam_hard_clip {
-                    if (itr as u32) == tr_chim[itr].str_ {
+                    if (itr as u64) == tr_chim[itr].str_ {
                         -12
                     } else {
                         -11
@@ -86,8 +86,8 @@ pub fn chimericalign_chimericbamoutput_l7_chimericalign_chimericbamoutput(
                         }
                         iex += 1;
                     }
-                    let mate_chr1 = tr_chim[chim_represent].chr;
-                    let mate_start1 = tr_chim[chim_represent].exons[iex][EX_G];
+                    let mate_chr1 = tr_chim[chim_represent].chr as u32;
+                    let mate_start1 = tr_chim[chim_represent].exons[iex][EX_G] as u32;
                     let mate_strand1 = i8::from(
                         tr_chim[chim_represent].str_
                             != tr_chim[chim_represent].exons[iex][EX_IFRAG],

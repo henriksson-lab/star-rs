@@ -26,7 +26,7 @@ pub fn clipmate_initialize_l5_clipmate_initialize(
         sequencefuns_l131_convertnucleotidestonumbers(
             clip_mate.ad_seq.as_bytes(),
             &mut clip_mate.ad_seq_num,
-            clip_mate.ad_seq.len() as u32,
+            clip_mate.ad_seq.len() as u64,
         );
     }
 

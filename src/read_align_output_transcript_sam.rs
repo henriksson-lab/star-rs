@@ -23,9 +23,9 @@ pub fn readalign_outputtranscriptsam_l5_readalign_outputtranscriptsam(
     p: &crate::parameters_chimeric::Parameters,
     read_files_index: u32,
     read_name_extra: &[String],
-    l_read: u32,
-    read_length: &[u32],
-    read_length_original: &[u32],
+    l_read: u64,
+    read_length: &[u64],
+    read_length_original: &[u64],
     clip_mates: &[Vec<crate::clip_mate::ClipMate>],
     read1: &[Vec<u8>; 3],
     gen_out: &crate::genome::Genome,
@@ -45,7 +45,7 @@ pub fn readalign_outputtranscriptsam_l5_readalign_outputtranscriptsam(
                 if p.read_nmates == 2 {
                     sam_flag |= 0x1 + if imate == 0 { 0x40 } else { 0x80 };
                     if mate_map.get(1 - imate).copied().unwrap_or(false) {
-                        if tr_out.str_ != (1 - imate) as u32 {
+                        if tr_out.str_ != (1 - imate) as u64 {
                             sam_flag |= 0x20;
                         }
                     } else {
@@ -112,8 +112,8 @@ pub fn readalign_outputtranscriptsam_l5_readalign_outputtranscriptsam(
     }
 
     let flag_paired = p.read_nmates == 2;
-    let mut i_ex_mate = 0_u32;
-    let mut n_mates = 1_u32;
+    let mut i_ex_mate = 0_u64;
+    let mut n_mates = 1_u64;
     while i_ex_mate < tr_out.n_exons - 1 {
         if tr_out.canon_sj[i_ex_mate as usize] == -3 {
             n_mates = 2;
@@ -165,7 +165,7 @@ pub fn readalign_outputtranscriptsam_l5_readalign_outputtranscriptsam(
                 clip_mates[mate][0].clipped_n
             };
             let mut cigar = String::new();
-            let trim_l1 = trim_l + tr_out.exons[i_ex1 as usize][EX_R]
+            let trim_l1 = trim_l as u64 + tr_out.exons[i_ex1 as usize][EX_R]
                 - if tr_out.exons[i_ex1 as usize][EX_R] < read_length[left_mate as usize] {
                     0
                 } else {
@@ -199,7 +199,7 @@ pub fn readalign_outputtranscriptsam_l5_readalign_outputtranscriptsam(
                 read_length[left_mate as usize] + 1 + read_length_original[mate]
             }) - tr_out.exons[i_ex2 as usize][EX_R]
                 - tr_out.exons[i_ex2 as usize][EX_L]
-                - trim_l;
+                - trim_l as u64;
             if trim_r1 > 0 {
                 cigar.push_str(&format!("{}S", trim_r1));
             }
@@ -251,7 +251,7 @@ pub fn readalign_outputtranscriptsam_l5_readalign_outputtranscriptsam(
         };
 
         let mut cigar = String::new();
-        let trim_l1 = trim_l + tr_out.exons[i_ex1 as usize][EX_R]
+        let trim_l1 = trim_l as u64 + tr_out.exons[i_ex1 as usize][EX_R]
             - if tr_out.exons[i_ex1 as usize][EX_R] < read_length[left_mate as usize] {
                 0
             } else {
@@ -308,7 +308,7 @@ pub fn readalign_outputtranscriptsam_l5_readalign_outputtranscriptsam(
             read_length[left_mate as usize] + 1 + read_length_original[mate as usize]
         }) - tr_out.exons[i_ex2 as usize][EX_R]
             - tr_out.exons[i_ex2 as usize][EX_L]
-            - trim_l;
+            - trim_l as u64;
         if trim_r1 > 0 {
             cigar.push_str(&format!("{}S", trim_r1));
         }
@@ -387,7 +387,7 @@ pub fn readalign_outputtranscriptsam_l5_readalign_outputtranscriptsam(
             out_stream.push('*');
         }
 
-        let mut tag_nm = 0_u32;
+        let mut tag_nm = 0_u64;
         let mut tag_md = String::new();
         if p.out_sam_attr_present.nm || p.out_sam_attr_present.md {
             let r = if tr_out.ro_str == 0 {
@@ -395,7 +395,7 @@ pub fn readalign_outputtranscriptsam_l5_readalign_outputtranscriptsam(
             } else {
                 &read1[2]
             };
-            let mut match_n = 0_u32;
+            let mut match_n = 0_u64;
             for iex in i_ex1..=i_ex2 {
                 let iex = iex as usize;
                 for ii in 0..tr_out.exons[iex][EX_L] {

@@ -16,12 +16,12 @@ pub fn readalign_chimericdetectionold_l7_readalign_chimericdetectionold(
     }
 
     if !(p.p_ch.segment_min > 0
-        && tr_best.r_length >= p.p_ch.segment_min
+        && tr_best.r_length >= p.p_ch.segment_min as u64
         && (tr_best.exons[tr_best.n_exons as usize - 1][EX_R]
             + tr_best.exons[tr_best.n_exons as usize - 1][EX_L]
-            + p.p_ch.segment_min
+            + p.p_ch.segment_min as u64
             <= read_align.l_read
-            || tr_best.exons[0][EX_R] >= p.p_ch.segment_min)
+            || tr_best.exons[0][EX_R] >= p.p_ch.segment_min as u64)
         && tr_best.intron_motifs[0] == 0
         && (tr_best.intron_motifs[1] == 0 || tr_best.intron_motifs[2] == 0))
     {
@@ -62,7 +62,7 @@ pub fn readalign_chimericdetectionold_l7_readalign_chimericdetectionold(
         ro_end1 -= 1;
     }
 
-    let mut chim_str_best = 0_u32;
+    let mut chim_str_best = 0_u64;
     read_align.chim_str = if tr_best.intron_motifs[1] == 0 && tr_best.intron_motifs[2] == 0 {
         0
     } else if (tr_best.str_ == 0) == (tr_best.intron_motifs[1] > 0) {
@@ -146,11 +146,11 @@ pub fn readalign_chimericdetectionold_l7_readalign_chimericdetectionold(
             let diff_mates = (ro_end1 < read_len0 && ro_start2 >= read_len0)
                 || (ro_end2 < read_len0 && ro_start1 >= read_len0);
 
-            if ro_end1 > p.p_ch.segment_min + ro_start1 + chim_overlap
-                && ro_end2 > p.p_ch.segment_min + ro_start2 + chim_overlap
+            if ro_end1 > p.p_ch.segment_min as u64 + ro_start1 + chim_overlap
+                && ro_end2 > p.p_ch.segment_min as u64 + ro_start2 + chim_overlap
                 && (diff_mates
-                    || ((ro_end1 + p.p_ch.segment_read_gap_max + 1) >= ro_start2
-                        && (ro_end2 + p.p_ch.segment_read_gap_max + 1) >= ro_start1))
+                    || ((ro_end1 + p.p_ch.segment_read_gap_max as u64 + 1) >= ro_start2
+                        && (ro_end2 + p.p_ch.segment_read_gap_max as u64 + 1) >= ro_start1))
             {
                 let chim_score = tr_best.max_score + tr.max_score - chim_overlap as i32;
                 let overlap1 = if i_wt > 0 && chim_score_best > 0 {
@@ -175,7 +175,7 @@ pub fn readalign_chimericdetectionold_l7_readalign_chimericdetectionold(
                             - read_align.tr_chim[1].r_length
                     };
                     read_align.tr_chim[1].c_start = read_align.tr_chim[1].g_start
-                        - map_gen.chr_start[read_align.tr_chim[1].chr as usize] as u32;
+                        - map_gen.chr_start[read_align.tr_chim[1].chr as usize];
                     chim_str_best = chim_str1;
                 } else if chim_score > chim_score_next && overlap1 == 0 {
                     chim_score_next = chim_score;
@@ -245,8 +245,8 @@ pub fn readalign_chimericdetectionold_l7_readalign_chimericdetectionold(
             read_align.tr_chim[1].exons[e1][EX_G] + read_align.tr_chim[1].exons[e1][EX_L]
         };
     } else {
-        if !(read_align.tr_chim[0].exons[e0][EX_L] >= p.p_ch.junction_overhang_min
-            && read_align.tr_chim[1].exons[e1][EX_L] >= p.p_ch.junction_overhang_min)
+        if !(read_align.tr_chim[0].exons[e0][EX_L] >= p.p_ch.junction_overhang_min as u64
+            && read_align.tr_chim[1].exons[e1][EX_L] >= p.p_ch.junction_overhang_min as u64)
         {
             return false;
         }
@@ -265,7 +265,7 @@ pub fn readalign_chimericdetectionold_l7_readalign_chimericdetectionold(
                 - read_align.tr_chim[1].exons[e1][EX_L]
         };
 
-        let mut j_rbest = 0_u32;
+        let mut j_rbest = 0_u64;
         let mut j_score = 0_i32;
         let mut j_score_best = -999999_i32;
         let j_rmax = if ro_start1 + read_align.tr_chim[1].exons[e1][EX_L] > ro_start0 {
@@ -273,7 +273,7 @@ pub fn readalign_chimericdetectionold_l7_readalign_chimericdetectionold(
         } else {
             0
         };
-        let mut j_r = 0_u32;
+        let mut j_r = 0_u64;
         while j_r < j_rmax {
             if j_r == read_len0 {
                 j_r += 1;
@@ -429,7 +429,7 @@ pub fn readalign_chimericdetectionold_l7_readalign_chimericdetectionold(
                 read_align.tr_chim[1].exons[e1][EX_G] + read_align.tr_chim[1].exons[e1][EX_L];
         }
 
-        let mut repeat = 0_u32;
+        let mut repeat = 0_u64;
         while repeat < 100 {
             let mut b0 = if read_align.tr_chim[0].str_ == 0 {
                 map_gen.g[(read_align.chim_j0 + repeat) as usize]
@@ -496,9 +496,9 @@ pub fn readalign_chimericdetectionold_l7_readalign_chimericdetectionold(
     {
         if read_align.chim_motif >= 0
             && (read_align.tr_chim[0].exons[e0][EX_L]
-                < p.p_ch.junction_overhang_min + read_align.chim_repeat0
+                < p.p_ch.junction_overhang_min as u64 + read_align.chim_repeat0
                 || read_align.tr_chim[1].exons[e1][EX_L]
-                    < p.p_ch.junction_overhang_min + read_align.chim_repeat1)
+                    < p.p_ch.junction_overhang_min as u64 + read_align.chim_repeat1)
         {
             return false;
         }

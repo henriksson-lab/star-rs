@@ -6,18 +6,18 @@ use crate::*;
 
 #[doc = "Original `stitchAlignToTranscript` at STAR/source/stitchAlignToTranscript.cpp:9. Args: rAend: uint, gAend: uint, rBstart: uint, gBstart: uint, L: uint, iFragB: uint, sjAB: uint, P: Parameters, R: char, mapGen: Genome, trA: Transcript, outFilterMismatchNmaxTotal: uint"]
 pub fn stitchaligntotranscript_l9_stitchaligntotranscript(
-    r_aend: u32,
-    g_aend: u32,
-    mut r_bstart: u32,
-    mut g_bstart: u32,
-    mut l: u32,
-    i_frag_b: u32,
-    sj_ab: u32,
+    r_aend: u64,
+    g_aend: u64,
+    mut r_bstart: u64,
+    mut g_bstart: u64,
+    mut l: u64,
+    i_frag_b: u64,
+    sj_ab: u64,
     p: &crate::parameters_chimeric::Parameters,
     r: &[u8],
     map_gen: &crate::genome::Genome,
     tr_a: &mut crate::transcript::Transcript,
-    out_filter_mismatch_nmax_total: u32,
+    out_filter_mismatch_nmax_total: u64,
 ) -> i32 {
     if tr_a.n_exons >= MAX_N_EXONS {
         return -1_000_010;
@@ -43,7 +43,7 @@ pub fn stitchaligntotranscript_l9_stitchaligntotranscript(
     let mut score = 0_i32;
     let last = tr_a.n_exons as usize - 1;
 
-    if sj_ab != u32::MAX
+    if sj_ab != u64::MAX
         && tr_a.exons[last][EX_SJA] == sj_ab
         && tr_a.exons[last][EX_IFRAG] == i_frag_b
         && r_bstart == r_aend + 1
@@ -51,8 +51,8 @@ pub fn stitchaligntotranscript_l9_stitchaligntotranscript(
     {
         let sj = sj_ab as usize;
         if map_gen.sjdb_motif[sj] == 0
-            && (l <= map_gen.sjdb_shift_right[sj] as u32
-                || tr_a.exons[last][EX_L] <= map_gen.sjdb_shift_left[sj] as u32)
+            && (l <= map_gen.sjdb_shift_right[sj] as u64
+                || tr_a.exons[last][EX_L] <= map_gen.sjdb_shift_left[sj] as u64)
         {
             return -1_000_006;
         }
@@ -61,8 +61,8 @@ pub fn stitchaligntotranscript_l9_stitchaligntotranscript(
         tr_a.exons[out][EX_R] = r_bstart;
         tr_a.exons[out][EX_G] = g_bstart;
         tr_a.canon_sj[last] = map_gen.sjdb_motif[sj] as i32;
-        tr_a.shift_sj[last][0] = map_gen.sjdb_shift_left[sj] as u32;
-        tr_a.shift_sj[last][1] = map_gen.sjdb_shift_right[sj] as u32;
+        tr_a.shift_sj[last][0] = map_gen.sjdb_shift_left[sj] as u64;
+        tr_a.shift_sj[last][1] = map_gen.sjdb_shift_right[sj] as u64;
         tr_a.sj_annot[last] = 1;
         tr_a.sj_str[last] = map_gen.sjdb_strand[sj];
         tr_a.n_exons += 1;
@@ -99,11 +99,11 @@ pub fn stitchaligntotranscript_l9_stitchaligntotranscript(
             let g_gap = g_bstart as i32 - g_aend as i32 - 1;
             let r_gap = r_bstart as i32 - r_aend as i32 - 1;
             let mut n_match = l;
-            let mut n_mm = 0_u32;
-            let mut del = 0_u32;
-            let mut ins = 0_u32;
-            let mut n_ins = 0_u32;
-            let mut n_del = 0_u32;
+            let mut n_mm = 0_u64;
+            let mut del = 0_u64;
+            let mut ins = 0_u64;
+            let mut n_ins = 0_u64;
+            let mut n_del = 0_u64;
             let mut j_r = 0_i32;
             let mut j_can = 999_i32;
             let g_bstart1 = g_bstart as i32 - r_gap - 1;
@@ -125,8 +125,8 @@ pub fn stitchaligntotranscript_l9_stitchaligntotranscript(
                 }
             } else if g_gap > r_gap {
                 n_del = 1;
-                del = (g_gap - r_gap) as u32;
-                if del > p.align_intron_max && p.align_intron_max > 0 {
+                del = (g_gap - r_gap) as u64;
+                if del > p.align_intron_max as u64 && p.align_intron_max > 0 {
                     return -1_000_003;
                 }
 
@@ -188,7 +188,7 @@ pub fn stitchaligntotranscript_l9_stitchaligntotranscript(
                     let mut j_can1 = -1_i32;
                     let mut j_pen1 = 0_i32;
                     let mut score2 = score1;
-                    if del >= p.align_intron_min {
+                    if del >= p.align_intron_min as u64 {
                         let d1_i = g_aend as i32 + j_r1 + 1;
                         let d2_i = g_aend as i32 + j_r1 + 2;
                         let a1_i = g_bstart1 + j_r1 - 1;
@@ -242,13 +242,13 @@ pub fn stitchaligntotranscript_l9_stitchaligntotranscript(
                     j_r1 += 1;
                 }
 
-                let mut jj_l = 0_u32;
-                let mut jj_r = 0_u32;
+                let mut jj_l = 0_u64;
+                let mut jj_r = 0_u64;
                 while g_aend as i32 + j_r >= jj_l as i32
                     && g[(g_aend as i32 - jj_l as i32 + j_r) as usize]
                         == g[(g_bstart1 - jj_l as i32 + j_r) as usize]
                     && g[(g_aend as i32 - jj_l as i32 + j_r) as usize] < 4
-                    && jj_l <= MAX_SJ_REPEAT_SEARCH
+                    && jj_l <= MAX_SJ_REPEAT_SEARCH as u64
                 {
                     jj_l += 1;
                 }
@@ -261,7 +261,7 @@ pub fn stitchaligntotranscript_l9_stitchaligntotranscript(
                         && (gb as usize) < g.len()
                         && g[ga as usize] == g[gb as usize]
                         && g[ga as usize] < 4
-                        && jj_r <= MAX_SJ_REPEAT_SEARCH
+                        && jj_r <= MAX_SJ_REPEAT_SEARCH as u64
                 } {
                     jj_r += 1;
                 }
@@ -300,8 +300,8 @@ pub fn stitchaligntotranscript_l9_stitchaligntotranscript(
                 }
 
                 if map_gen.sjdb_n > 0 {
-                    let j_s = (g_aend as i32 + j_r + 1) as u32;
-                    let j_e = (g_bstart1 + j_r) as u32;
+                    let j_s = (g_aend as i64 + j_r as i64 + 1) as u64;
+                    let j_e = (g_bstart1 + j_r) as i64 as u64;
                     let sjdb_ind = binarysearch2_l3_binarysearch2(
                         j_s,
                         j_e,
@@ -310,7 +310,7 @@ pub fn stitchaligntotranscript_l9_stitchaligntotranscript(
                         map_gen.sjdb_n as i32,
                     );
                     if sjdb_ind < 0 {
-                        if del >= p.align_intron_min {
+                        if del >= p.align_intron_min as u64 {
                             score += p.score_gap + j_pen;
                         } else {
                             score += del as i32 * p.score_del_base + p.score_del_open;
@@ -321,8 +321,8 @@ pub fn stitchaligntotranscript_l9_stitchaligntotranscript(
                         let sj = sjdb_ind as usize;
                         j_can = map_gen.sjdb_motif[sj] as i32;
                         if map_gen.sjdb_motif[sj] == 0 {
-                            if l <= map_gen.sjdb_shift_left[sj] as u32
-                                || tr_a.exons[last][EX_L] <= map_gen.sjdb_shift_left[sj] as u32
+                            if l <= map_gen.sjdb_shift_left[sj] as u64
+                                || tr_a.exons[last][EX_L] <= map_gen.sjdb_shift_left[sj] as u64
                             {
                                 return -1_000_006;
                             }
@@ -330,14 +330,14 @@ pub fn stitchaligntotranscript_l9_stitchaligntotranscript(
                             if r_aend as i32 + j_r >= r_bend as i32 {
                                 return -1_000_006;
                             }
-                            jj_l = map_gen.sjdb_shift_left[sj] as u32;
-                            jj_r = map_gen.sjdb_shift_right[sj] as u32;
+                            jj_l = map_gen.sjdb_shift_left[sj] as u64;
+                            jj_r = map_gen.sjdb_shift_right[sj] as u64;
                         }
                         tr_a.sj_annot[last] = 1;
                         tr_a.sj_str[last] = map_gen.sjdb_strand[sj];
                         score += p.p_ge.sjdb_score;
                     }
-                } else if del >= p.align_intron_min {
+                } else if del >= p.align_intron_min as u64 {
                     score += p.score_gap + j_pen;
                 } else {
                     score += del as i32 * p.score_del_base + p.score_del_open;
@@ -352,7 +352,7 @@ pub fn stitchaligntotranscript_l9_stitchaligntotranscript(
                     tr_a.sj_str[last] = if j_can > 0 { (2 - j_can % 2) as u8 } else { 0 };
                 }
             } else if r_gap > g_gap {
-                ins = (r_gap - g_gap) as u32;
+                ins = (r_gap - g_gap) as u64;
                 n_ins = 1;
                 if g_gap == 0 {
                     j_r = 0;
@@ -419,11 +419,11 @@ pub fn stitchaligntotranscript_l9_stitchaligntotranscript(
                             <= p.align_sj_stitch_mismatch_nmax
                                 .get(((j_can + 1) / 2) as usize)
                                 .copied()
-                                .unwrap_or(0) as u32))
+                                .unwrap_or(0) as u64))
             {
                 tr_a.n_mm = tr_a.n_mm.wrapping_add(n_mm);
                 tr_a.n_match = tr_a.n_match.wrapping_add(n_match);
-                if del >= p.align_intron_min {
+                if del >= p.align_intron_min as u64 {
                     tr_a.n_gap += n_del;
                     tr_a.l_gap += del;
                 } else {
@@ -434,21 +434,21 @@ pub fn stitchaligntotranscript_l9_stitchaligntotranscript(
                 if del == 0 && ins == 0 {
                     tr_a.exons[last][EX_L] += r_bend - r_aend;
                 } else if del > 0 {
-                    tr_a.exons[last][EX_L] = (tr_a.exons[last][EX_L] as i32 + j_r) as u32;
+                    tr_a.exons[last][EX_L] = (tr_a.exons[last][EX_L] as i32 + j_r) as u64;
                     let out = tr_a.n_exons as usize;
-                    tr_a.exons[out][EX_L] = (r_bend as i32 - r_aend as i32 - j_r) as u32;
-                    tr_a.exons[out][EX_R] = (r_aend as i32 + j_r + 1) as u32;
-                    tr_a.exons[out][EX_G] = (g_bstart1 + j_r + 1) as u32;
+                    tr_a.exons[out][EX_L] = (r_bend as i32 - r_aend as i32 - j_r) as u64;
+                    tr_a.exons[out][EX_R] = (r_aend as i32 + j_r + 1) as u64;
+                    tr_a.exons[out][EX_G] = (g_bstart1 + j_r + 1) as u64;
                     tr_a.n_exons += 1;
                 } else if ins > 0 {
                     tr_a.n_ins += n_ins;
                     tr_a.l_ins += ins;
-                    tr_a.exons[last][EX_L] = (tr_a.exons[last][EX_L] as i32 + j_r) as u32;
+                    tr_a.exons[last][EX_L] = (tr_a.exons[last][EX_L] as i32 + j_r) as u64;
                     let out = tr_a.n_exons as usize;
                     tr_a.exons[out][EX_L] =
-                        (r_bend as i32 - r_aend as i32 - j_r - ins as i32) as u32;
-                    tr_a.exons[out][EX_R] = (r_aend as i32 + j_r + ins as i32 + 1) as u32;
-                    tr_a.exons[out][EX_G] = (g_aend as i32 + 1 + j_r) as u32;
+                        (r_bend as i32 - r_aend as i32 - j_r - ins as i32) as u64;
+                    tr_a.exons[out][EX_R] = (r_aend as i32 + j_r + ins as i32 + 1) as u64;
+                    tr_a.exons[out][EX_G] = (g_aend as i32 + 1 + j_r) as u64;
                     tr_a.canon_sj[last] = -2;
                     tr_a.sj_annot[last] = 0;
                     tr_a.n_exons += 1;
@@ -456,13 +456,13 @@ pub fn stitchaligntotranscript_l9_stitchaligntotranscript(
             } else {
                 return -1_000_007;
             }
-        } else if g_bstart + tr_a.exons[0][EX_R] + p.align_ends_protrude.n_bases_max as u32
+        } else if g_bstart + tr_a.exons[0][EX_R] + p.align_ends_protrude.n_bases_max as u64
             >= tr_a.exons[0][EX_G]
             || tr_a.exons[0][EX_G] < tr_a.exons[0][EX_R]
         {
             if p.align_mates_gap_max > 0
                 && g_bstart
-                    > tr_a.exons[last][EX_G] + tr_a.exons[last][EX_L] + p.align_mates_gap_max
+                    > tr_a.exons[last][EX_G] + tr_a.exons[last][EX_L] + p.align_mates_gap_max as u64
             {
                 return -1_000_004;
             }
@@ -480,7 +480,7 @@ pub fn stitchaligntotranscript_l9_stitchaligntotranscript(
                 g_aend + 1,
                 1,
                 1,
-                DEF_READ_SEQ_LENGTH_MAX as u32,
+                DEF_READ_SEQ_LENGTH_MAX as u64,
                 tr_a.n_match,
                 tr_a.n_mm,
                 out_filter_mismatch_nmax_total,
@@ -501,7 +501,7 @@ pub fn stitchaligntotranscript_l9_stitchaligntotranscript(
 
             transcript_l8_transcript_reset(&mut tr_extend);
             let extlen = if p.align_ends_type.ext[i_frag_b as usize][1] {
-                DEF_READ_SEQ_LENGTH_MAX as u32
+                DEF_READ_SEQ_LENGTH_MAX as u64
             } else {
                 g_bstart
                     .wrapping_sub(tr_a.exons[0][EX_G])

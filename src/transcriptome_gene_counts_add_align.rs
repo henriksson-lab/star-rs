@@ -34,7 +34,7 @@ pub fn transcriptome_genecountsaddalign_l4_transcriptome_genecountsaddalign(
         while e1 >= 0 && transcriptome.ex_g.e_max[e1 as usize] >= exon[EX_G] as u64 {
             let ie = e1 as usize;
             if transcriptome.ex_g.e[ie] >= exon[EX_G] as u64 {
-                let str1 = (transcriptome.ex_g.str_[ie] as u32).wrapping_sub(1);
+                let str1 = (transcriptome.ex_g.str_[ie] as u64).wrapping_sub(1);
                 for (itype, gene) in gene1.iter_mut().enumerate().take(n_type) {
                     if itype == 1 && a.str_ != str1 && str1 < 2 {
                         continue;

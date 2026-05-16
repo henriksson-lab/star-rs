@@ -33,7 +33,7 @@ pub fn readalign_stitchwindowseeds_l12_readalign_stitchwindowseeds(
     for i_s1 in 0..n_wa {
         read_align.score_seed_best[i_s1] = 0;
         read_align.score_seed_best_mm[i_s1] = 0;
-        read_align.score_seed_best_ind[i_s1] = u32::MAX;
+        read_align.score_seed_best_ind[i_s1] = u64::MAX;
         if wa_excl
             .map(|x| x.get(i_s1).copied().unwrap_or(false))
             .unwrap_or(false)
@@ -92,8 +92,8 @@ pub fn readalign_stitchwindowseeds_l12_readalign_stitchwindowseeds(
                 if p.out_filter_by_sjout_stage == 2 && tr_a1.n_exons > 1 {
                     let iex = 0usize;
                     if tr_a1.canon_sj[iex] >= 0 && tr_a1.sj_annot[iex] == 0 {
-                        let j_s = tr_a1.exons[iex][EX_G] + tr_a1.exons[iex][EX_L];
-                        let j_e = tr_a1.exons[iex + 1][EX_G] - 1;
+                        let j_s = (tr_a1.exons[iex][EX_G] + tr_a1.exons[iex][EX_L]) as u32;
+                        let j_e = (tr_a1.exons[iex + 1][EX_G] - 1) as u32;
                         if binarysearch2_l3_binarysearch2(
                             j_s,
                             j_e,
@@ -109,9 +109,9 @@ pub fn readalign_stitchwindowseeds_l12_readalign_stitchwindowseeds(
 
                 let exon_long_enough = tr_a1.exons[0][EX_L]
                     >= if tr_a1.sj_annot[0] == 0 {
-                        p.align_sj_overhang_min
+                        p.align_sj_overhang_min as u64
                     } else {
-                        p.align_sjdb_overhang_min
+                        p.align_sjdb_overhang_min as u64
                     };
                 if exon_long_enough
                     && score2 > 0
@@ -119,7 +119,7 @@ pub fn readalign_stitchwindowseeds_l12_readalign_stitchwindowseeds(
                 {
                     read_align.score_seed_best[i_s1] = score2 + read_align.score_seed_best[i_s2];
                     read_align.score_seed_best_mm[i_s1] = tr_a1.n_mm;
-                    read_align.score_seed_best_ind[i_s1] = i_s2 as u32;
+                    read_align.score_seed_best_ind[i_s1] = i_s2 as u64;
                 }
             } else {
                 let wa1 = read_align.wa[i_w_usize][i_s1];
@@ -144,17 +144,18 @@ pub fn readalign_stitchwindowseeds_l12_readalign_stitchwindowseeds(
                 {
                     score2_local += tr_a1.max_score;
                 }
-                let exon_long_enough = wa1[WA_LENGTH] + tr_a1.extend_l >= p.align_sj_overhang_min;
+                let exon_long_enough =
+                    wa1[WA_LENGTH] + tr_a1.extend_l >= p.align_sj_overhang_min as u64;
                 if exon_long_enough && score2_local > read_align.score_seed_best[i_s1] {
                     read_align.score_seed_best[i_s1] = score2_local;
-                    read_align.score_seed_best_ind[i_s1] = i_s1 as u32;
+                    read_align.score_seed_best_ind[i_s1] = i_s1 as u64;
                 }
             }
         }
     }
 
     let mut score_best = 0_i32;
-    let mut score_best_ind = 0_u32;
+    let mut score_best_ind = 0_u64;
     for i_s1 in 0..n_wa {
         tr_a1 = (*read_align.tr_init).clone();
         let wa1 = read_align.wa[i_w_usize][i_s1];
@@ -181,10 +182,10 @@ pub fn readalign_stitchwindowseeds_l12_readalign_stitchwindowseeds(
             read_align.score_seed_best[i_s1] += tr_a1.max_score;
         }
 
-        let exon_long_enough = wa1[WA_LENGTH] + tr_a1.extend_l >= p.align_sj_overhang_min;
+        let exon_long_enough = wa1[WA_LENGTH] + tr_a1.extend_l >= p.align_sj_overhang_min as u64;
         if exon_long_enough && read_align.score_seed_best[i_s1] > score_best {
             score_best = read_align.score_seed_best[i_s1];
-            score_best_ind = i_s1 as u32;
+            score_best_ind = i_s1 as u64;
         }
     }
 

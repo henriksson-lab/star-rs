@@ -25,8 +25,8 @@ pub fn readalign_maponeread_l6_readalign_maponeread(
         read_align.n_split = sequencefuns_l411_qualitysplit(
             &read_align.read1[0],
             read_align.l_read,
-            p.max_nsplit,
-            p.seed_split_min,
+            p.max_nsplit as u64,
+            p.seed_split_min as u64,
             &mut read_align.split_r,
         );
     } else {
@@ -50,8 +50,8 @@ pub fn readalign_maponeread_l6_readalign_maponeread(
     read_align.tr_best = (*read_align.tr_init).clone();
 
     let seed_search_start_lmax = std::cmp::min(
-        p.seed_search_start_lmax,
-        (p.seed_search_start_lmax_over_lread * read_align.l_read.saturating_sub(1) as f64) as u32,
+        p.seed_search_start_lmax as u64,
+        (p.seed_search_start_lmax_over_lread * read_align.l_read.saturating_sub(1) as f64) as u64,
     );
 
     let mut stored_aligns = Vec::new();
@@ -65,11 +65,13 @@ pub fn readalign_maponeread_l6_readalign_maponeread(
         let l_start = read_align.split_r[1][ip] / n_start;
         let mut flag_dir_map = true;
 
-        for i_dir in 0..2 {
+        for i_dir in 0..2_u64 {
             for istart in 0..n_start {
                 if flag_dir_map || istart > 0 {
-                    let mut l_mapped = 0;
-                    while istart * l_start + l_mapped + p.seed_map_min < read_align.split_r[1][ip] {
+                    let mut l_mapped = 0_u64;
+                    while istart * l_start + l_mapped + (p.seed_map_min as u64)
+                        < read_align.split_r[1][ip]
+                    {
                         let shift = if i_dir == 0 {
                             read_align.split_r[0][ip] + istart * l_start + l_mapped
                         } else {
@@ -126,7 +128,7 @@ pub fn readalign_maponeread_l6_readalign_maponeread(
                         read_align.split_r[0][ip] + read_align.split_r[1][ip] - istart * l_start - 1
                     };
                     let seed_length = std::cmp::min(
-                        p.seed_search_lmax,
+                        p.seed_search_lmax as u64,
                         if i_dir == 0 {
                             read_align.split_r[0][ip] + read_align.split_r[1][ip] - shift
                         } else {
@@ -164,16 +166,16 @@ pub fn readalign_maponeread_l6_readalign_maponeread(
         }
     }
 
-    if read_align.l_read < p.out_filter_match_nmin {
-        read_align.map_marker = MARKER_READ_TOO_SHORT;
+    if read_align.l_read < p.out_filter_match_nmin as u64 {
+        read_align.map_marker = MARKER_READ_TOO_SHORT as u64;
         read_align.tr_best.r_length = 0;
         read_align.n_w = 0;
     } else if read_align.n_split == 0 {
-        read_align.map_marker = MARKER_NO_GOOD_PIECES;
+        read_align.map_marker = MARKER_NO_GOOD_PIECES as u64;
         read_align.tr_best.r_length = read_align.split_r[1][0];
         read_align.n_w = 0;
     } else if read_align.n_split > 0 && read_align.n_a == 0 {
-        read_align.map_marker = MARKER_ALL_PIECES_EXCEED_SEED_MULTIMAP_NMAX;
+        read_align.map_marker = MARKER_ALL_PIECES_EXCEED_SEED_MULTIMAP_NMAX as u64;
         read_align.tr_best.r_length = read_align.mult_nmin_l;
         read_align.n_w = 0;
     } else if read_align.n_split > 0 && read_align.n_a > 0 {

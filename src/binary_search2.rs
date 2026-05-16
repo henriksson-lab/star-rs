@@ -5,7 +5,13 @@
 use crate::*;
 
 #[doc = "Original `binarySearch2` at STAR/source/binarySearch2.cpp:3. Args: x: uint, y: uint, X: uint, Y: uint, N: int"]
-pub fn binarysearch2_l3_binarysearch2(x: u32, y: u32, x_arr: &[u32], y_arr: &[u32], n: i32) -> i32 {
+pub fn binarysearch2_l3_binarysearch2<T: Ord + Copy>(
+    x: T,
+    y: T,
+    x_arr: &[T],
+    y_arr: &[T],
+    n: i32,
+) -> i32 {
     let n = if n <= 0 {
         0
     } else {

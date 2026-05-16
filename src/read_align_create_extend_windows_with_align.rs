@@ -44,7 +44,7 @@ pub fn readalign_createextendwindowswithalign_l7_readalign_createextendwindowswi
                     == map_gen.chr_bin[(a_bin >> p.win_bin_chr_nbits) as usize];
             if flag_merge_left {
                 i_win = read_align.win_bin[strand][i_bin as usize];
-                i_bin_left = read_align.wc[i_win as usize][WC_G_START];
+                i_bin_left = read_align.wc[i_win as usize][WC_G_START] as u32;
                 for ii in i_bin + 1..=a_bin {
                     readalign_set_win_bin(read_align, strand, ii, i_win);
                 }
@@ -86,26 +86,26 @@ pub fn readalign_createextendwindowswithalign_l7_readalign_createextendwindowswi
         }
 
         if !flag_merge_left && !flag_merge_right {
-            i_win = read_align.n_w;
+            i_win = read_align.n_w as u32;
             readalign_set_win_bin(read_align, strand, a_bin, i_win);
             let i_win_usize = i_win as usize;
             if read_align.wc.len() <= i_win_usize {
                 read_align.wc.resize(i_win_usize + 1, [0; WC_SIZE]);
             }
             read_align.wc[i_win_usize][WC_CHR] =
-                map_gen.chr_bin[(a_bin >> p.win_bin_chr_nbits) as usize];
-            read_align.wc[i_win_usize][WC_STR] = a_str;
-            read_align.wc[i_win_usize][WC_G_END] = a_bin;
-            read_align.wc[i_win_usize][WC_G_START] = a_bin;
+                map_gen.chr_bin[(a_bin >> p.win_bin_chr_nbits) as usize] as u64;
+            read_align.wc[i_win_usize][WC_STR] = a_str as u64;
+            read_align.wc[i_win_usize][WC_G_END] = a_bin as u64;
+            read_align.wc[i_win_usize][WC_G_START] = a_bin as u64;
             read_align.n_w += 1;
-            if read_align.n_w >= p.align_windows_per_read_nmax {
-                read_align.n_w = p.align_windows_per_read_nmax - 1;
+            if read_align.n_w >= p.align_windows_per_read_nmax as u64 {
+                read_align.n_w = p.align_windows_per_read_nmax as u64 - 1;
                 return EXIT_CREATE_EXTEND_WINDOWS_WITH_ALIGN_TOO_MANY_WINDOWS;
             }
         } else {
             let i_win_usize = i_win as usize;
-            read_align.wc[i_win_usize][WC_G_START] = i_bin_left;
-            read_align.wc[i_win_usize][WC_G_END] = i_bin_right;
+            read_align.wc[i_win_usize][WC_G_START] = i_bin_left as u64;
+            read_align.wc[i_win_usize][WC_G_END] = i_bin_right as u64;
             if flag_merge_left && flag_merge_right {
                 let i_win_right_usize = i_win_right as usize;
                 read_align.wc[i_win_right_usize][WC_G_START] = 1;

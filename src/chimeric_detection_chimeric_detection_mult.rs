@@ -21,9 +21,10 @@ pub fn chimericdetection_chimericdetectionmult_l6_chimericalignscore(
     } else {
         seg2.ro_e - seg1.ro_s + 1
     };
-    let diff_mates = (seg1.ro_e < seg1.align.read_length[0]
-        && seg2.ro_s >= seg1.align.read_length[0])
-        || (seg2.ro_e < seg1.align.read_length[0] && seg1.ro_s >= seg1.align.read_length[0]);
+    let diff_mates = ((seg1.ro_e as u64) < seg1.align.read_length[0]
+        && seg2.ro_s as u64 >= seg1.align.read_length[0])
+        || ((seg2.ro_e as u64) < seg1.align.read_length[0]
+            && seg1.ro_s as u64 >= seg1.align.read_length[0]);
 
     if seg1.ro_e > seg1.segment_min + seg1.ro_s + chim_overlap
         && seg2.ro_e > seg1.segment_min + seg2.ro_s + chim_overlap
@@ -40,8 +41,8 @@ pub fn chimericdetection_chimericdetectionmult_l6_chimericalignscore(
 #[doc = "Original `ChimericDetection::chimericDetectionMult` at STAR/source/ChimericDetection_chimericDetectionMult.cpp:23. Args: nW: uint, readLength: uint, maxNonChimAlignScore: int, PEunmergedRA: ReadAlign"]
 pub fn chimericdetection_chimericdetectionmult_l23_chimericdetection_chimericdetectionmult(
     chim_det: &mut crate::chimeric_detection::ChimericDetection,
-    n_w: u32,
-    read_length: &[u32],
+    n_w: u64,
+    read_length: &[u64],
     max_non_chim_align_score: i32,
     pe_unmerged_ra: Option<&crate::read_align::ReadAlign>,
     pe_tr_init: Option<&crate::transcript::Transcript>,

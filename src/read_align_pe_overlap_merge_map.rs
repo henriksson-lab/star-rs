@@ -115,7 +115,7 @@ pub fn readalign_peoverlapmergemap_l79_readalign_pemergemates(
     let o0 = ra.read_length[0].min(ra.read_length[1] - s0);
 
     ra.pe_ov.n_ov = o0.max(o1);
-    if ra.pe_ov.n_ov < pe_overlap_nbases_min {
+    if ra.pe_ov.n_ov < pe_overlap_nbases_min as u64 {
         ra.pe_ov.n_ov = 0;
         return;
     }
@@ -176,14 +176,14 @@ pub fn readalign_peoverlapmergemap_l79_readalign_pemergemates(
 #[doc = "Original `Transcript::peOverlapSEtoPE` at STAR/source/ReadAlign_peOverlapMergeMap.cpp:136. Args: mateStart: uint, t: Transcript"]
 pub fn readalign_peoverlapmergemap_l136_transcript_peoverlapsetope(
     transcript: &mut crate::transcript::Transcript,
-    mate_start: &[u32; 2],
+    mate_start: &[u64; 2],
     t: &crate::transcript::Transcript,
 ) {
     let m_len = [
         transcript.read_length[t.str_ as usize],
         transcript.read_length[1 - t.str_ as usize],
     ];
-    let m_sta2 = [0_u32, m_len[0] + 1];
+    let m_sta2 = [0_u64, m_len[0] + 1];
     let mut m_sta = [mate_start[0], mate_start[1]];
     if t.str_ == 1 {
         for ii in 0..2 {
@@ -369,14 +369,14 @@ pub fn readalign_peoverlapmergemap_l266_readalign_peoverlapsetope(
         }
     }
 
-    ra.n_w = ra.tr_all.len() as u32;
+    ra.n_w = ra.tr_all.len() as u64;
 }
 
 #[doc = "Original `ReadAlign::peOverlapChimericSEtoPE` at STAR/source/ReadAlign_peOverlapMergeMap.cpp:308. Args: seTrIn1: Transcript, seTrIn2: Transcript, peTrOut1: Transcript, peTrOut2: Transcript"]
 pub fn readalign_peoverlapmergemap_l308_readalign_peoverlapchimericsetope(
     tr_init: &crate::transcript::Transcript,
-    mate_start: &[u32; 2],
-    read_length_original: &[u32],
+    mate_start: &[u64; 2],
+    read_length_original: &[u64],
     se_tr_in1: &crate::transcript::Transcript,
     se_tr_in2: &crate::transcript::Transcript,
     pe_tr_out1: &mut crate::transcript::Transcript,
@@ -394,17 +394,17 @@ pub fn readalign_peoverlapmergemap_l308_readalign_peoverlapchimericsetope(
         se_tr_in2,
     );
 
-    let mut seg_len = [[0u32; 2]; 2];
-    let mut seg_ex = [0u32; 2];
+    let mut seg_len = [[0u64; 2]; 2];
+    let mut seg_ex = [0u64; 2];
     let mut i1 = 0usize;
     let mut i2 = 0usize;
-    let mut pos_of_junction_in_read = 0u32;
+    let mut pos_of_junction_in_read = 0u64;
 
     for ii in 0..2 {
         for iex in 0..temp_tr_chim[ii].n_exons as usize {
             if temp_tr_chim[ii].exons[iex][EX_IFRAG] == temp_tr_chim[ii].exons[0][EX_IFRAG] {
                 seg_len[ii][0] += temp_tr_chim[ii].exons[iex][EX_L];
-                seg_ex[ii] = iex as u32;
+                seg_ex[ii] = iex as u64;
             } else {
                 seg_len[ii][1] += temp_tr_chim[ii].exons[iex][EX_L];
             }
@@ -453,7 +453,7 @@ pub fn readalign_peoverlapmergemap_l308_readalign_peoverlapchimericsetope(
                 temp_tr_chim[i1].shift_sj[iex] = temp_tr_chim[i1].shift_sj[iex1];
             }
         }
-        temp_tr_chim[i1].n_exons = new_n as u32;
+        temp_tr_chim[i1].n_exons = new_n as u64;
         temp_tr_chim[i1].exons.truncate(new_n);
     }
 

@@ -7,14 +7,14 @@ use crate::*;
 #[doc = "Original `ReadAlign::assignAlignToWindow` at STAR/source/ReadAlign_assignAlignToWindow.cpp:6. Args: a1: uint, aLength: uint, aStr: uint, aNrep: uint, aFrag: uint, aRstart: uint, aAnchor: bool, sjA: uint"]
 pub fn readalign_assignaligntowindow_l6_readalign_assignaligntowindow(
     read_align: &mut crate::read_align::ReadAlign,
-    a1: u32,
-    a_length: u32,
-    a_str: u32,
-    a_nrep: u32,
-    a_frag: u32,
-    a_rstart: u32,
+    a1: u64,
+    a_length: u64,
+    a_str: u64,
+    a_nrep: u64,
+    a_frag: u64,
+    a_rstart: u64,
     a_anchor: bool,
-    sj_a: u32,
+    sj_a: u64,
     win_bin_nbits: u32,
     seed_per_window_nmax: u32,
 ) -> Result<(), String> {
@@ -66,14 +66,14 @@ pub fn readalign_assignaligntowindow_l6_readalign_assignaligntowindow(
             read_align.wa[i_w_usize][i_a0][WA_LENGTH] = a_length;
             read_align.wa[i_w_usize][i_a0][WA_G_START] = a1;
             read_align.wa[i_w_usize][i_a0][WA_N_REP] = a_nrep;
-            read_align.wa[i_w_usize][i_a0][WA_ANCHOR] = u32::from(a_anchor);
+            read_align.wa[i_w_usize][i_a0][WA_ANCHOR] = u64::from(a_anchor);
             read_align.wa[i_w_usize][i_a0][WA_I_FRAG] = a_frag;
             read_align.wa[i_w_usize][i_a0][WA_SJ_A] = sj_a;
         }
         return Ok(());
     }
 
-    if read_align.n_wa[i_w_usize] == seed_per_window_nmax {
+    if read_align.n_wa[i_w_usize] == seed_per_window_nmax as u64 {
         read_align.wal_rec[i_w_usize] = read_align.l_read + 1;
         for i_a in 0..read_align.n_wa[i_w_usize] as usize {
             if read_align.wa[i_w_usize][i_a][WA_ANCHOR] != 1 {
@@ -85,7 +85,7 @@ pub fn readalign_assignaligntowindow_l6_readalign_assignaligntowindow(
         }
 
         if read_align.wal_rec[i_w_usize] == read_align.l_read + 1 {
-            read_align.map_marker = MARKER_TOO_MANY_ANCHORS_PER_WINDOW;
+            read_align.map_marker = MARKER_TOO_MANY_ANCHORS_PER_WINDOW as u64;
             read_align.n_w = 0;
             return Ok(());
         }
@@ -103,7 +103,7 @@ pub fn readalign_assignaligntowindow_l6_readalign_assignaligntowindow(
                 i_a1 += 1;
             }
         }
-        read_align.n_wa[i_w_usize] = i_a1 as u32;
+        read_align.n_wa[i_w_usize] = i_a1 as u64;
 
         if !a_anchor && a_length <= read_align.wal_rec[i_w_usize] {
             read_align.n_wap[i_w_usize] = 0;
@@ -111,7 +111,7 @@ pub fn readalign_assignaligntowindow_l6_readalign_assignaligntowindow(
     }
 
     if a_anchor || a_length > read_align.wal_rec[i_w_usize] {
-        if read_align.n_wa[i_w_usize] >= seed_per_window_nmax {
+        if read_align.n_wa[i_w_usize] >= seed_per_window_nmax as u64 {
             return Err("BUG: iA>=P.seedPerWindowNmax in stitchPieces, exiting".to_string());
         }
 
@@ -130,14 +130,14 @@ pub fn readalign_assignaligntowindow_l6_readalign_assignaligntowindow(
         read_align.wa[i_w_usize][i_a][WA_LENGTH] = a_length;
         read_align.wa[i_w_usize][i_a][WA_G_START] = a1;
         read_align.wa[i_w_usize][i_a][WA_N_REP] = a_nrep;
-        read_align.wa[i_w_usize][i_a][WA_ANCHOR] = u32::from(a_anchor);
+        read_align.wa[i_w_usize][i_a][WA_ANCHOR] = u64::from(a_anchor);
         read_align.wa[i_w_usize][i_a][WA_I_FRAG] = a_frag;
         read_align.wa[i_w_usize][i_a][WA_SJ_A] = sj_a;
 
         read_align.n_wa[i_w_usize] += 1;
         read_align.n_wap[i_w_usize] += 1;
-        if a_anchor && read_align.w_last_anchor[i_w_usize] < i_a as u32 {
-            read_align.w_last_anchor[i_w_usize] = i_a as u32;
+        if a_anchor && read_align.w_last_anchor[i_w_usize] < i_a as u64 {
+            read_align.w_last_anchor[i_w_usize] = i_a as u64;
         }
     }
     Ok(())

@@ -18,14 +18,14 @@ pub fn transcript_convertgenomecigar_l2_transcript_convertgenomecigar(
 
     let co_bl = &gen_out.genome_out.conv_blocks;
     let mut ic_b = co_bl
-        .partition_point(|block| block[0] <= source.g_start as u64)
+        .partition_point(|block| block[0] <= source.g_start)
         .saturating_sub(1);
 
-    a.g_start = (source.g_start as u64 - co_bl[ic_b][0] + co_bl[ic_b][2]) as u32;
+    a.g_start = source.g_start - co_bl[ic_b][0] + co_bl[ic_b][2];
     a.cigar.clear();
     a.cigar.reserve(source.cigar.len() + 100);
 
-    let mut g_end = source.g_start as u64;
+    let mut g_end = source.g_start;
     for &cc in &source.cigar {
         if cc[0] == BAM_CIGAR_M || cc[0] == BAM_CIGAR_D || cc[0] == BAM_CIGAR_N {
             let mut g_start1 = g_end;
@@ -109,9 +109,9 @@ pub fn transcript_convertgenomecigar_l2_transcript_convertgenomecigar(
                             + n_op[BAM_CIGAR_S as usize]
                             + n_op[BAM_CIGAR_I as usize],
                     ];
-                    a.g_start += n_op[BAM_CIGAR_M as usize]
+                    a.g_start += (n_op[BAM_CIGAR_M as usize]
                         + n_op[BAM_CIGAR_D as usize]
-                        + n_op[BAM_CIGAR_N as usize];
+                        + n_op[BAM_CIGAR_N as usize]) as u64;
                 }
                 break;
             }
@@ -150,18 +150,18 @@ pub fn transcript_convertgenomecigar_l2_transcript_convertgenomecigar(
     a.g_length = 0;
     for cc in &a.cigar {
         if cc[0] == BAM_CIGAR_M || cc[0] == BAM_CIGAR_D || cc[0] == BAM_CIGAR_N {
-            a.g_length += cc[1];
+            a.g_length += cc[1] as u64;
         }
     }
 
     a.str_ = source.str_;
-    if a.g_start as u64 >= gen_out.genome_out.n_minus_strand_offset {
+    if a.g_start >= gen_out.genome_out.n_minus_strand_offset {
         a.str_ = 1 - a.str_;
-        a.g_start = (2 * gen_out.genome_out.n_minus_strand_offset
-            - (a.g_start as u64 + a.g_length as u64)) as u32;
+        a.g_start =
+            2 * gen_out.genome_out.n_minus_strand_offset - (a.g_start + a.g_length);
         a.cigar.reverse();
     }
 
-    a.chr = gen_out.chr_bin[(a.g_start >> gen_out.p_ge.g_chr_bin_nbits) as usize];
+    a.chr = gen_out.chr_bin[(a.g_start >> gen_out.p_ge.g_chr_bin_nbits) as usize] as u64;
     true
 }

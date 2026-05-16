@@ -43,7 +43,7 @@ pub fn readalign_set_win_bin(
 pub fn readalign_stitchpieces_l12_readalign_stitchpieces(
     read_align: &mut crate::read_align::ReadAlign,
     r: [&[u8]; 3],
-    l_read: u32,
+    l_read: u64,
     map_gen: &crate::genome::Genome,
     p: &crate::parameters_chimeric::Parameters,
 ) -> Result<(), String> {
@@ -87,12 +87,12 @@ pub fn readalign_stitchpieces_l12_readalign_stitchpieces(
 
     read_align.n_w = 0;
     for i_p in 0..read_align.n_p as usize {
-        if read_align.pc[i_p][PC_NREP] <= p.win_anchor_multimap_nmax {
-            let a_dir = read_align.pc[i_p][PC_DIR];
-            let a_length = read_align.pc[i_p][PC_LENGTH];
+        if read_align.pc[i_p][PC_NREP] <= p.win_anchor_multimap_nmax as u64 {
+            let a_dir = read_align.pc[i_p][PC_DIR] as u32;
+            let a_length = read_align.pc[i_p][PC_LENGTH] as u32;
 
             for i_sa in read_align.pc[i_p][PC_SASTART]..=read_align.pc[i_p][PC_SAEND] {
-                let mut a1 = genome_sa_index_value(map_gen, i_sa as u64);
+                let mut a1 = genome_sa_index_value(map_gen, i_sa);
                 let mut a_str = (a1 >> map_gen.gstrand_bit) as u32;
                 a1 &= map_gen.gstrand_mask as u64;
 
@@ -137,7 +137,7 @@ pub fn readalign_stitchpieces_l12_readalign_stitchpieces(
                                 map_gen,
                                 p,
                                 a1_d as u32,
-                                a_str,
+                                a_str as u32,
                             );
                         if add_status == EXIT_CREATE_EXTEND_WINDOWS_WITH_ALIGN_TOO_MANY_WINDOWS {
                             break;
@@ -148,7 +148,7 @@ pub fn readalign_stitchpieces_l12_readalign_stitchpieces(
                                 map_gen,
                                 p,
                                 a1_a as u32,
-                                a_str,
+                                a_str as u32,
                             );
                         if add_status == EXIT_CREATE_EXTEND_WINDOWS_WITH_ALIGN_TOO_MANY_WINDOWS {
                             break;
@@ -161,7 +161,7 @@ pub fn readalign_stitchpieces_l12_readalign_stitchpieces(
                             map_gen,
                             p,
                             a1 as u32,
-                            a_str,
+                            a_str as u32,
                         );
                     if add_status == EXIT_CREATE_EXTEND_WINDOWS_WITH_ALIGN_TOO_MANY_WINDOWS {
                         break;
@@ -177,14 +177,14 @@ pub fn readalign_stitchpieces_l12_readalign_stitchpieces(
             let mut ii = 0;
             while ii < p.win_flank_nbins
                 && wb > 0
-                && map_gen.chr_bin[((wb - 1) >> p.win_bin_chr_nbits) as usize]
+                && map_gen.chr_bin[((wb - 1) >> p.win_bin_chr_nbits) as usize] as u64
                     == read_align.wc[i_win][WC_CHR]
             {
                 wb -= 1;
                 readalign_set_win_bin(
                     read_align,
                     read_align.wc[i_win][WC_STR] as usize,
-                    wb,
+                    wb as u32,
                     i_win as u32,
                 );
                 ii += 1;
@@ -194,15 +194,15 @@ pub fn readalign_stitchpieces_l12_readalign_stitchpieces(
             wb = read_align.wc[i_win][WC_G_END];
             ii = 0;
             while ii < p.win_flank_nbins
-                && wb + 1 < p.win_bin_n
-                && map_gen.chr_bin[((wb + 1) >> p.win_bin_chr_nbits) as usize]
+                && wb + 1 < p.win_bin_n as u64
+                && map_gen.chr_bin[((wb + 1) >> p.win_bin_chr_nbits) as usize] as u64
                     == read_align.wc[i_win][WC_CHR]
             {
                 wb += 1;
                 readalign_set_win_bin(
                     read_align,
                     read_align.wc[i_win][WC_STR] as usize,
-                    wb,
+                    wb as u32,
                     i_win as u32,
                 );
                 ii += 1;
@@ -211,7 +211,7 @@ pub fn readalign_stitchpieces_l12_readalign_stitchpieces(
         }
         read_align.n_wa[i_win] = 0;
         read_align.wal_rec[i_win] = 0;
-        read_align.w_last_anchor[i_win] = u32::MAX;
+        read_align.w_last_anchor[i_win] = u64::MAX;
     }
     read_align.n_wall = read_align.n_w;
 
@@ -220,15 +220,15 @@ pub fn readalign_stitchpieces_l12_readalign_stitchpieces(
         let a_frag = read_align.pc[i_p][PC_IFRAG];
         let a_length = read_align.pc[i_p][PC_LENGTH];
         let a_dir = read_align.pc[i_p][PC_DIR];
-        let a_anchor = a_nrep <= p.win_anchor_multimap_nmax;
+        let a_anchor = read_align.pc[i_p][PC_NREP] <= p.win_anchor_multimap_nmax as u64;
 
         for ii in 0..read_align.n_w as usize {
             read_align.n_wap[ii] = 0;
         }
 
         for i_sa in read_align.pc[i_p][PC_SASTART]..=read_align.pc[i_p][PC_SAEND] {
-            let mut a1 = genome_sa_index_value(map_gen, i_sa as u64);
-            let mut a_str = (a1 >> map_gen.gstrand_bit) as u32;
+            let mut a1 = genome_sa_index_value(map_gen, i_sa);
+            let mut a_str = a1 >> map_gen.gstrand_bit;
             a1 &= map_gen.gstrand_mask as u64;
             let mut a_rstart = read_align.pc[i_p][PC_R_START];
 
@@ -242,14 +242,14 @@ pub fn readalign_stitchpieces_l12_readalign_stitchpieces(
                 let Some(converted_rstart) = l_read.checked_sub(a_length + a_rstart) else {
                     continue;
                 };
-                let Some(converted) = map_gen.n_genome.checked_sub(a_length as u64 + a1) else {
+                let Some(converted) = map_gen.n_genome.checked_sub(a_length + a1) else {
                     continue;
                 };
                 a_rstart = converted_rstart;
                 a1 = converted;
             } else if a_dir == 1 && a_str == 1 {
                 a_str = 0;
-                let Some(converted) = map_gen.n_genome.checked_sub(a_length as u64 + a1) else {
+                let Some(converted) = map_gen.n_genome.checked_sub(a_length + a1) else {
                     continue;
                 };
                 a1 = converted;
@@ -267,7 +267,7 @@ pub fn readalign_stitchpieces_l12_readalign_stitchpieces(
                 let mut isj1 = 0;
                 if sjalignsplit_l3_sjalignsplit(
                     a1,
-                    a_length as u64,
+                    a_length,
                     map_gen,
                     &mut a1_d,
                     &mut a_length_d,
@@ -277,27 +277,27 @@ pub fn readalign_stitchpieces_l12_readalign_stitchpieces(
                 ) {
                     readalign_assignaligntowindow_l6_readalign_assignaligntowindow(
                         read_align,
-                        a1_d as u32,
-                        a_length_d as u32,
+                        a1_d,
+                        a_length_d,
                         a_str,
                         a_nrep,
                         a_frag,
                         a_rstart,
                         a_anchor,
-                        isj1 as u32,
+                        isj1,
                         p.win_bin_nbits,
                         p.seed_per_window_nmax,
                     )?;
                     readalign_assignaligntowindow_l6_readalign_assignaligntowindow(
                         read_align,
-                        a1_a as u32,
-                        a_length_a as u32,
+                        a1_a,
+                        a_length_a,
                         a_str,
                         a_nrep,
                         a_frag,
-                        a_rstart + a_length_d as u32,
+                        a_rstart + a_length_d,
                         a_anchor,
-                        isj1 as u32,
+                        isj1,
                         p.win_bin_nbits,
                         p.seed_per_window_nmax,
                     )?;
@@ -307,14 +307,14 @@ pub fn readalign_stitchpieces_l12_readalign_stitchpieces(
             } else {
                 readalign_assignaligntowindow_l6_readalign_assignaligntowindow(
                     read_align,
-                    a1 as u32,
+                    a1,
                     a_length,
                     a_str,
                     a_nrep,
                     a_frag,
                     a_rstart,
                     a_anchor,
-                    u32::MAX,
+                    u64::MAX,
                     p.win_bin_nbits,
                     p.seed_per_window_nmax,
                 )?;
@@ -323,7 +323,7 @@ pub fn readalign_stitchpieces_l12_readalign_stitchpieces(
     }
     read_align.tr_best = (*read_align.tr_init).clone();
     let mut i_w1 = 0usize;
-    let mut tr_n_total = 0u32;
+    let mut tr_n_total = 0u64;
 
     for i_w in 0..read_align.n_w as usize {
         if read_align.n_wa[i_w] == 0 {
@@ -349,14 +349,16 @@ pub fn readalign_stitchpieces_l12_readalign_stitchpieces(
         };
         tr_a.max_score = 0;
 
-        if tr_n_total + p.align_transcripts_per_window_nmax >= p.align_transcripts_per_read_nmax {
+        if tr_n_total + p.align_transcripts_per_window_nmax as u64
+            >= p.align_transcripts_per_read_nmax as u64
+        {
             break;
         }
 
         let mut w_tr = std::mem::take(&mut read_align.tr_all[i_w1]);
         w_tr.clear();
         w_tr.push(crate::transcript::Transcript::default());
-        let mut n_win_tr = 0u32;
+        let mut n_win_tr = 0u64;
         let read_index = if tr_a.ro_str == 0 { 0 } else { 2 };
         let read_bases: &[u8] = if read_index < r.len() {
             &r[read_index]
@@ -408,16 +410,16 @@ pub fn readalign_stitchpieces_l12_readalign_stitchpieces(
         if read_align.n_win_tr.len() <= i_w1 {
             read_align.n_win_tr.resize(i_w1 + 1, 0);
         }
-        read_align.n_win_tr[i_w1] = n_win_tr as u64;
+        read_align.n_win_tr[i_w1] = n_win_tr;
         tr_n_total += n_win_tr;
         i_w1 += 1;
     }
 
-    read_align.n_w = i_w1 as u32;
-    read_align.n_tr = tr_n_total as u64;
+    read_align.n_w = i_w1 as u64;
+    read_align.n_tr = tr_n_total;
 
     if read_align.tr_best.max_score == 0 {
-        read_align.map_marker = MARKER_NO_GOOD_WINDOW;
+        read_align.map_marker = MARKER_NO_GOOD_WINDOW as u64;
         read_align.n_w = 0;
     }
 

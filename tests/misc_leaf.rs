@@ -3966,7 +3966,7 @@ fn clipmate_clip_matches_fixed_base_adapter_and_cr4_modes() {
     };
     let mut seq5 = vec![2u8; 8];
     seq5.extend(std::iter::repeat_n(0u8, 22));
-    let mut len5 = seq5.len() as u32;
+    let mut len5 = seq5.len() as u64;
     assert_eq!(
         clipmate_clip_l5_clipmate_clip(&mut cr4_three, &mut len5, &mut seq5),
         22
@@ -5088,7 +5088,7 @@ fn transcript_pe_overlap_se_to_pe_splits_and_copies_metadata() {
     let mut out = Transcript {
         read_length: vec![30, 20],
         l_read: 51,
-        exons: vec![[u32::MAX; 5]; 4],
+        exons: vec![[u64::MAX; 5]; 4],
         canon_sj: vec![99; 4],
         sj_annot: vec![9; 4],
         sj_str: vec![9; 4],
@@ -8667,7 +8667,7 @@ fn quant_align_to_transcript_converts_genomic_blocks_to_transcript_coordinates()
         ..Default::default()
     };
     let mut transcript = Transcript {
-        exons: vec![[u32::MAX; 5]; 3],
+        exons: vec![[u64::MAX; 5]; 3],
         canon_sj: vec![u32::MAX as i32; 3],
         sj_annot: vec![1, 1, 1],
         shift_sj: vec![[9, 9]; 3],
@@ -8691,7 +8691,7 @@ fn quant_align_to_transcript_converts_genomic_blocks_to_transcript_coordinates()
     assert_eq!(genomic.canon_sj[1], -999);
     assert!(!transcript.primary_flag);
     assert_eq!(transcript.n_exons, 1);
-    assert_eq!(transcript.exons[0], [3, 10, 30, 7, u32::MAX]);
+    assert_eq!(transcript.exons[0], [3, 10, 30, 7, u64::MAX]);
     assert_eq!(&transcript.sj_annot[..1], &[0]);
     assert_eq!(&transcript.shift_sj[..1], &[[0, 0]]);
     assert_eq!(&transcript.sj_str[..1], &[0]);
@@ -11046,7 +11046,7 @@ fn read_align_stitch_pieces_records_single_anchor_window() {
         chr_length: vec![256],
         ..Default::default()
     };
-    let mut pc = vec![[0u32; PC_SIZE]; 1];
+    let mut pc = vec![[0u64; PC_SIZE]; 1];
     pc[0][PC_R_START] = 0;
     pc[0][PC_LENGTH] = 4;
     pc[0][PC_DIR] = 0;
@@ -11120,7 +11120,7 @@ fn read_align_stitch_pieces_converts_reverse_strand_coordinates() {
         chr_length: vec![220],
         ..Default::default()
     };
-    let mut pc = vec![[0u32; PC_SIZE]; 1];
+    let mut pc = vec![[0u64; PC_SIZE]; 1];
     pc[0][PC_R_START] = 0;
     pc[0][PC_LENGTH] = 4;
     pc[0][PC_DIR] = 0;
@@ -11190,7 +11190,7 @@ fn read_align_stitch_pieces_skips_reverse_suffixes_past_genome_start() {
         chr_length: vec![64],
         ..Default::default()
     };
-    let mut pc = vec![[0u32; PC_SIZE]; 1];
+    let mut pc = vec![[0u64; PC_SIZE]; 1];
     pc[0][PC_R_START] = 0;
     pc[0][PC_LENGTH] = 4;
     pc[0][PC_DIR] = 1;
@@ -11253,7 +11253,7 @@ fn read_align_one_read_loads_fastq_and_finishes_injected_standard_mapping() {
         ..Default::default()
     };
     let mut tr = Transcript {
-        exons: vec![[0, 5, 4, 0, u32::MAX]],
+        exons: vec![[0, 5, 4, 0, u64::MAX]],
         n_exons: 1,
         r_start: 0,
         r_length: 4,
@@ -11448,14 +11448,14 @@ fn transcript_variation_adjust_records_overlapping_snp_alleles() {
         chr: 0,
         exons: vec![
             {
-                let mut e = [0u32; EX_SIZE];
+                let mut e = [0u64; EX_SIZE];
                 e[EX_R] = 0;
                 e[EX_G] = 103;
                 e[EX_L] = 5;
                 e
             },
             {
-                let mut e = [0u32; EX_SIZE];
+                let mut e = [0u64; EX_SIZE];
                 e[EX_R] = 10;
                 e[EX_G] = 110;
                 e[EX_L] = 4;

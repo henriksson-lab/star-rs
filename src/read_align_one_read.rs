@@ -173,11 +173,11 @@ pub fn readalign_oneread_l8_readalign_oneread(
     }
 
     read_align.stats_ra.read_n += 1;
-    read_align.stats_ra.read_bases += read_align.read_length[0] + read_align.read_length[1];
+    read_align.stats_ra.read_bases += (read_align.read_length[0] + read_align.read_length[1]) as u32;
     let read_bases = read_align.read_length[0] + read_align.read_length[1];
     read_align.out_filter_mismatch_nmax_total = std::cmp::min(
-        p.out_filter_mismatch_nmax,
-        (p.out_filter_mismatch_nover_read_lmax * read_bases as f64) as u32,
+        p.out_filter_mismatch_nmax as u64,
+        (p.out_filter_mismatch_nover_read_lmax * read_bases as f64) as u64,
     );
 
     if p.p_ge.g_type_string == "SpliceGraph" || p.p_ge.g_type_string == "SuperTranscriptome" {

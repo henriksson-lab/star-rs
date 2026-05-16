@@ -30,7 +30,7 @@ pub fn readalign_quanttranscriptome_l7_readalign_quanttranscriptome(
 
         let mut align2_storage;
         let align1 = if !p.quant_tr_sam_soft_clip {
-            let mut n_mm1 = 0_u32;
+            let mut n_mm1 = 0_u64;
             let r = if align1_in.ro_str == 0 {
                 &read_align.read1[0]
             } else {
@@ -39,8 +39,8 @@ pub fn readalign_quanttranscriptome_l7_readalign_quanttranscriptome(
             align2_storage = align1_in.clone();
 
             for iab in 0..align2_storage.n_exons as usize {
-                let mut left1 = 0_u32;
-                let mut right1 = 0_u32;
+                let mut left1 = 0_u64;
+                let mut right1 = 0_u64;
                 if iab == 0 {
                     left1 = align2_storage.exons[iab][EX_R];
                 } else if align2_storage.canon_sj[iab - 1] == -3 {
@@ -85,7 +85,7 @@ pub fn readalign_quanttranscriptome_l7_readalign_quanttranscriptome(
             if align2_storage.n_mm + n_mm1
                 > read_align
                     .out_filter_mismatch_nmax_total
-                    .min((p.out_filter_mismatch_nover_lmax * (read_align.l_read - 1) as f64) as u32)
+                    .min((p.out_filter_mismatch_nover_lmax * (read_align.l_read - 1) as f64) as u64)
             {
                 continue;
             }

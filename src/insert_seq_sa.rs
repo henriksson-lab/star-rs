@@ -57,7 +57,7 @@ pub fn insertseqsa_l18_insertseqsa(
     sequencefuns_l4_complementseqnumbers(
         &seq0,
         &mut seqq[seq1_start..seq1_start + 2 * n_g1_usize],
-        (2 * n_g1) as u32,
+        (2 * n_g1) as u64,
     );
 
     let seq0 = &seqq[seq0_start..];
@@ -67,16 +67,16 @@ pub fn insertseqsa_l18_insertseqsa(
         if seq0[ii] > 3 {
             ind_array[ii * 2] = u64::MAX;
         } else {
-            let mut l = 0u32;
+            let mut l = 0u64;
             ind_array[ii * 2] = suffixarrayfuns_l297_suffixarraysearch1(
                 map_gen,
                 [seq0, seq1],
-                ii as u32,
+                ii as u64,
                 10000,
                 n_g,
                 ii < n_g1_usize,
                 0,
-                sa.length as u32 - 1,
+                sa.length - 1,
                 &mut l,
             );
             ind_array[ii * 2 + 1] = ii as u64;

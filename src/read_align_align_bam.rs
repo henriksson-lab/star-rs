@@ -10,18 +10,18 @@ pub fn readalign_alignbam_l9_readalign_samattrnm_md(
     p: &crate::parameters_chimeric::Parameters,
     gen_out: &crate::genome::Genome,
     tr_out: &crate::transcript::Transcript,
-    i_ex1: u32,
-    i_ex2: u32,
+    i_ex1: u64,
+    i_ex2: u64,
 ) -> (u32, String) {
     let r = if tr_out.ro_str == 0 {
         &read_align.read1[0]
     } else {
         &read_align.read1[2]
     };
-    let mut match_n = 0u32;
-    let mut n_mm = 0u32;
-    let mut n_i = 0u32;
-    let mut n_d = 0u32;
+    let mut match_n = 0u64;
+    let mut n_mm = 0u64;
+    let mut n_i = 0u64;
+    let mut n_d = 0u64;
     let mut tag_md = String::new();
 
     for iex in i_ex1 as usize..=i_ex2 as usize {
@@ -58,7 +58,7 @@ pub fn readalign_alignbam_l9_readalign_samattrnm_md(
     }
 
     tag_md.push_str(&match_n.to_string());
-    (n_mm + n_i + n_d, tag_md)
+    ((n_mm + n_i + n_d) as u32, tag_md)
 }
 
 #[doc = "Original `ReadAlign::alignBAM` at STAR/source/ReadAlign_alignBAM.cpp:47. Args: trOut: Transcript, nTrOut: uint, iTrOut: uint, trChrStart: uint, mateChr: uint, mateStart: uint, mateStrand: char, alignType: int, mateMap: bool, outSAMattrOrder: vector<int>, outBAMarray: char, outBAMarrayN: uint"]
@@ -82,9 +82,9 @@ pub fn readalign_alignbam_l47_readalign_alignbam(
     }
 
     let mut result = crate::quantifications::AlignBamResult::default();
-    let mut i_ex_mate = 0_u32;
+    let mut i_ex_mate = 0_u64;
     let flag_paired = p.read_nmates == 2;
-    let mut n_mates = 1_u32;
+    let mut n_mates = 1_u64;
     if align_type < 0 {
         for ii in 0..tr_out.n_exons.saturating_sub(1) {
             if tr_out
@@ -103,8 +103,8 @@ pub fn readalign_alignbam_l47_readalign_alignbam(
         n_mates = 0;
     }
 
-    let mut t_len = 0_u32;
-    let mut left_most_mate = 0_u32;
+    let mut t_len = 0_u64;
+    let mut left_most_mate = 0_u64;
     if n_mates > 1 && p.out_sam_tlen == 2 {
         let left_end =
             tr_out.exons[i_ex_mate as usize][EX_G] + tr_out.exons[i_ex_mate as usize][EX_L];
@@ -129,7 +129,7 @@ pub fn readalign_alignbam_l47_readalign_alignbam(
     let mate_count = if align_type < 0 {
         n_mates
     } else {
-        p.read_nmates
+        p.read_nmates as u64
     };
     let mate_map = mate_map.unwrap_or([false, false]);
     let default_read_bar = crate::solo_read_barcode::SoloReadBarcode::default();
@@ -140,16 +140,16 @@ pub fn readalign_alignbam_l47_readalign_alignbam(
         .unwrap_or(&default_read_bar);
 
     for imate in 0..mate_count as usize {
-        let mut i_ex1 = 0_u32;
-        let mut i_ex2 = 0_u32;
-        let mate: u32;
-        let str_: u32;
+        let mut i_ex1 = 0_u64;
+        let mut i_ex2 = 0_u64;
+        let mate: u64;
+        let str_: u64;
         let mut packed_cigar: Vec<u32> = Vec::new();
         let mut mapq = 0_i32;
         let mut attr_out_array = vec![0_u8; 131_072];
         let mut attr_n = 0_usize;
-        let mut trim_l1 = 0_u32;
-        let mut trim_r1 = 0_u32;
+        let mut trim_l1 = 0_u64;
+        let mut trim_r1 = 0_u64;
         let mut sam_flag: u16;
 
         if align_type >= 0 {
@@ -160,12 +160,12 @@ pub fn readalign_alignbam_l47_readalign_alignbam(
             if p.read_nmates == 2 {
                 sam_flag |= 0x1 | if imate == 0 { 0x40 } else { 0x80 };
                 if mate_map[1 - imate] {
-                    if tr_out.str_ != (1 - imate) as u32 {
+                    if tr_out.str_ != (1 - imate) as u64 {
                         sam_flag |= 0x20;
                     }
-                    mate_chr = tr_out.chr;
-                    mate_start = tr_out.exons[0][EX_G] - tr_chr_start as u32;
-                    mate_strand = if tr_out.str_ == (1 - imate) as u32 {
+                    mate_chr = tr_out.chr as u32;
+                    mate_start = (tr_out.exons[0][EX_G] - tr_chr_start) as u32;
+                    mate_strand = if tr_out.str_ == (1 - imate) as u64 {
                         0
                     } else {
                         1
@@ -180,7 +180,7 @@ pub fn readalign_alignbam_l47_readalign_alignbam(
             if read_align.read_filter == b'Y' as i32 {
                 sam_flag |= 0x200;
             }
-            mate = imate as u32;
+            mate = imate as u64;
             str_ = mate;
 
             attr_n += bamfunctions_l106_bamattrarraywrite(0, b"NH", &mut attr_out_array[attr_n..])
@@ -338,7 +338,7 @@ pub fn readalign_alignbam_l47_readalign_alignbam(
             } else {
                 read_align.clip_mates[mate as usize][0].clipped_n
             };
-            trim_l1 = trim_l + tr_out.exons[i_ex1 as usize][EX_R]
+            trim_l1 = trim_l as u64 + tr_out.exons[i_ex1 as usize][EX_R]
                 - if tr_out.exons[i_ex1 as usize][EX_R] < read_align.read_length[left_mate as usize]
                 {
                     0
@@ -347,7 +347,7 @@ pub fn readalign_alignbam_l47_readalign_alignbam(
                 };
             if trim_l1 > 0 {
                 packed_cigar.push(
-                    (trim_l1 << 4)
+                    ((trim_l1 << 4) as u32)
                         | if align_type == -11 {
                             BAM_CIGAR_H
                         } else {
@@ -368,10 +368,10 @@ pub fn readalign_alignbam_l47_readalign_alignbam(
                         - tr_out.exons[prev][EX_R]
                         - tr_out.exons[prev][EX_L];
                     if gap_r > 0 {
-                        packed_cigar.push((gap_r << 4) | BAM_CIGAR_I);
+                        packed_cigar.push(((gap_r << 4) as u32) | BAM_CIGAR_I);
                     }
                     if tr_out.canon_sj[prev] >= 0 || tr_out.sj_annot[prev] == 1 {
-                        packed_cigar.push((gap_g << 4) | BAM_CIGAR_N);
+                        packed_cigar.push(((gap_g << 4) as u32) | BAM_CIGAR_N);
                         sj_motif.push(
                             (tr_out.canon_sj[prev]
                                 + if tr_out.sj_annot[prev] == 0 { 0 } else { 20 })
@@ -379,15 +379,15 @@ pub fn readalign_alignbam_l47_readalign_alignbam(
                         );
                         sj_intron.push(
                             (tr_out.exons[prev][EX_G] + tr_out.exons[prev][EX_L] + 1
-                                - tr_chr_start as u32) as i32,
+                                - tr_chr_start) as i32,
                         );
-                        sj_intron.push((tr_out.exons[iiu][EX_G] - tr_chr_start as u32) as i32);
+                        sj_intron.push((tr_out.exons[iiu][EX_G] - tr_chr_start) as i32);
                     } else if gap_g > 0 {
-                        packed_cigar.push((gap_g << 4) | BAM_CIGAR_D);
+                        packed_cigar.push(((gap_g << 4) as u32) | BAM_CIGAR_D);
                     }
                 }
                 if tr_out.exons[iiu][EX_L] > 0 {
-                    packed_cigar.push((tr_out.exons[iiu][EX_L] << 4) | BAM_CIGAR_M);
+                    packed_cigar.push(((tr_out.exons[iiu][EX_L] << 4) as u32) | BAM_CIGAR_M);
                 }
             }
             if sj_motif.is_empty() {
@@ -405,10 +405,10 @@ pub fn readalign_alignbam_l47_readalign_alignbam(
                     + read_align.read_length_original[mate as usize]
             }) - tr_out.exons[i_ex2 as usize][EX_R]
                 - tr_out.exons[i_ex2 as usize][EX_L]
-                - trim_l;
+                - trim_l as u64;
             if trim_r1 > 0 {
                 packed_cigar.push(
-                    (trim_r1 << 4)
+                    ((trim_r1 << 4) as u32)
                         | if align_type == -12 {
                             BAM_CIGAR_H
                         } else {
@@ -688,16 +688,16 @@ pub fn readalign_alignbam_l47_readalign_alignbam(
             .read_length_original
             .get(mate as usize)
             .copied()
-            .unwrap_or(read0.len() as u32);
+            .unwrap_or(read0.len() as u64);
         let (mut seq_out, mut qual_out) = if mate == str_ {
             (
                 read0[..read_len_original as usize].to_vec(),
-                qual0[..read_len_original.min(qual0.len() as u32) as usize].to_vec(),
+                qual0[..read_len_original.min(qual0.len() as u64) as usize].to_vec(),
             )
         } else {
             let mut seq_rev = vec![0_u8; read_len_original as usize];
             sequencefuns_l16_revcomplementnucleotides(read0, &mut seq_rev, read_len_original);
-            let mut qual_rev = qual0[..read_len_original.min(qual0.len() as u32) as usize].to_vec();
+            let mut qual_rev = qual0[..read_len_original.min(qual0.len() as u64) as usize].to_vec();
             qual_rev.reverse();
             (seq_rev, qual_rev)
         };
@@ -718,17 +718,17 @@ pub fn readalign_alignbam_l47_readalign_alignbam(
 
         let mut core = [0_u32; 9];
         if align_type < 0 {
-            core[1] = tr_out.chr;
-            core[2] = tr_out.exons[i_ex1 as usize][EX_G] - tr_chr_start as u32;
+            core[1] = tr_out.chr as u32;
+            core[2] = (tr_out.exons[i_ex1 as usize][EX_G] - tr_chr_start) as u32;
         } else {
             core[1] = u32::MAX;
             core[2] = u32::MAX;
         }
         let read_name_len = read_align.read_name.len() as u32;
         if align_type < 0 {
-            let beg = tr_out.exons[i_ex1 as usize][EX_G] - tr_chr_start as u32;
-            let end = tr_out.exons[i_ex2 as usize][EX_G] + tr_out.exons[i_ex2 as usize][EX_L]
-                - tr_chr_start as u32;
+            let beg = (tr_out.exons[i_ex1 as usize][EX_G] - tr_chr_start) as u32;
+            let end = (tr_out.exons[i_ex2 as usize][EX_G] + tr_out.exons[i_ex2 as usize][EX_L]
+                - tr_chr_start) as u32;
             core[3] = ((bamfunctions_l95_reg2bin(beg as i32, end as i32) as u32) << 16)
                 | ((mapq as u32) << 8)
                 | read_name_len;
@@ -737,15 +737,15 @@ pub fn readalign_alignbam_l47_readalign_alignbam(
         }
         let flag_out = (sam_flag & p.out_sam_flag_and) | p.out_sam_flag_or;
         core[4] = ((flag_out as u32) << 16) | packed_cigar.len() as u32;
-        core[5] = seq_mate_length;
+        core[5] = seq_mate_length as u32;
         if n_mates > 1 {
-            core[6] = tr_out.chr;
-            core[7] = tr_out.exons[if imate == 0 {
+            core[6] = tr_out.chr as u32;
+            core[7] = (tr_out.exons[if imate == 0 {
                 i_ex_mate as usize + 1
             } else {
                 0
             }][EX_G]
-                - tr_chr_start as u32;
+                - tr_chr_start) as u32;
         } else if mate_chr < gen_out.n_chr_real {
             core[6] = mate_chr;
             core[7] = mate_start;
@@ -761,7 +761,7 @@ pub fn readalign_alignbam_l47_readalign_alignbam(
                 core[8] = if imate == 0 { tl } else { -tl } as u32;
             } else if p.out_sam_tlen == 2 {
                 let tl = t_len as i32;
-                core[8] = if imate as u32 == left_most_mate {
+                core[8] = if imate as u64 == left_most_mate {
                     tl
                 } else {
                     -tl

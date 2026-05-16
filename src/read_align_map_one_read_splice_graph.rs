@@ -12,8 +12,8 @@ pub fn readalign_maponereadsplicegraph_l6_readalign_maponereadsplicegraph(
     out_filter_match_nmin: u32,
     seed_multimap_nmax: u32,
 ) -> String {
-    if read_align.l_read < out_filter_match_nmin {
-        read_align.map_marker = MARKER_READ_TOO_SHORT;
+    if read_align.l_read < out_filter_match_nmin as u64 {
+        read_align.map_marker = MARKER_READ_TOO_SHORT as u64;
         read_align.tr_best.r_length = 0;
         read_align.n_w = 0;
         return String::new();

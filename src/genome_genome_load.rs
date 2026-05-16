@@ -214,7 +214,7 @@ pub fn genome_genomeload_l18_genome_genomeload(
 
     result.log_main.push_str("Started loading the genome: \n");
     genome.n_genome = genome_contents.len() as u64;
-    genome.n_sa_byte = sa_contents.len() as u32;
+    genome.n_sa_byte = sa_contents.len() as u64;
 
     if sa_index_contents.len() < 8 {
         return Err("EXITING because of FATAL ERROR: failed reading from genome file: SAindex\nSOLUTION: re-generate the genome index\n".to_string());
@@ -245,11 +245,11 @@ pub fn genome_genomeload_l18_genome_genomeload(
         genome.genome_sa_index_start[ii] = if legacy_u32_saindex {
             let mut b = [0u8; 4];
             b.copy_from_slice(&sa_index_contents[start..start + 4]);
-            u32::from_ne_bytes(b)
+            u32::from_ne_bytes(b) as u64
         } else {
             let mut b = [0u8; 8];
             b.copy_from_slice(&sa_index_contents[start..start + 8]);
-            u64::from_ne_bytes(b) as u32
+            u64::from_ne_bytes(b)
         };
     }
     let n_sai = *genome.genome_sa_index_start.last().unwrap_or(&0);
@@ -265,11 +265,15 @@ pub fn genome_genomeload_l18_genome_genomeload(
             ((genome.n_genome as f64).log2().floor() as u32 + 1).max(32)
         };
     }
-    genome.gstrand_mask = !(1_u64 << genome.gstrand_bit);
+    genome.gstrand_mask = if genome.gstrand_bit >= 64 {
+        u64::MAX
+    } else {
+        !(1_u64 << genome.gstrand_bit)
+    };
     genome.n_sa = if genome.gstrand_bit + 1 == 0 {
         0
     } else {
-        (genome.n_sa_byte as u64 * 8 / (genome.gstrand_bit as u64 + 1)) as u32
+        genome.n_sa_byte * 8 / (genome.gstrand_bit as u64 + 1)
     };
     packedarray_l8_packedarray_definebits(
         &mut genome.sa_packed,
@@ -303,9 +307,17 @@ pub fn genome_genomeload_l18_genome_genomeload(
     genome.sai = (0..n_sai as u64)
         .map(|ii| packedarray_h18_packedarray_index(&genome.sai_packed, ii))
         .collect();
-    genome.sai_mark_nmask_c = 1_u64 << (genome.gstrand_bit + 1);
+    genome.sai_mark_nmask_c = if genome.gstrand_bit + 1 >= 64 {
+        0
+    } else {
+        1_u64 << (genome.gstrand_bit + 1)
+    };
     genome.sai_mark_nmask = !genome.sai_mark_nmask_c;
-    genome.sai_mark_absent_mask_c = 1_u64 << (genome.gstrand_bit + 2);
+    genome.sai_mark_absent_mask_c = if genome.gstrand_bit + 2 >= 64 {
+        0
+    } else {
+        1_u64 << (genome.gstrand_bit + 2)
+    };
 
     result.log_main.push_str(&format!(
         "nGenome={};  nSAbyte={}\nGstrandBit={}   SA number of indices={}\n",
@@ -448,19 +460,19 @@ pub fn genome_genomeload_l471_genome_loadsjdb(
     for ii in 0..genome.sjdb_n as usize {
         genome.sjdb_start[ii] = words
             .next()
-            .and_then(|w| w.parse::<u32>().ok())
+            .and_then(|w| w.parse::<u64>().ok())
             .unwrap_or(0);
         genome.sjdb_end[ii] = words
             .next()
-            .and_then(|w| w.parse::<u32>().ok())
+            .and_then(|w| w.parse::<u64>().ok())
             .unwrap_or(0);
         genome.sjdb_motif[ii] = words.next().and_then(|w| w.parse::<u8>().ok()).unwrap_or(0);
         genome.sjdb_shift_left[ii] = words.next().and_then(|w| w.parse::<u8>().ok()).unwrap_or(0);
         genome.sjdb_shift_right[ii] = words.next().and_then(|w| w.parse::<u8>().ok()).unwrap_or(0);
         genome.sjdb_strand[ii] = words.next().and_then(|w| w.parse::<u8>().ok()).unwrap_or(0);
 
-        genome.sj_dstart[ii] = genome.sjdb_start[ii] as u64 - genome.p_ge.sjdb_overhang as u64;
-        genome.sj_astart[ii] = genome.sjdb_end[ii] as u64 + 1;
+        genome.sj_dstart[ii] = genome.sjdb_start[ii] - genome.p_ge.sjdb_overhang as u64;
+        genome.sj_astart[ii] = genome.sjdb_end[ii] + 1;
         if genome.sjdb_motif[ii] == 0 {
             genome.sj_dstart[ii] += genome.sjdb_shift_left[ii] as u64;
             genome.sj_astart[ii] += genome.sjdb_shift_left[ii] as u64;

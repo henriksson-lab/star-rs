@@ -39,14 +39,14 @@ pub fn chimericalign_chimericstitching_l3_chimericalign_chimericstitching(
     if chim.al1.exons[ex1][EX_IFRAG] < chim.al2.exons[ex2][EX_IFRAG] {
         chim.chim_motif = -1;
         chim.chim_j1 = if chim.al1.str_ == 1 {
-            chim.al1.exons[ex1][EX_G] - 1
+            (chim.al1.exons[ex1][EX_G] - 1) as u32
         } else {
-            chim.al1.exons[ex1][EX_G] + chim.al1.exons[ex1][EX_L]
+            (chim.al1.exons[ex1][EX_G] + chim.al1.exons[ex1][EX_L]) as u32
         };
         chim.chim_j2 = if chim.al2.str_ == 0 {
-            chim.al2.exons[ex2][EX_G] - 1
+            (chim.al2.exons[ex2][EX_G] - 1) as u32
         } else {
-            chim.al2.exons[ex2][EX_G] + chim.al2.exons[ex2][EX_L]
+            (chim.al2.exons[ex2][EX_G] + chim.al2.exons[ex2][EX_L]) as u32
         };
     } else {
         let ro_start0 = if chim.al1.str_ == 0 {
@@ -60,7 +60,7 @@ pub fn chimericalign_chimericstitching_l3_chimericalign_chimericstitching(
             chim.al1.l_read - chim.al2.exons[ex2][EX_R] - chim.al2.exons[ex2][EX_L]
         };
 
-        let mut j_rbest = 0_u32;
+        let mut j_rbest = 0_u64;
         let mut j_score = 0_i32;
         let mut j_score_best = -999999_i32;
         let j_rmax0 = ro_start1 + chim.al2.exons[ex2][EX_L];
@@ -70,7 +70,7 @@ pub fn chimericalign_chimericstitching_l3_chimericalign_chimericstitching(
             0
         };
 
-        let mut j_r = 0_u32;
+        let mut j_r = 0_u64;
         while j_r < j_rmax {
             if chim.al1.read_length.first().copied().unwrap_or(0) == j_r {
                 j_r += 1;
@@ -179,10 +179,10 @@ pub fn chimericalign_chimericstitching_l3_chimericalign_chimericstitching(
             chim.al1.exons[ex1][EX_R] += chim.al1.exons[ex1][EX_L] - j_rbest - 1;
             chim.al1.exons[ex1][EX_G] += chim.al1.exons[ex1][EX_L] - j_rbest - 1;
             chim.al1.exons[ex1][EX_L] = j_rbest + 1;
-            chim.chim_j1 = chim.al1.exons[ex1][EX_G] - 1;
+            chim.chim_j1 = (chim.al1.exons[ex1][EX_G] - 1) as u32;
         } else {
             chim.al1.exons[ex1][EX_L] = j_rbest + 1;
-            chim.chim_j1 = chim.al1.exons[ex1][EX_G] + chim.al1.exons[ex1][EX_L];
+            chim.chim_j1 = (chim.al1.exons[ex1][EX_G] + chim.al1.exons[ex1][EX_L]) as u32;
         }
 
         if chim.al2.str_ == 0 {
@@ -190,27 +190,27 @@ pub fn chimericalign_chimericstitching_l3_chimericalign_chimericstitching(
             chim.al2.exons[ex2][EX_G] += ro_start0 + j_rbest + 1 - ro_start1;
             chim.al2.exons[ex2][EX_L] =
                 ro_start1 + chim.al2.exons[ex2][EX_L] - ro_start0 - j_rbest - 1;
-            chim.chim_j2 = chim.al2.exons[ex2][EX_G] - 1;
+            chim.chim_j2 = (chim.al2.exons[ex2][EX_G] - 1) as u32;
         } else {
             chim.al2.exons[ex2][EX_L] =
                 ro_start1 + chim.al2.exons[ex2][EX_L] - ro_start0 - j_rbest - 1;
-            chim.chim_j2 = chim.al2.exons[ex2][EX_G] + chim.al2.exons[ex2][EX_L];
+            chim.chim_j2 = (chim.al2.exons[ex2][EX_G] + chim.al2.exons[ex2][EX_L]) as u32;
         }
 
-        let mut repeat = 0_u32;
+        let mut repeat = 0_u64;
         while repeat < 100 {
             let mut b0 = if chim.al1.str_ == 0 {
-                gen_seq[(chim.chim_j1 + repeat) as usize]
+                gen_seq[(chim.chim_j1 as u64 + repeat) as usize]
             } else {
-                gen_seq[(chim.chim_j1 - repeat) as usize]
+                gen_seq[(chim.chim_j1 as u64 - repeat) as usize]
             };
             if chim.al1.str_ != 0 && b0 < 4 {
                 b0 = 3 - b0;
             }
             let mut b1 = if chim.al2.str_ == 0 {
-                gen_seq[(chim.chim_j2 + 1 + repeat) as usize]
+                gen_seq[(chim.chim_j2 as u64 + 1 + repeat) as usize]
             } else {
-                gen_seq[(chim.chim_j2 - 1 - repeat) as usize]
+                gen_seq[(chim.chim_j2 as u64 - 1 - repeat) as usize]
             };
             if chim.al2.str_ != 0 && b1 < 4 {
                 b1 = 3 - b1;
@@ -220,22 +220,22 @@ pub fn chimericalign_chimericstitching_l3_chimericalign_chimericstitching(
             }
             repeat += 1;
         }
-        chim.chim_repeat2 = repeat;
+        chim.chim_repeat2 = repeat as u32;
 
         repeat = 0;
         while repeat < 100 {
             let mut b0 = if chim.al1.str_ == 0 {
-                gen_seq[(chim.chim_j1 - 1 - repeat) as usize]
+                gen_seq[(chim.chim_j1 as u64 - 1 - repeat) as usize]
             } else {
-                gen_seq[(chim.chim_j1 + 1 + repeat) as usize]
+                gen_seq[(chim.chim_j1 as u64 + 1 + repeat) as usize]
             };
             if chim.al1.str_ != 0 && b0 < 4 {
                 b0 = 3 - b0;
             }
             let mut b1 = if chim.al2.str_ == 0 {
-                gen_seq[(chim.chim_j2 - repeat) as usize]
+                gen_seq[(chim.chim_j2 as u64 - repeat) as usize]
             } else {
-                gen_seq[(chim.chim_j2 + repeat) as usize]
+                gen_seq[(chim.chim_j2 as u64 + repeat) as usize]
             };
             if chim.al2.str_ != 0 && b1 < 4 {
                 b1 = 3 - b1;
@@ -245,12 +245,12 @@ pub fn chimericalign_chimericstitching_l3_chimericalign_chimericstitching(
             }
             repeat += 1;
         }
-        chim.chim_repeat1 = repeat;
+        chim.chim_repeat1 = repeat as u32;
     }
 
     if chim.chim_motif >= 0
-        && (chim.al1.exons[ex1][EX_L] < p_ch.junction_overhang_min
-            || chim.al2.exons[ex2][EX_L] < p_ch.junction_overhang_min)
+        && (chim.al1.exons[ex1][EX_L] < p_ch.junction_overhang_min as u64
+            || chim.al2.exons[ex2][EX_L] < p_ch.junction_overhang_min as u64)
     {
         chim.chim_score = 0;
         return;

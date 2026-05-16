@@ -9,28 +9,28 @@ pub fn readalign_maxmappablelength2strands_l5_readalign_maxmappablelength2strand
     map_gen: &crate::genome::Genome,
     p_ge: &crate::parameters_genome::ParametersGenome,
     read1: [&[u8]; 2],
-    piece_start_in: u32,
-    piece_length_in: u32,
-    i_dir: u32,
-    i_sa1: u32,
-    _i_sa2: u32,
-    max_lbest: &mut u32,
-    i_frag: u32,
+    piece_start_in: u64,
+    piece_length_in: u64,
+    i_dir: u64,
+    i_sa1: u64,
+    _i_sa2: u64,
+    max_lbest: &mut u64,
+    i_frag: u64,
     stored_aligns: &mut Vec<crate::read_align::StoredAlign>,
-) -> Result<u32, String> {
-    let mut nrep = 0;
-    let mut ind_start_end = [0u32; 2];
-    let sparse_d = p_ge.g_sasparse_d.min(piece_length_in);
-    let mut nrep_all = vec![0u32; sparse_d as usize];
-    let mut ind_start_end_all = vec![[0u32; 2]; sparse_d as usize];
-    let mut max_l_all = vec![0u32; sparse_d as usize];
+) -> Result<u64, String> {
+    let mut nrep: u64 = 0;
+    let mut ind_start_end = [0u64; 2];
+    let sparse_d = (p_ge.g_sasparse_d as u64).min(piece_length_in);
+    let mut nrep_all = vec![0u64; sparse_d as usize];
+    let mut ind_start_end_all = vec![[0u64; 2]; sparse_d as usize];
+    let mut max_l_all = vec![0u64; sparse_d as usize];
     *max_lbest = 0;
 
     let dir_r = i_dir == 0;
 
     for i_dist in 0..sparse_d {
         let piece_length = piece_length_in - i_dist;
-        let l_max = p_ge.g_saindex_nbases.min(piece_length);
+        let l_max = (p_ge.g_saindex_nbases as u64).min(piece_length);
         let mut ind1 = 0u32;
         let piece_start;
         if dir_r {
@@ -57,7 +57,7 @@ pub fn readalign_maxmappablelength2strands_l5_readalign_maxmappablelength2strand
         } else {
             while l_ind > 0 {
                 i_sa1_raw = map_gen.sai
-                    [(map_gen.genome_sa_index_start[(l_ind - 1) as usize] + ind1) as usize];
+                    [(map_gen.genome_sa_index_start[(l_ind - 1) as usize] + ind1 as u64) as usize];
                 if (i_sa1_raw & map_gen.sai_mark_absent_mask_c) == 0 {
                     break;
                 }
@@ -68,11 +68,11 @@ pub fn readalign_maxmappablelength2strands_l5_readalign_maxmappablelength2strand
             if l_ind == 0 {
                 i_sa1_raw = 0;
                 i_sa2_raw = map_gen.n_sa.saturating_sub(1) as u64;
-            } else if map_gen.genome_sa_index_start[(l_ind - 1) as usize] + ind1 + 1
+            } else if map_gen.genome_sa_index_start[(l_ind - 1) as usize] + ind1 as u64 + 1
                 < map_gen.genome_sa_index_start[l_ind as usize]
             {
                 i_sa2_raw = map_gen.sai
-                    [(map_gen.genome_sa_index_start[(l_ind - 1) as usize] + ind1 + 1) as usize];
+                    [(map_gen.genome_sa_index_start[(l_ind - 1) as usize] + ind1 as u64 + 1) as usize];
                 if (i_sa2_raw & map_gen.sai_mark_absent_mask_c) == 0 {
                     i_sa2_raw = (i_sa2_raw & map_gen.sai_mark_nmask).saturating_sub(1);
                 } else {
@@ -92,17 +92,15 @@ pub fn readalign_maxmappablelength2strands_l5_readalign_maxmappablelength2strand
             i_sa2_search &= !map_gen.sai_mark_absent_mask_c;
         }
         let search_bounds_valid =
-            i_sa1_search < map_gen.n_sa as u64 && i_sa2_search < map_gen.n_sa as u64;
+            i_sa1_search < map_gen.n_sa && i_sa2_search < map_gen.n_sa;
         if !search_bounds_valid || i_sa1_search > i_sa2_search {
             i_sa1_search = 0;
-            i_sa2_search = map_gen.n_sa.saturating_sub(1) as u64;
+            i_sa2_search = map_gen.n_sa.saturating_sub(1);
         }
-        let i_sa1_search = i_sa1_search as u32;
-        let i_sa2_search = i_sa2_search as u32;
 
         let i_sa1no_n = (i_sa1_raw & map_gen.sai_mark_nmask_c) == 0;
         let max_l;
-        if l_ind < p_ge.g_saindex_nbases && i_sa1no_n && i_sa2good && search_bounds_valid {
+        if l_ind < p_ge.g_saindex_nbases as u64 && i_sa1no_n && i_sa2good && search_bounds_valid {
             ind_start_end[0] = i_sa1_search;
             ind_start_end[1] = i_sa2_search;
             nrep = ind_start_end[1] - ind_start_end[0] + 1;

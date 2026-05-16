@@ -21,9 +21,9 @@ pub fn readalign_mappedfilter_l3_readalign_mappedfilter(
     } else if read_align.tr_best.max_score < out_filter_score_min
         || read_align.tr_best.max_score
             < (out_filter_score_min_over_lread * (read_align.l_read - 1) as f64) as i32
-        || read_align.tr_best.n_match < out_filter_match_nmin
+        || read_align.tr_best.n_match < out_filter_match_nmin as u64
         || read_align.tr_best.n_match
-            < (out_filter_match_nmin_over_lread * (read_align.l_read - 1) as f64) as u32
+            < (out_filter_match_nmin_over_lread * (read_align.l_read - 1) as f64) as u64
     {
         read_align.stats_ra.unmapped_short += 1;
         read_align.unmap_type = 1;

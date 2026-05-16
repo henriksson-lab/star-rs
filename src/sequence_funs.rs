@@ -5,7 +5,7 @@
 use crate::*;
 
 #[doc = "Original `complementSeqNumbers` at STAR/source/SequenceFuns.cpp:4. Args: ReadsIn: char, ReadsOut: char, Lread: uint"]
-pub fn sequencefuns_l4_complementseqnumbers(reads_in: &[u8], reads_out: &mut [u8], lread: u32) {
+pub fn sequencefuns_l4_complementseqnumbers(reads_in: &[u8], reads_out: &mut [u8], lread: u64) {
     let lread = std::cmp::min(
         lread as usize,
         std::cmp::min(reads_in.len(), reads_out.len()),
@@ -25,7 +25,7 @@ pub fn sequencefuns_l4_complementseqnumbers(reads_in: &[u8], reads_out: &mut [u8
 pub fn sequencefuns_l16_revcomplementnucleotides(
     reads_in: &[u8],
     reads_out: &mut [u8],
-    lread: u32,
+    lread: u64,
 ) {
     let lread = std::cmp::min(
         lread as usize,
@@ -134,7 +134,7 @@ pub fn sequencefuns_l99_nucltonumbam(cc: u8) -> u8 {
 }
 
 #[doc = "Original `nuclPackBAM` at STAR/source/SequenceFuns.cpp:122. Args: ReadsIn: char, ReadsOut: char, Lread: uint"]
-pub fn sequencefuns_l122_nuclpackbam(reads_in: &[u8], reads_out: &mut [u8], lread: u32) {
+pub fn sequencefuns_l122_nuclpackbam(reads_in: &[u8], reads_out: &mut [u8], lread: u64) {
     let lread = std::cmp::min(lread as usize, reads_in.len());
     let packed_len = lread.div_ceil(2);
     let lread = std::cmp::min(lread, reads_out.len().saturating_mul(2));
@@ -148,7 +148,7 @@ pub fn sequencefuns_l122_nuclpackbam(reads_in: &[u8], reads_out: &mut [u8], lrea
 }
 
 #[doc = "Original `convertNucleotidesToNumbers` at STAR/source/SequenceFuns.cpp:131. Args: R0: char, R1: char, Lread: uint"]
-pub fn sequencefuns_l131_convertnucleotidestonumbers(r0: &[u8], r1: &mut [u8], lread: u32) {
+pub fn sequencefuns_l131_convertnucleotidestonumbers(r0: &[u8], r1: &mut [u8], lread: u64) {
     let lread = std::cmp::min(lread as usize, std::cmp::min(r0.len(), r1.len()));
     for jj in 0..lread {
         r1[jj] = match r0[jj] {
@@ -319,7 +319,7 @@ pub fn sequencefuns_l293_localsearch(x: &[u8], nx: u32, y: &[u8], ny: u32, p_mm:
 }
 
 #[doc = "Original `localSearchNisMM` at STAR/source/SequenceFuns.cpp:317. Args: x: char, nx: uint, y: char, ny: uint, pMM: double"]
-pub fn sequencefuns_l317_localsearchnismm(x: &[u8], nx: u32, y: &[u8], ny: u32, p_mm: f64) -> u32 {
+pub fn sequencefuns_l317_localsearchnismm(x: &[u8], nx: u64, y: &[u8], ny: u64, p_mm: f64) -> u64 {
     let mut n_match_best = 0;
     let mut n_mm_best = 0;
     let nx = std::cmp::min(nx as usize, x.len());
@@ -343,7 +343,7 @@ pub fn sequencefuns_l317_localsearchnismm(x: &[u8], nx: u32, y: &[u8], ny: u32, 
             n_mm_best = n_mm;
         }
     }
-    ix_best as u32
+    ix_best as u64
 }
 
 #[doc = "Original `localAlignHammingDist` at STAR/source/SequenceFuns.cpp:341. Args: text: string, query: string, pos: uint32"]
@@ -372,19 +372,19 @@ pub fn sequencefuns_l341_localalignhammingdist(text: &str, query: &str, pos: &mu
 #[doc = "Original `qualitySplit` at STAR/source/SequenceFuns.cpp:411. Args: r: char, L: uint, maxNsplit: uint, minLsplit: uint, splitR: uint"]
 pub fn sequencefuns_l411_qualitysplit(
     r: &[u8],
-    l: u32,
-    max_nsplit: u32,
-    min_lsplit: u32,
-    split_r: &mut [Vec<u32>; 3],
-) -> u32 {
-    let mut ir = 0;
-    let mut is = 0;
-    let mut lgood_min = 0;
-    let mut ifrag = 0;
-    let l = std::cmp::min(l, r.len() as u32);
+    l: u64,
+    max_nsplit: u64,
+    min_lsplit: u64,
+    split_r: &mut [Vec<u64>; 3],
+) -> u64 {
+    let mut ir = 0_u64;
+    let mut is = 0_u64;
+    let mut lgood_min = 0_u64;
+    let mut ifrag = 0_u64;
+    let l = std::cmp::min(l, r.len() as u64);
     let max_nsplit = std::cmp::min(
         max_nsplit,
-        split_r.iter().map(|values| values.len()).min().unwrap_or(0) as u32,
+        split_r.iter().map(|values| values.len()).min().unwrap_or(0) as u64,
     );
     while (ir < l) & (is < max_nsplit) {
         while ir < l && r[ir as usize] > 3 {

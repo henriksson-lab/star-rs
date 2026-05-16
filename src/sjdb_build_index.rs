@@ -39,7 +39,7 @@ pub fn sjdbbuildindex_l16_sjdbbuildindex(
     }
 
     let mut g1c = vec![0_u8; n_gsj as usize * 2 + 1];
-    sequencefuns_l4_complementseqnumbers(gsj, &mut g1c, n_gsj * 2 + 1);
+    sequencefuns_l4_complementseqnumbers(gsj, &mut g1c, (n_gsj * 2 + 1) as u64);
 
     let mut old_sj_ind = vec![0_u32; map_gen1.sjdb_n as usize];
     let n_indices_sj1 = map_gen.sjdb_length;
@@ -81,11 +81,11 @@ pub fn sjdbbuildindex_l16_sjdbbuildindex(
                 if gsj[seq_offset as usize] > 3 {
                     continue;
                 }
-                let mut l = 0_u32;
+                let mut l = 0_u64;
                 let sa_index = suffixarrayfuns_l297_suffixarraysearch1(
                     map_gen,
                     [&gsj[..], &g1c[..]],
-                    seq_offset,
+                    seq_offset as u64,
                     10000,
                     u64::MAX,
                     true,
@@ -150,7 +150,7 @@ pub fn sjdbbuildindex_l16_sjdbbuildindex(
     ));
 
     map_gen.n_genome = map_gen.chr_start[map_gen.n_chr_real as usize] + n_gsj as u64;
-    map_gen.n_sa += n_ind;
+    map_gen.n_sa += n_ind as u64;
 
     let mut gstrand_bit1 = ((map_gen.n_genome as f64).ln() / 2.0_f64.ln()).floor() as u32 + 1;
     if gstrand_bit1 < 32 {
@@ -365,7 +365,7 @@ pub fn sjdbbuildindex_l16_sjdbbuildindex(
     map_gen.sa_packed.char_array = std::mem::take(&mut map_gen.sa_insert.char_array);
     map_gen.sa_packed.array_allocated = true;
     map_gen.sa_insert.array_allocated = false;
-    map_gen.n_sa_byte = map_gen.sa_packed.length_byte as u32;
+    map_gen.n_sa_byte = map_gen.sa_packed.length_byte;
     map_gen.sj_gstart = map_gen.chr_start[map_gen.n_chr_real as usize];
     let g_start = map_gen.chr_start[map_gen.n_chr_real as usize] as usize;
     if g.len() < g_start + n_gsj as usize {

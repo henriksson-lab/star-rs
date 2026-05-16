@@ -8,8 +8,8 @@ use crate::*;
 pub fn readload_l4_readload<R: std::io::BufRead + ?Sized>(
     read_in_stream: &mut R,
     p: &crate::parameters_chimeric::Parameters,
-    l_read: &mut u32,
-    l_read_original: &mut u32,
+    l_read: &mut u64,
+    l_read_original: &mut u64,
     read_name: &mut String,
     seq: &mut String,
     seq_num: &mut Vec<u8>,
@@ -73,7 +73,7 @@ pub fn readload_l4_readload<R: std::io::BufRead + ?Sized>(
     if seq.ends_with('\n') {
         seq.pop();
     }
-    *l_read = seq.len() as u32;
+    *l_read = seq.len() as u64;
 
     if *l_read < 1 {
         return Err(format!(
@@ -91,7 +91,7 @@ pub fn readload_l4_readload<R: std::io::BufRead + ?Sized>(
     *l_read_original = *l_read;
     seq_num.clear();
     seq_num.resize(*l_read as usize, 0);
-    sequencefuns_l131_convertnucleotidestonumbers(seq.as_bytes(), seq_num, *l_read);
+    sequencefuns_l131_convertnucleotidestonumbers(seq.as_bytes(), seq_num, *l_read as u64);
 
     let mut read_file_type = 0;
     if read_name.as_bytes().first() == Some(&b'@') {
@@ -114,7 +114,7 @@ pub fn readload_l4_readload<R: std::io::BufRead + ?Sized>(
         if qual.ends_with('\n') {
             qual.pop();
         }
-        if qual.len() as u32 != *l_read_original {
+        if qual.len() as u64 != *l_read_original {
             return Err(format!(
                 "EXITING because of FATAL ERROR in reads input: quality string length is not equal to sequence length\n{}\n{}\n{}\nSOLUTION: fix your fastq file\n",
                 read_name, seq, qual

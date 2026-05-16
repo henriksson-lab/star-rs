@@ -145,13 +145,13 @@ pub fn transcriptome_alignexonoverlap_l236_alignblocksoverlapexons(
     ex_se1: &[u32],
     tr_start1: u64,
 ) -> (i32, bool) {
-    let mut i1 = 0_u32;
-    let mut i2 = 0_u32;
+    let mut i1 = 0_u64;
+    let mut i2 = 0_u64;
     let mut n_overlap = 0_i32;
     let mut sj_concord = true;
     let tr_end1 = tr_start1 + ex_se1[2 * ex_n1 as usize - 1] as u64 + 1;
 
-    while i1 < a_g.n_exons && i2 < ex_n1 as u32 {
+    while i1 < a_g.n_exons && i2 < ex_n1 as u64 {
         let rs1 = a_g.exons[i1 as usize][EX_G] as u64;
         let re1 = a_g.exons[i1 as usize][EX_G] as u64 + a_g.exons[i1 as usize][EX_L] as u64;
         let rs2 = tr_start1 + ex_se1[2 * i2 as usize] as u64;

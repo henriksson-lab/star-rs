@@ -23,8 +23,8 @@ pub fn sjdbprepare_l5_sjdbprepare(
     }
 
     let g = &map_gen.g;
-    let mut sjdb_s = vec![0u32; nsj_in];
-    let mut sjdb_e = vec![0u32; nsj_in];
+    let mut sjdb_s = vec![0u64; nsj_in];
+    let mut sjdb_e = vec![0u64; nsj_in];
     let mut sjdb_motif = vec![0u8; nsj_in];
     let mut sjdb_shift_left = vec![0u8; nsj_in];
     let mut sjdb_shift_right = vec![0u8; nsj_in];
@@ -49,8 +49,8 @@ pub fn sjdbprepare_l5_sjdbprepare(
             chr_old = sjdb_loci.chr[ii].clone();
         }
 
-        sjdb_s[ii] = (sjdb_loci.start[ii] + map_gen.chr_start[i_chr] - 1) as u32;
-        sjdb_e[ii] = (sjdb_loci.end[ii] + map_gen.chr_start[i_chr] - 1) as u32;
+        sjdb_s[ii] = sjdb_loci.start[ii] + map_gen.chr_start[i_chr] - 1;
+        sjdb_e[ii] = sjdb_loci.end[ii] + map_gen.chr_start[i_chr] - 1;
 
         let s = sjdb_s[ii] as usize;
         let e = sjdb_e[ii] as usize;
@@ -70,7 +70,7 @@ pub fn sjdbprepare_l5_sjdbprepare(
             0
         };
 
-        let mut jj_l = 0u32;
+        let mut jj_l = 0u64;
         while jj_l <= sjdb_s[ii].saturating_sub(1)
             && g[(sjdb_s[ii] - 1 - jj_l) as usize] == g[(sjdb_e[ii] - jj_l) as usize]
             && g[(sjdb_s[ii] - 1 - jj_l) as usize] < 4
@@ -80,8 +80,8 @@ pub fn sjdbprepare_l5_sjdbprepare(
         }
         sjdb_shift_left[ii] = jj_l as u8;
 
-        let mut jj_r = 0u32;
-        while sjdb_s[ii] + jj_r < n_genome_real as u32
+        let mut jj_r = 0u64;
+        while sjdb_s[ii] + jj_r < n_genome_real
             && g[(sjdb_s[ii] + jj_r) as usize] == g[(sjdb_e[ii] + 1 + jj_r) as usize]
             && g[(sjdb_s[ii] + jj_r) as usize] < 4
             && jj_r < 255
@@ -95,25 +95,25 @@ pub fn sjdbprepare_l5_sjdbprepare(
                 "WARNING: long repeat for junction # {} : {} {} {}; left shift = {}; right shift = {}\n",
                 ii + 1,
                 sjdb_loci.chr[ii],
-                sjdb_s[ii] as u64 - map_gen.chr_start[i_chr] + 1,
-                sjdb_e[ii] as u64 - map_gen.chr_start[i_chr] + 1,
+                sjdb_s[ii] - map_gen.chr_start[i_chr] + 1,
+                sjdb_e[ii] - map_gen.chr_start[i_chr] + 1,
                 sjdb_shift_left[ii],
                 sjdb_shift_right[ii]
             ));
         }
 
-        sjdb_s[ii] -= sjdb_shift_left[ii] as u32;
-        sjdb_e[ii] -= sjdb_shift_left[ii] as u32;
+        sjdb_s[ii] -= sjdb_shift_left[ii] as u64;
+        sjdb_e[ii] -= sjdb_shift_left[ii] as u64;
     }
 
-    let mut sjdb_sort = Vec::<[u32; 3]>::with_capacity(nsj_in);
+    let mut sjdb_sort = Vec::<[u64; 3]>::with_capacity(nsj_in);
     for ii in 0..nsj_in {
         let shift1 = match sjdb_loci.str_[ii] {
-            '+' => 0,
-            '-' => n_genome_real as u32,
-            _ => 2 * n_genome_real as u32,
+            '+' => 0u64,
+            '-' => n_genome_real,
+            _ => 2 * n_genome_real,
         };
-        sjdb_sort.push([sjdb_s[ii] + shift1, sjdb_e[ii] + shift1, ii as u32]);
+        sjdb_sort.push([sjdb_s[ii] + shift1, sjdb_e[ii] + shift1, ii as u64]);
     }
     sjdb_sort.sort_by_key(|row| (row[0], row[1]));
 
@@ -142,14 +142,14 @@ pub fn sjdbprepare_l5_sjdbprepare(
     sjdb_sort.clear();
     for &isj in &keep_i {
         let left_restore = if sjdb_motif[isj] == 0 {
-            0
+            0u64
         } else {
-            sjdb_shift_left[isj] as u32
+            sjdb_shift_left[isj] as u64
         };
         sjdb_sort.push([
             sjdb_s[isj] + left_restore,
             sjdb_e[isj] + left_restore,
-            isj as u32,
+            isj as u64,
         ]);
     }
     sjdb_sort.sort_by_key(|row| (row[0], row[1]));
@@ -235,14 +235,14 @@ pub fn sjdbprepare_l5_sjdbprepare(
         GENOME_SPACING_CHAR,
     );
     for ii in 0..map_gen.sjdb_n as usize {
-        let mut d_start = map_gen.sjdb_start[ii] - map_gen.sjdb_overhang;
+        let mut d_start = map_gen.sjdb_start[ii] - map_gen.sjdb_overhang as u64;
         let mut a_start = map_gen.sjdb_end[ii] + 1;
         if map_gen.sjdb_motif[ii] == 0 {
-            d_start += map_gen.sjdb_shift_left[ii] as u32;
-            a_start += map_gen.sjdb_shift_left[ii] as u32;
+            d_start += map_gen.sjdb_shift_left[ii] as u64;
+            a_start += map_gen.sjdb_shift_left[ii] as u64;
         }
-        map_gen.sj_dstart.push(d_start as u64);
-        map_gen.sj_astart.push(a_start as u64);
+        map_gen.sj_dstart.push(d_start);
+        map_gen.sj_astart.push(a_start);
 
         let over = map_gen.sjdb_overhang as usize;
         result.gsj[sj_gstart..sj_gstart + over]
@@ -272,8 +272,8 @@ pub fn sjdbprepare_l5_sjdbprepare(
         result.sjdb_list_out_tab.push_str(&format!(
             "{}\t{}\t{}\t{}\n",
             map_gen.chr_name[chr1],
-            map_gen.sjdb_start[ii] as u64 - map_gen.chr_start[chr1] + 1 + restore,
-            map_gen.sjdb_end[ii] as u64 - map_gen.chr_start[chr1] + 1 + restore,
+            map_gen.sjdb_start[ii] - map_gen.chr_start[chr1] + 1 + restore,
+            map_gen.sjdb_end[ii] - map_gen.chr_start[chr1] + 1 + restore,
             strand_char[map_gen.sjdb_strand[ii] as usize]
         ));
     }

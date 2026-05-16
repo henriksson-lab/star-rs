@@ -38,13 +38,13 @@ pub const OPAL_ALIGN_MISMATCH: u8 = 3;
 
 pub const MARK_FRAG_SPACER_BASE: u8 = 11;
 
-pub const MARKER_READ_TOO_SHORT: u32 = 999_910;
+pub const MARKER_READ_TOO_SHORT: u64 = 999_910;
 
-pub const MARKER_NO_GOOD_WINDOW: u32 = 999_902;
+pub const MARKER_NO_GOOD_WINDOW: u64 = 999_902;
 
-pub const MARKER_NO_GOOD_PIECES: u32 = 999_909;
+pub const MARKER_NO_GOOD_PIECES: u64 = 999_909;
 
-pub const MARKER_ALL_PIECES_EXCEED_SEED_MULTIMAP_NMAX: u32 = 999_908;
+pub const MARKER_ALL_PIECES_EXCEED_SEED_MULTIMAP_NMAX: u64 = 999_908;
 
 pub const EX_R: usize = 0;
 
@@ -78,7 +78,7 @@ pub const GTF_EX_G: usize = 3;
 
 pub const GTF_EX_L: usize = 4;
 
-pub const MAX_N_EXONS: u32 = 1000;
+pub const MAX_N_EXONS: u64 = 1000;
 
 pub const MAX_SJ_REPEAT_SEARCH: u32 = 255;
 
@@ -142,7 +142,7 @@ pub const BAM_CIGAR_H: u32 = 5;
 
 pub const UINT_WIN_BIN_MAX: u32 = u16::MAX as u32;
 
-pub const MARKER_TOO_MANY_ANCHORS_PER_WINDOW: u32 = 999_905;
+pub const MARKER_TOO_MANY_ANCHORS_PER_WINDOW: u64 = 999_905;
 
 pub const SJ_MOTIF_SIZE: usize = 7;
 

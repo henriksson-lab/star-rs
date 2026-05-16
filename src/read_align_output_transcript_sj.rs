@@ -17,8 +17,8 @@ pub fn readalign_outputtranscriptsj_l4_readalign_outputtranscriptsj(
 
     for iex in 0..tr_out.n_exons.saturating_sub(1) as usize {
         if tr_out.canon_sj[iex] >= 0 {
-            let start = tr_out.exons[iex][EX_G] + tr_out.exons[iex][EX_L];
-            let gap = tr_out.exons[iex + 1][EX_G] - start;
+            let start = (tr_out.exons[iex][EX_G] + tr_out.exons[iex][EX_L]) as u32;
+            let gap = (tr_out.exons[iex + 1][EX_G]) as u32 - start;
             let overhang =
                 std::cmp::min(tr_out.exons[iex][EX_L], tr_out.exons[iex + 1][EX_L]) as u16;
 
