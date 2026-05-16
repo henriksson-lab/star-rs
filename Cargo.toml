@@ -1,6 +1,6 @@
 [package]
 name = "star-rs"
-version = "0.1.1"
+version = "0.2.0"
 edition = "2024"
 description = "Rust translation of the STAR RNA-seq aligner (experimental, LLM-mediated)"
 license = "MIT"

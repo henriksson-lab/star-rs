@@ -814,7 +814,7 @@ fn sam_records(sam: &str) -> Vec<&str> {
         .collect()
 }
 
-fn direct_sam_output(result: &star_rs::generated::structs::StarMainResult) -> String {
+fn direct_sam_output(result: &star_rs::StarMainResult) -> String {
     let mut sam = String::new();
     for process in &result.process_chunks {
         for map_chunk in &process.map_chunks {

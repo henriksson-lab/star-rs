@@ -1,5 +1,5 @@
-use star_rs::generated::functions::*;
-use star_rs::generated::structs::OpalSearchResult;
+use star_rs::*;
+use star_rs::OpalSearchResult;
 
 unsafe extern "C" {
     fn tzset();

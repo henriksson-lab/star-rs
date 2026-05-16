@@ -1,7 +1,7 @@
 use std::io::{Cursor, Seek, Write};
 
-use star_rs::generated::functions::*;
-use star_rs::generated::structs::{
+use star_rs::*;
+use star_rs::{
     ClipMate, GTF, Genome, PackedArray, Parameters, ParametersGenome, ParametersGenomeTransform,
     VariantInfo,
 };
@@ -848,7 +848,7 @@ fn genome_out_load_populates_output_genome_and_conversion_blocks() {
             chr_set_mito_strings: vec!["chrM".to_string()],
             ..Default::default()
         },
-        genome_out: star_rs::generated::structs::GenomeOut {
+        genome_out: star_rs::GenomeOut {
             conv_file: "OutGenome/transformGenomeBlocks.tsv".to_string(),
             ..Default::default()
         },

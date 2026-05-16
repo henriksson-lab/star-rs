@@ -1,7 +1,7 @@
 use std::path::Path;
 
-use star_rs::generated::functions::*;
-use star_rs::generated::structs::{
+use star_rs::*;
+use star_rs::{
     CBMatchWL, ChimericAlign, ChimericDetection, ChimericSegment, ClipMate, GTF, Genome, GenomeOut,
     InOutStreams, JunctionRecord, MultiMappers, OutSJ, OutWigFlags, PackedArray,
     ParameterScanEntry, Parameters, ParametersChimeric, ParametersClip, ParametersGenome,
@@ -1578,7 +1578,7 @@ fn parameters_solo_initialize_sam_tags_and_multimap_errors_match_original_guards
 #[test]
 fn parameters_solo_cell_filtering_parses_modes_and_defaults() {
     let mut cr = ParametersSolo {
-        cell_filter: star_rs::generated::structs::SoloCellFilter {
+        cell_filter: star_rs::SoloCellFilter {
             type_: vec!["CellRanger2.2".to_string()],
             ..Default::default()
         },
@@ -1591,7 +1591,7 @@ fn parameters_solo_cell_filtering_parses_modes_and_defaults() {
     assert_eq!(cr.cell_filter.knee.max_min_ratio, 10.0);
 
     let mut ed = ParametersSolo {
-        cell_filter: star_rs::generated::structs::SoloCellFilter {
+        cell_filter: star_rs::SoloCellFilter {
             type_: vec![
                 "EmptyDrops_CR".to_string(),
                 "4000".to_string(),
@@ -1621,7 +1621,7 @@ fn parameters_solo_cell_filtering_parses_modes_and_defaults() {
     assert_eq!(ed.cell_filter.ed_cr.sim_n, 500);
 
     let mut top = ParametersSolo {
-        cell_filter: star_rs::generated::structs::SoloCellFilter {
+        cell_filter: star_rs::SoloCellFilter {
             type_: vec!["TopCells".to_string(), "123".to_string()],
             ..Default::default()
         },
@@ -1634,7 +1634,7 @@ fn parameters_solo_cell_filtering_parses_modes_and_defaults() {
     assert_eq!(top.cell_filter.top_cells, 123);
 
     let mut bad = ParametersSolo {
-        cell_filter: star_rs::generated::structs::SoloCellFilter {
+        cell_filter: star_rs::SoloCellFilter {
             type_: vec!["Bad".to_string()],
             ..Default::default()
         },
@@ -2683,7 +2683,7 @@ fn outsj_collapse_sorts_and_merges_matching_junctions() {
         n: 4,
         n_store: 4,
         junctions: vec![
-            star_rs::generated::structs::JunctionRecord {
+            star_rs::JunctionRecord {
                 start: 30,
                 gap: 5,
                 motif: 2,
@@ -2694,7 +2694,7 @@ fn outsj_collapse_sorts_and_merges_matching_junctions() {
                 overhang_right: 7,
                 ..Default::default()
             },
-            star_rs::generated::structs::JunctionRecord {
+            star_rs::JunctionRecord {
                 start: 10,
                 gap: 8,
                 motif: 1,
@@ -2705,7 +2705,7 @@ fn outsj_collapse_sorts_and_merges_matching_junctions() {
                 overhang_right: 1,
                 ..Default::default()
             },
-            star_rs::generated::structs::JunctionRecord {
+            star_rs::JunctionRecord {
                 start: 30,
                 gap: 5,
                 motif: 2,
@@ -2716,7 +2716,7 @@ fn outsj_collapse_sorts_and_merges_matching_junctions() {
                 overhang_right: 4,
                 ..Default::default()
             },
-            star_rs::generated::structs::JunctionRecord {
+            star_rs::JunctionRecord {
                 start: 10,
                 gap: 2,
                 motif: 0,
@@ -2753,7 +2753,7 @@ fn outsj_constructor_and_storage_growth_match_counter_state() {
 
     out_sj
         .junctions
-        .push(star_rs::generated::structs::JunctionRecord {
+        .push(star_rs::JunctionRecord {
             start: 1,
             ..Default::default()
         });
@@ -2766,7 +2766,7 @@ fn outsj_constructor_and_storage_growth_match_counter_state() {
 
     assert_eq!(
         outsj_l68_junction_junction(),
-        star_rs::generated::structs::Junction::default()
+        star_rs::Junction::default()
     );
 }
 
@@ -2783,7 +2783,7 @@ fn junction_pointer_and_output_stream_match_original_layout_and_line() {
         ..Default::default()
     };
     let records = vec![
-        star_rs::generated::structs::JunctionRecord {
+        star_rs::JunctionRecord {
             start: 3,
             gap: 5,
             strand: 1,
@@ -2794,7 +2794,7 @@ fn junction_pointer_and_output_stream_match_original_layout_and_line() {
             overhang_left: 11,
             overhang_right: 13,
         },
-        star_rs::generated::structs::JunctionRecord {
+        star_rs::JunctionRecord {
             start: 40,
             gap: 9,
             strand: 2,
@@ -2806,7 +2806,7 @@ fn junction_pointer_and_output_stream_match_original_layout_and_line() {
             overhang_right: 10,
         },
     ];
-    let mut junction = star_rs::generated::structs::Junction {
+    let mut junction = star_rs::Junction {
         gen_out: genome,
         ..Default::default()
     };
@@ -2819,7 +2819,7 @@ fn junction_pointer_and_output_stream_match_original_layout_and_line() {
     );
 
     assert!(outsj_l72_junction_junctionpointer(&mut junction, &records, 2).is_err());
-    let unbound = star_rs::generated::structs::Junction::default();
+    let unbound = star_rs::Junction::default();
     assert!(outsj_l85_junction_outputstream(&unbound).is_err());
 }
 
@@ -2912,14 +2912,14 @@ fn chain_liftover_gtf_writes_lifted_and_unlifted_records() {
 
 #[test]
 fn junction_collapse_one_sj_rejects_incompatible_duplicates() {
-    let mut base = star_rs::generated::structs::JunctionRecord {
+    let mut base = star_rs::JunctionRecord {
         start: 5,
         gap: 9,
         motif: 1,
         annot: 0,
         ..Default::default()
     };
-    let motif_mismatch = star_rs::generated::structs::JunctionRecord {
+    let motif_mismatch = star_rs::JunctionRecord {
         start: 5,
         gap: 9,
         motif: 2,
@@ -2928,7 +2928,7 @@ fn junction_collapse_one_sj_rejects_incompatible_duplicates() {
     };
     assert!(outsj_l92_junction_collapseonesj(&mut base, &motif_mismatch).is_err());
 
-    let annot_mismatch = star_rs::generated::structs::JunctionRecord {
+    let annot_mismatch = star_rs::JunctionRecord {
         start: 5,
         gap: 9,
         motif: 1,
@@ -3476,7 +3476,7 @@ fn chimeric_junction_output_matches_original_tabular_record() {
         ..Default::default()
     };
     let p = Parameters {
-        out_sam_attr_present: star_rs::generated::structs::SamAttrPresent {
+        out_sam_attr_present: star_rs::SamAttrPresent {
             rg: true,
             ..Default::default()
         },
@@ -4159,14 +4159,14 @@ fn solo_read_flag_reset_clears_each_feature_flag() {
     let mut solo_read = SoloRead {
         read_feat: vec![
             SoloReadFeature {
-                read_flag: star_rs::generated::structs::SoloReadFlagClass {
+                read_flag: star_rs::SoloReadFlagClass {
                     flag: 7,
                     ..Default::default()
                 },
                 ..Default::default()
             },
             SoloReadFeature {
-                read_flag: star_rs::generated::structs::SoloReadFlagClass {
+                read_flag: star_rs::SoloReadFlagClass {
                     flag: 11,
                     ..Default::default()
                 },
@@ -4593,12 +4593,12 @@ fn solo_feature_cell_filtering_knee_and_emptydrops_request_follow_simple_filter(
         },
         cell_filter: SoloCellFilter {
             type_: vec!["EmptyDrops_CR".to_string()],
-            knee: star_rs::generated::structs::SoloCellFilterKnee {
+            knee: star_rs::SoloCellFilterKnee {
                 n_expected_cells: 2.0,
                 max_percentile: 0.5,
                 max_min_ratio: 2.0,
             },
-            ed_cr: star_rs::generated::structs::SoloCellFilterEmptyDropsCr {
+            ed_cr: star_rs::SoloCellFilterEmptyDropsCr {
                 ind_min: 10,
                 ..Default::default()
             },
@@ -4654,7 +4654,7 @@ fn solo_feature_emptydrops_cr_promotes_candidate_cells() {
             ..Default::default()
         },
         cell_filter: SoloCellFilter {
-            ed_cr: star_rs::generated::structs::SoloCellFilterEmptyDropsCr {
+            ed_cr: star_rs::SoloCellFilterEmptyDropsCr {
                 ind_min: 3,
                 ind_max: 5,
                 umi_min: 1,
@@ -4856,7 +4856,7 @@ fn solo_feature_sum_threads_restart_reports_malformed_records_without_panic() {
 fn parameters_sam_attributes_expands_presets_and_quant_orders() {
     let mut p = Parameters {
         out_sam_attributes: vec!["Standard".to_string()],
-        out_sam_attr_present: star_rs::generated::structs::SamAttrPresent {
+        out_sam_attr_present: star_rs::SamAttrPresent {
             v_w: true,
             ..Default::default()
         },
@@ -5203,7 +5203,7 @@ fn read_align_pe_overlap_se_to_pe_converts_scores_and_selects_best_windows() {
             Vec::new(),
             vec![0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0],
         ],
-        pe_ov: star_rs::generated::structs::ReadAlignPeOverlap {
+        pe_ov: star_rs::ReadAlignPeOverlap {
             mate_start: [0, 4],
             ..Default::default()
         },
@@ -5865,7 +5865,7 @@ fn solo_input_feature_umi_matches_formatted_stream_extraction() {
     let mut feature = 999;
     let mut umi = 0;
     let mut feat_vec = vec![99];
-    let mut flags = star_rs::generated::structs::SoloReadFlagClass::default();
+    let mut flags = star_rs::SoloReadFlagClass::default();
 
     let mut gene_tokens = "17 123 5 42 1".split_whitespace();
     assert!(
@@ -5956,7 +5956,7 @@ fn solo_input_feature_umi_reports_malformed_records_without_panic() {
     let mut feature = 0;
     let mut umi = 0;
     let mut feat_vec = Vec::new();
-    let mut flags = star_rs::generated::structs::SoloReadFlagClass::default();
+    let mut flags = star_rs::SoloReadFlagClass::default();
 
     let mut bad_umi = "bad 42 1".split_whitespace();
     assert!(
@@ -7101,7 +7101,7 @@ fn solo_feature_process_records_orchestrates_standard_counting_and_outputs() {
                 q[70] = 10;
                 q
             },
-            stats: star_rs::generated::structs::SoloReadBarcodeStats {
+            stats: star_rs::SoloReadBarcodeStats {
                 names: (0..12).map(|ii| format!("bc{ii}")).collect(),
                 v: vec![0; 12],
             },
@@ -7109,7 +7109,7 @@ fn solo_feature_process_records_orchestrates_standard_counting_and_outputs() {
         }),
         read_feat_sum: Some(SoloReadFeature {
             cb_read_count: vec![1],
-            stats: star_rs::generated::structs::SoloReadFeatureStats {
+            stats: star_rs::SoloReadFeatureStats {
                 names: stats_names,
                 v: stats_v,
             },
@@ -7278,7 +7278,7 @@ fn solo_feature_process_records_loads_sj_rows_and_returns_after_quant_transcript
             q[70] = 1;
             q
         },
-        stats: star_rs::generated::structs::SoloReadBarcodeStats {
+        stats: star_rs::SoloReadBarcodeStats {
             names: (0..12).map(|ii| format!("bc{ii}")).collect(),
             v: vec![0; 12],
         },
@@ -7288,7 +7288,7 @@ fn solo_feature_process_records_loads_sj_rows_and_returns_after_quant_transcript
     stats_v[SOLO_READ_FEATURE_STAT_YES_SUB_WL_MATCH_UNIQUE_FEATURE] = 1;
     stats_v[SOLO_READ_FEATURE_STAT_YES_UMIS] = 1;
     solo_feature.read_feat_sum = Some(SoloReadFeature {
-        stats: star_rs::generated::structs::SoloReadFeatureStats {
+        stats: star_rs::SoloReadFeatureStats {
             names: (0..SOLO_READ_FEATURE_N_STATS)
                 .map(|ii| format!("stat{ii}"))
                 .collect(),
@@ -7384,7 +7384,7 @@ fn solo_process_and_output_collects_barcodes_and_dispatches_features() {
             cb_wl_size: 1,
             cb_read_count_exact: vec![2],
             qual_hist: vec![0; 256],
-            stats: star_rs::generated::structs::SoloReadBarcodeStats {
+            stats: star_rs::SoloReadBarcodeStats {
                 names: (0..12).map(|ii| format!("bc{ii}")).collect(),
                 v: vec![0; 12],
             },
@@ -7394,7 +7394,7 @@ fn solo_process_and_output_collects_barcodes_and_dispatches_features() {
             feature_type: SOLO_FEATURE_GENE,
             features_number: 1,
             read_bar_sum: Some(SoloReadBarcode {
-                stats: star_rs::generated::structs::SoloReadBarcodeStats {
+                stats: star_rs::SoloReadBarcodeStats {
                     names: (0..12).map(|ii| format!("bc{ii}")).collect(),
                     v: vec![0; 12],
                 },
@@ -7407,7 +7407,7 @@ fn solo_process_and_output_collects_barcodes_and_dispatches_features() {
             }),
             read_feat_sum: Some(SoloReadFeature {
                 cb_read_count: vec![1],
-                stats: star_rs::generated::structs::SoloReadFeatureStats {
+                stats: star_rs::SoloReadFeatureStats {
                     names: (0..SOLO_READ_FEATURE_N_STATS)
                         .map(|ii| format!("stat{ii}"))
                         .collect(),
@@ -7443,7 +7443,7 @@ fn solo_process_and_output_collects_barcodes_and_dispatches_features() {
                         q[70] = 2;
                         q
                     },
-                    stats: star_rs::generated::structs::SoloReadBarcodeStats {
+                    stats: star_rs::SoloReadBarcodeStats {
                         names: (0..12).map(|ii| format!("bc{ii}")).collect(),
                         v: vec![1; 12],
                     },
@@ -7536,7 +7536,7 @@ fn solo_process_and_output_returns_after_barcode_stats_for_cb_sam_tag_out() {
             ..Default::default()
         },
         read_bar_sum: Some(SoloReadBarcode {
-            stats: star_rs::generated::structs::SoloReadBarcodeStats {
+            stats: star_rs::SoloReadBarcodeStats {
                 names: vec!["ok".to_string()],
                 v: vec![7],
             },
@@ -8028,7 +8028,7 @@ fn read_align_wasp_map_rejects_changed_remap_alignment() {
 #[test]
 fn transcriptome_gene_counts_add_align_updates_none_ambig_multi_and_stranded_counts() {
     let mut transcriptome = Transcriptome {
-        ex_g: star_rs::generated::structs::TranscriptomeExG {
+        ex_g: star_rs::TranscriptomeExG {
             n_ex: 3,
             s: vec![10, 30, 60],
             e: vec![50, 90, 120],
@@ -8168,7 +8168,7 @@ fn transcriptome_align_exon_overlap_prioritizes_overlap_types_and_counts_sense_o
         str_: 0,
         ..Default::default()
     };
-    let mut ann = star_rs::generated::structs::ReadAnnotFeature::default();
+    let mut ann = star_rs::ReadAnnotFeature::default();
     transcriptome_alignexonoverlap_l10_transcriptome_alignexonoverlap(
         &transcriptome,
         1,
@@ -8186,7 +8186,7 @@ fn transcriptome_align_exon_overlap_prioritizes_overlap_types_and_counts_sense_o
         str_: 0,
         ..Default::default()
     };
-    let mut ann_as = star_rs::generated::structs::ReadAnnotFeature::default();
+    let mut ann_as = star_rs::ReadAnnotFeature::default();
     transcriptome_alignexonoverlap_l10_transcriptome_alignexonoverlap(
         &transcriptome,
         1,
@@ -8206,7 +8206,7 @@ fn transcriptome_align_exon_overlap_prioritizes_overlap_types_and_counts_sense_o
         str_: 0,
         ..Default::default()
     };
-    let mut ann_partial = star_rs::generated::structs::ReadAnnotFeature::default();
+    let mut ann_partial = star_rs::ReadAnnotFeature::default();
     transcriptome_alignexonoverlap_l10_transcriptome_alignexonoverlap(
         &transcriptome,
         1,
@@ -8222,7 +8222,7 @@ fn transcriptome_align_exon_overlap_prioritizes_overlap_types_and_counts_sense_o
         n_exons: 1,
         ..Default::default()
     };
-    let mut ann_outside = star_rs::generated::structs::ReadAnnotFeature::default();
+    let mut ann_outside = star_rs::ReadAnnotFeature::default();
     transcriptome_alignexonoverlap_l10_transcriptome_alignexonoverlap(
         &transcriptome,
         1,
@@ -9016,7 +9016,7 @@ fn transcriptome_gene_full_align_overlap_scans_blocks_and_strand_filters() {
         },
     ];
 
-    let mut ann = star_rs::generated::structs::ReadAnnotFeature::default();
+    let mut ann = star_rs::ReadAnnotFeature::default();
     transcriptome_genefullalignoverlap_l5_transcriptome_genefullalignoverlap(
         &transcriptome,
         2,
@@ -9030,7 +9030,7 @@ fn transcriptome_gene_full_align_overlap_scans_blocks_and_strand_filters() {
     assert_eq!(ann.f_align[1], std::collections::BTreeSet::from([202, 303]));
     assert_eq!(ann.ov_type, 0);
 
-    let mut strand_filtered = star_rs::generated::structs::ReadAnnotFeature::default();
+    let mut strand_filtered = star_rs::ReadAnnotFeature::default();
     transcriptome_genefullalignoverlap_l5_transcriptome_genefullalignoverlap(
         &transcriptome,
         2,
@@ -9054,11 +9054,11 @@ fn transcriptome_gene_full_align_overlap_scans_blocks_and_strand_filters() {
 
 #[test]
 fn transcriptome_gene_full_exon_over_intron_prioritizes_exonic_then_intronic() {
-    let mut concordant = star_rs::generated::structs::ReadAnnotFeature::default();
+    let mut concordant = star_rs::ReadAnnotFeature::default();
     concordant.f_set.insert(17);
     concordant.f_align = vec![std::collections::BTreeSet::from([17])];
     concordant.ov_type = 0;
-    let mut ann = star_rs::generated::structs::ReadAnnotFeature::default();
+    let mut ann = star_rs::ReadAnnotFeature::default();
     transcriptome_genefullalignoverlap_exonoverintron_l5_transcriptome_genefullalignoverlap_exonoverintron(
         &Transcriptome::default(),
         1,
@@ -9095,14 +9095,14 @@ fn transcriptome_gene_full_exon_over_intron_prioritizes_exonic_then_intronic() {
             ..Default::default()
         },
     ];
-    let mut intronic = star_rs::generated::structs::ReadAnnotFeature::default();
+    let mut intronic = star_rs::ReadAnnotFeature::default();
     transcriptome_genefullalignoverlap_exonoverintron_l5_transcriptome_genefullalignoverlap_exonoverintron(
         &transcriptome,
         2,
         &aligns,
         -1,
         &mut intronic,
-        &star_rs::generated::structs::ReadAnnotFeature::default(),
+        &star_rs::ReadAnnotFeature::default(),
     );
     assert_eq!(intronic.ov_type, 5);
     assert_eq!(
@@ -9119,14 +9119,14 @@ fn transcriptome_gene_full_exon_over_intron_prioritizes_exonic_then_intronic() {
         std::collections::BTreeSet::from([202, 303])
     );
 
-    let mut strand_filtered = star_rs::generated::structs::ReadAnnotFeature::default();
+    let mut strand_filtered = star_rs::ReadAnnotFeature::default();
     transcriptome_genefullalignoverlap_exonoverintron_l5_transcriptome_genefullalignoverlap_exonoverintron(
         &transcriptome,
         2,
         &aligns,
         0,
         &mut strand_filtered,
-        &star_rs::generated::structs::ReadAnnotFeature::default(),
+        &star_rs::ReadAnnotFeature::default(),
     );
     assert_eq!(
         strand_filtered.f_set,
@@ -9423,7 +9423,7 @@ fn read_align_output_transcript_sam_formats_paired_mapped_records() {
             ATTR_RG,
             ATTR_HA,
         ],
-        out_sam_attr_present: star_rs::generated::structs::SamAttrPresent {
+        out_sam_attr_present: star_rs::SamAttrPresent {
             nm: true,
             md: true,
             mc: true,
@@ -9747,7 +9747,7 @@ fn read_align_aligned_annotation_dispatches_enabled_quantifiers() {
         tr_gene: vec![0],
         ex_se: vec![0, 50],
         ex_len_cum: vec![0],
-        ex_g: star_rs::generated::structs::TranscriptomeExG {
+        ex_g: star_rs::TranscriptomeExG {
             n_ex: 1,
             s: vec![70],
             e: vec![90],
@@ -10031,7 +10031,7 @@ fn read_align_chimeric_detection_old_output_writes_sam_junction_and_bam_request(
         out_sam_flag_and: 0xffff,
         out_sam_attr_ih_start: 1,
         out_sam_attr_order: vec![ATTR_NH, ATTR_HI, ATTR_AS, ATTR_NM_LOWER, ATTR_RG],
-        out_sam_attr_present: star_rs::generated::structs::SamAttrPresent {
+        out_sam_attr_present: star_rs::SamAttrPresent {
             rg: true,
             ..Default::default()
         },
@@ -12085,7 +12085,7 @@ fn solo_read_feature_input_records_counts_exact_rescued_and_rejected_records() {
             "105 4 0 4294967295 0 0".to_string(),
         ]
         .join("\n"),
-        stats: star_rs::generated::structs::SoloReadFeatureStats {
+        stats: star_rs::SoloReadFeatureStats {
             v: vec![0; SOLO_READ_FEATURE_N_STATS],
             ..Default::default()
         },
@@ -12162,7 +12162,7 @@ fn solo_read_feature_input_records_reports_malformed_cb_without_panic() {
         read_info_yes: true,
         read_index_yes: true,
         stream_reads: "101 0 0 7 0 not_a_cb".to_string(),
-        stats: star_rs::generated::structs::SoloReadFeatureStats {
+        stats: star_rs::SoloReadFeatureStats {
             v: vec![0; SOLO_READ_FEATURE_N_STATS],
             ..Default::default()
         },
@@ -12256,7 +12256,7 @@ fn solo_feature_count_cbgene_umi_reads_records_and_collapses_exact_umis() {
             format!("202 4 {} 9 0 1", read_flag_unique),
         ]
         .join("\n"),
-        stats: star_rs::generated::structs::SoloReadFeatureStats {
+        stats: star_rs::SoloReadFeatureStats {
             v: vec![0; SOLO_READ_FEATURE_N_STATS],
             ..Default::default()
         },
@@ -12271,7 +12271,7 @@ fn solo_feature_count_cbgene_umi_reads_records_and_collapses_exact_umis() {
         }),
         read_feat_sum: Some(SoloReadFeature {
             cb_read_count: vec![3, 2],
-            stats: star_rs::generated::structs::SoloReadFeatureStats {
+            stats: star_rs::SoloReadFeatureStats {
                 v: vec![0; SOLO_READ_FEATURE_N_STATS],
                 ..Default::default()
             },
@@ -12592,7 +12592,7 @@ fn solo_feature_count_velocyto_intersects_umis_and_classifies_counts() {
         ind_cb_wl: vec![0, 1],
         read_feat_sum: Some(SoloReadFeature {
             cb_read_count: vec![4, 3],
-            stats: star_rs::generated::structs::SoloReadFeatureStats {
+            stats: star_rs::SoloReadFeatureStats {
                 v: vec![0; SOLO_READ_FEATURE_N_STATS],
                 ..Default::default()
             },
@@ -12676,7 +12676,7 @@ fn solo_feature_count_velocyto_reports_malformed_records_without_panic() {
         n_reads_mapped: 1,
         read_feat_sum: Some(SoloReadFeature {
             cb_read_count: vec![1],
-            stats: star_rs::generated::structs::SoloReadFeatureStats {
+            stats: star_rs::SoloReadFeatureStats {
                 v: vec![0; SOLO_READ_FEATURE_N_STATS],
                 ..Default::default()
             },
@@ -12733,7 +12733,7 @@ fn solo_feature_count_smartseq_collapses_feature_umis_per_cell() {
         -1,
     );
     read_feat_sum.cb_read_count = vec![4, 2];
-    read_feat_sum.stats = star_rs::generated::structs::SoloReadFeatureStats {
+    read_feat_sum.stats = star_rs::SoloReadFeatureStats {
         names: vec![],
         v: vec![0; SOLO_READ_FEATURE_N_STATS],
     };
@@ -12741,7 +12741,7 @@ fn solo_feature_count_smartseq_collapses_feature_umis_per_cell() {
         SoloReadFeature {
             stream_reads: concat!("10 5 0 0\n", "10 5 0 0\n", "11 5 0 0\n", "20 3 0 0\n",)
                 .to_string(),
-            stats: star_rs::generated::structs::SoloReadFeatureStats {
+            stats: star_rs::SoloReadFeatureStats {
                 names: vec![],
                 v: {
                     let mut v = vec![0; SOLO_READ_FEATURE_N_STATS];
@@ -12753,7 +12753,7 @@ fn solo_feature_count_smartseq_collapses_feature_umis_per_cell() {
         },
         SoloReadFeature {
             stream_reads: concat!("30 5 0 1\n", "30 5 0 1\n").to_string(),
-            stats: star_rs::generated::structs::SoloReadFeatureStats {
+            stats: star_rs::SoloReadFeatureStats {
                 names: vec![],
                 v: {
                     let mut v = vec![0; SOLO_READ_FEATURE_N_STATS];
@@ -12828,7 +12828,7 @@ fn solo_feature_count_smartseq_reports_malformed_cb_without_panic() {
         -1,
     );
     read_feat_sum.cb_read_count = vec![1];
-    read_feat_sum.stats = star_rs::generated::structs::SoloReadFeatureStats {
+    read_feat_sum.stats = star_rs::SoloReadFeatureStats {
         names: vec![],
         v: vec![0; SOLO_READ_FEATURE_N_STATS],
     };
@@ -12840,7 +12840,7 @@ fn solo_feature_count_smartseq_reports_malformed_cb_without_panic() {
         read_feat_sum: Some(read_feat_sum),
         read_feat_all: vec![SoloReadFeature {
             stream_reads: "10 5 0 not_a_cb\n".to_string(),
-            stats: star_rs::generated::structs::SoloReadFeatureStats {
+            stats: star_rs::SoloReadFeatureStats {
                 names: vec![],
                 v: vec![0; SOLO_READ_FEATURE_N_STATS],
             },

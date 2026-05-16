@@ -2,7 +2,7 @@ use std::collections::BTreeSet;
 use std::fs;
 
 use crate::cli::{PARAMETERS_DEFAULT, load_genome_from_parameters, parameter_files_from_args};
-use crate::generated::functions::{
+use crate::{
     parameters_l310_parameters_inputparameters,
     parameterschimeric_initialize_l6_parameterschimeric_initialize,
     readalignchunk_l5_readalignchunk_readalignchunk,
@@ -11,7 +11,7 @@ use crate::generated::functions::{
     stats_l62_stats_progressreportheader, timefunctions_l14_timemonthdaytime,
     twopassrunpass1_l9_twopassrunpass1,
 };
-use crate::generated::structs::{
+use crate::{
     Genome, Parameters, ReadAlignChunk, ReadAlignChunkProcessChunksResult, StarMainResult, Stats,
     Transcriptome,
 };
@@ -106,7 +106,7 @@ impl DirectStarRun {
             result.genome = Some(genome.clone());
         }
 
-        let mut sjdb_loci = crate::generated::structs::SjdbClass::default();
+        let mut sjdb_loci = crate::SjdbClass::default();
         if parameters.sjdb_insert_yes {
             let genome_main1 = genome.clone();
             let sjdb = sjdbinsertjunctions_l11_sjdbinsertjunctions(

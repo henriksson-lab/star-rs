@@ -3,12 +3,12 @@ use std::collections::BTreeSet;
 use std::io::Write;
 use std::path::Path;
 
-use crate::generated::functions::{
+use crate::{
     genome_genomeload_l18_genome_genomeload, genome_l15_genome_genome,
     parameters_l310_parameters_inputparameters, star_l58_main,
     transcriptome_l7_transcriptome_transcriptome, transcriptome_l156_transcriptome_quantsoutput,
 };
-use crate::generated::structs::{Parameters, StarMainResult, Transcriptome};
+use crate::{Parameters, StarMainResult, Transcriptome};
 
 pub const PARAMETERS_DEFAULT: &str = include_str!("parametersDefault");
 
@@ -241,7 +241,7 @@ pub fn run_cli(args: &[String]) -> Result<StarMainResult, String> {
             exon_ge_tr_info.as_deref(),
         )?;
         if parameters.quant_ge_count_yes {
-            crate::generated::functions::transcriptome_l150_transcriptome_quantsallocate(
+            crate::transcriptome_l150_transcriptome_quantsallocate(
                 &mut transcriptome,
                 true,
             );
@@ -666,7 +666,7 @@ pub fn existing_read_files_from_args(
 
 pub fn load_genome_from_parameters(
     parameters: &mut Parameters,
-) -> Result<crate::generated::structs::Genome, String> {
+) -> Result<crate::Genome, String> {
     let mut genome = genome_l15_genome_genome(parameters.p_ge.clone());
     let genome_dir = Path::new(&parameters.p_ge.g_dir);
     let genome_parameters =

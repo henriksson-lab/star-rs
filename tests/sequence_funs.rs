@@ -1,4 +1,4 @@
-use star_rs::generated::functions::*;
+use star_rs::*;
 
 #[test]
 fn sequence_reverse_complement_and_numeric_complement_match_star_tables() {

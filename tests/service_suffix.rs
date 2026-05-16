@@ -1,5 +1,5 @@
-use star_rs::generated::functions::*;
-use star_rs::generated::structs::{
+use star_rs::*;
+use star_rs::{
     Genome, PackedArray, Parameters, ParametersGenome, ReadAlign, StoredAlign, Transcript,
 };
 

@@ -1,9 +1,9 @@
-use star_rs::generated::functions::*;
-use star_rs::generated::structs::{
+use star_rs::*;
+use star_rs::{
     ChimericSegment, ClipMate, Genome, GenomeOut, Parameters, ParametersChimeric, ParametersGenome,
     ReadAlign, SharedMemory, Stats, Transcript, Variation,
 };
-use star_rs::generated::structs::{SoloReadFeature, SoloReadFeatureStats};
+use star_rs::{SoloReadFeature, SoloReadFeatureStats};
 
 fn bam_record(name: &[u8], pos: u32, flag: u32, cigar: &[u32]) -> Vec<u32> {
     bam_record_with_seq(name, pos, flag, cigar, 0, &[])

@@ -3,2961 +3,2961 @@
 
 [[entries]]
 rust = "parameters_readsamheader_l6_parameters_readsamheader"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/parameters_read_sam_header.rs"
 other = "Parameters::readSAMheader"
 other_path = "STAR/source/Parameters_readSAMheader.cpp"
 other_line = 6
 
 [[entries]]
 rust = "solofeature_outputresults_l12_solofeature_outputresults"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/solo_feature_output_results.rs"
 other = "SoloFeature::outputResults"
 other_path = "STAR/source/SoloFeature_outputResults.cpp"
 other_line = 12
 
 [[entries]]
 rust = "clipcr4_l3_clipcr4_clipcr4"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/clip_cr4.rs"
 other = "ClipCR4::ClipCR4"
 other_path = "STAR/source/ClipCR4.cpp"
 other_line = 3
 
 [[entries]]
 rust = "clipcr4_l43_clipcr4_opalfilloneseq"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/clip_cr4.rs"
 other = "ClipCR4::opalFillOneSeq"
 other_path = "STAR/source/ClipCR4.cpp"
 other_line = 43
 
 [[entries]]
 rust = "clipcr4_l72_clipcr4_opalalign"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/clip_cr4.rs"
 other = "ClipCR4::opalAlign"
 other_path = "STAR/source/ClipCR4.cpp"
 other_line = 72
 
 [[entries]]
 rust = "clipcr4_l82_clipcr4_polytail3p"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/clip_cr4.rs"
 other = "ClipCR4::polyTail3p"
 other_path = "STAR/source/ClipCR4.cpp"
 other_line = 82
 
 [[entries]]
 rust = "solofeature_sumthreads_l8_solofeature_sumthreads"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/solo_feature_sum_threads.rs"
 other = "SoloFeature::sumThreads"
 other_path = "STAR/source/SoloFeature_sumThreads.cpp"
 other_line = 8
 
 [[entries]]
 rust = "parametersgenome_l5_parametersgenome_initialize"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/parameters_genome.rs"
 other = "ParametersGenome::initialize"
 other_path = "STAR/source/ParametersGenome.cpp"
 other_line = 5
 
 [[entries]]
 rust = "bamoutput_l9_bamoutput_bamoutput"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/bam_output.rs"
 other = "BAMoutput::BAMoutput"
 other_path = "STAR/source/BAMoutput.cpp"
 other_line = 9
 
 [[entries]]
 rust = "bamoutput_l36_bamoutput_bamoutput"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/bam_output.rs"
 other = "BAMoutput::BAMoutput"
 other_path = "STAR/source/BAMoutput.cpp"
 other_line = 36
 
 [[entries]]
 rust = "bamoutput_l52_bamoutput_unsortedonealign"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/bam_output.rs"
 other = "BAMoutput::unsortedOneAlign"
 other_path = "STAR/source/BAMoutput.cpp"
 other_line = 52
 
 [[entries]]
 rust = "bamoutput_l70_bamoutput_unsortedflush"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/bam_output.rs"
 other = "BAMoutput::unsortedFlush"
 other_path = "STAR/source/BAMoutput.cpp"
 other_line = 70
 
 [[entries]]
 rust = "bamoutput_l77_bamoutput_coordonealign"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/bam_output.rs"
 other = "BAMoutput::coordOneAlign"
 other_path = "STAR/source/BAMoutput.cpp"
 other_line = 77
 
 [[entries]]
 rust = "bamoutput_l118_bamoutput_coordbins"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/bam_output.rs"
 other = "BAMoutput::coordBins"
 other_path = "STAR/source/BAMoutput.cpp"
 other_line = 118
 
 [[entries]]
 rust = "bamoutput_l168_bamoutput_coordflush"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/bam_output.rs"
 other = "BAMoutput::coordFlush"
 other_path = "STAR/source/BAMoutput.cpp"
 other_line = 168
 
 [[entries]]
 rust = "bamoutput_l179_bamoutput_coordunmappedpreparebysjout"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/bam_output.rs"
 other = "BAMoutput::coordUnmappedPrepareBySJout"
 other_path = "STAR/source/BAMoutput.cpp"
 other_line = 179
 
 [[entries]]
 rust = "bamremoveduplicates_l13_funcomparenames"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/bam_remove_duplicates.rs"
 other = "funCompareNames"
 other_path = "STAR/source/bamRemoveDuplicates.cpp"
 other_line = 13
 
 [[entries]]
 rust = "bamremoveduplicates_l34_funstartextends"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/bam_remove_duplicates.rs"
 other = "funStartExtendS"
 other_path = "STAR/source/bamRemoveDuplicates.cpp"
 other_line = 34
 
 [[entries]]
 rust = "bamremoveduplicates_l43_funcigarextends"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/bam_remove_duplicates.rs"
 other = "funCigarExtendS"
 other_path = "STAR/source/bamRemoveDuplicates.cpp"
 other_line = 43
 
 [[entries]]
 rust = "bamremoveduplicates_l61_funcomparecigarsextends"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/bam_remove_duplicates.rs"
 other = "funCompareCigarsExtendS"
 other_path = "STAR/source/bamRemoveDuplicates.cpp"
 other_line = 61
 
 [[entries]]
 rust = "bamremoveduplicates_l72_funcomparecoordflagcigarseq"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/bam_remove_duplicates.rs"
 other = "funCompareCoordFlagCigarSeq"
 other_path = "STAR/source/bamRemoveDuplicates.cpp"
 other_line = 72
 
 [[entries]]
 rust = "bamremoveduplicates_l114_bamremoveduplicates"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/bam_remove_duplicates.rs"
 other = "bamRemoveDuplicates"
 other_path = "STAR/source/bamRemoveDuplicates.cpp"
 other_line = 114
 
 [[entries]]
 rust = "bamsortbycoordinate_l8_bamsortbycoordinate"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/bam_sort_by_coordinate.rs"
 other = "bamSortByCoordinate"
 other_path = "STAR/source/bamSortByCoordinate.cpp"
 other_line = 8
 
 [[entries]]
 rust = "transcript_generatecigarp_l4_transcript_generatecigarp"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/transcript_generate_cigar_p.rs"
 other = "Transcript::generateCigarP"
 other_path = "STAR/source/Transcript_generateCigarP.cpp"
 other_line = 4
 
 [[entries]]
 rust = "readalign_assignaligntowindow_l6_readalign_assignaligntowindow"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/read_align_assign_align_to_window.rs"
 other = "ReadAlign::assignAlignToWindow"
 other_path = "STAR/source/ReadAlign_assignAlignToWindow.cpp"
 other_line = 6
 
 [[entries]]
 rust = "parametersclip_initialize_l6_parametersclip_initialize"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/parameters_clip_initialize.rs"
 other = "ParametersClip::initialize"
 other_path = "STAR/source/ParametersClip_initialize.cpp"
 other_line = 6
 
 [[entries]]
 rust = "parametersclip_initialize_l84_parametersclip_initializeclipmates"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/parameters_clip_initialize.rs"
 other = "ParametersClip::initializeClipMates"
 other_path = "STAR/source/ParametersClip_initialize.cpp"
 other_line = 84
 
 [[entries]]
 rust = "readalign_chimericdetectionold_l7_readalign_chimericdetectionold"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/read_align_chimeric_detection_old.rs"
 other = "ReadAlign::chimericDetectionOld"
 other_path = "STAR/source/ReadAlign_chimericDetectionOld.cpp"
 other_line = 7
 
 [[entries]]
 rust = "inoutstreams_l4_inoutstreams_inoutstreams"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/in_out_streams.rs"
 other = "InOutStreams::InOutStreams"
 other_path = "STAR/source/InOutStreams.cpp"
 other_line = 4
 
 [[entries]]
 rust = "inoutstreams_l11_inoutstreams_inoutstreams"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/in_out_streams.rs"
 other = "InOutStreams::~InOutStreams"
 other_path = "STAR/source/InOutStreams.cpp"
 other_line = 11
 
 [[entries]]
 rust = "stringsubstituteall_l3_stringsubstituteall"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/string_substitute_all.rs"
 other = "stringSubstituteAll"
 other_path = "STAR/source/stringSubstituteAll.cpp"
 other_line = 3
 
 [[entries]]
 rust = "readalign_alignbam_l9_readalign_samattrnm_md"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/read_align_align_bam.rs"
 other = "ReadAlign::samAttrNM_MD"
 other_path = "STAR/source/ReadAlign_alignBAM.cpp"
 other_line = 9
 
 [[entries]]
 rust = "readalign_alignbam_l47_readalign_alignbam"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/read_align_align_bam.rs"
 other = "ReadAlign::alignBAM"
 other_path = "STAR/source/ReadAlign_alignBAM.cpp"
 other_line = 47
 
 [[entries]]
 rust = "solofeature_loadrawmatrix_l7_solofeature_loadrawmatrix"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/solo_feature_load_raw_matrix.rs"
 other = "SoloFeature::loadRawMatrix"
 other_path = "STAR/source/SoloFeature_loadRawMatrix.cpp"
 other_line = 7
 
 [[entries]]
 rust = "solofeature_emptydrops_cr_l10_solofeature_emptydrops_cr"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/solo_feature_empty_drops_cr.rs"
 other = "SoloFeature::emptyDrops_CR"
 other_path = "STAR/source/SoloFeature_emptyDrops_CR.cpp"
 other_line = 10
 
 [[entries]]
 rust = "solofeature_emptydrops_cr_l219_logmultinomialpdfsparse"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/solo_feature_empty_drops_cr.rs"
 other = "logMultinomialPDFsparse"
 other_path = "STAR/source/SoloFeature_emptyDrops_CR.cpp"
 other_line = 219
 
 [[entries]]
 rust = "chimericalign_l3_chimericalign_chimericalign"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/chimeric_align.rs"
 other = "ChimericAlign::ChimericAlign"
 other_path = "STAR/source/ChimericAlign.cpp"
 other_line = 3
 
 [[entries]]
 rust = "chimericalign_l17_chimericalign_chimericcheck"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/chimeric_align.rs"
 other = "ChimericAlign::chimericCheck"
 other_path = "STAR/source/ChimericAlign.cpp"
 other_line = 17
 
 [[entries]]
 rust = "readalign_mappedfilter_l3_readalign_mappedfilter"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/read_align_mapped_filter.rs"
 other = "ReadAlign::mappedFilter"
 other_path = "STAR/source/ReadAlign_mappedFilter.cpp"
 other_line = 3
 
 [[entries]]
 rust = "readalign_chimericdetectionpemerged_l5_readalign_chimericdetectionpemerged"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/read_align_chimeric_detection_pe_merged.rs"
 other = "ReadAlign::chimericDetectionPEmerged"
 other_path = "STAR/source/ReadAlign_chimericDetectionPEmerged.cpp"
 other_line = 5
 
 [[entries]]
 rust = "solofeature_l4_solofeature_solofeature"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/solo_feature.rs"
 other = "SoloFeature::SoloFeature"
 other_path = "STAR/source/SoloFeature.cpp"
 other_line = 4
 
 [[entries]]
 rust = "solofeature_l29_solofeature_clearlarge"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/solo_feature.rs"
 other = "SoloFeature::clearLarge"
 other_path = "STAR/source/SoloFeature.cpp"
 other_line = 29
 
 [[entries]]
 rust = "solofeature_countvelocyto_l12_solofeature_countvelocyto"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/solo_feature_count_velocyto.rs"
 other = "SoloFeature::countVelocyto"
 other_path = "STAR/source/SoloFeature_countVelocyto.cpp"
 other_line = 12
 
 [[entries]]
 rust = "sjdbbuildindex_l16_sjdbbuildindex"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/sjdb_build_index.rs"
 other = "sjdbBuildIndex"
 other_path = "STAR/source/sjdbBuildIndex.cpp"
 other_line = 16
 
 [[entries]]
 rust = "genomesaindex_l6_genomesaindex"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/genome_sa_index.rs"
 other = "genomeSAindex"
 other_path = "STAR/source/genomeSAindex.cpp"
 other_line = 6
 
 [[entries]]
 rust = "genomesaindex_l117_genomesaindexchunk"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/genome_sa_index.rs"
 other = "genomeSAindexChunk"
 other_path = "STAR/source/genomeSAindex.cpp"
 other_line = 117
 
 [[entries]]
 rust = "genomesaindex_l178_funsaifindnextindex"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/genome_sa_index.rs"
 other = "funSAiFindNextIndex"
 other_path = "STAR/source/genomeSAindex.cpp"
 other_line = 178
 
 [[entries]]
 rust = "gtf_transcriptgenesj_l23_gtf_transcriptgenesj"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/gtf_transcript_gene_sj.rs"
 other = "GTF::transcriptGeneSJ"
 other_path = "STAR/source/GTF_transcriptGeneSJ.cpp"
 other_line = 23
 
 [[entries]]
 rust = "soloreadfeature_inputrecords_l8_soloreadfeature_inputrecords"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/solo_read_feature_input_records.rs"
 other = "SoloReadFeature::inputRecords"
 other_path = "STAR/source/SoloReadFeature_inputRecords.cpp"
 other_line = 8
 
 [[entries]]
 rust = "transcript_l3_transcript_transcript"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/transcript.rs"
 other = "Transcript::Transcript"
 other_path = "STAR/source/Transcript.cpp"
 other_line = 3
 
 [[entries]]
 rust = "transcript_l8_transcript_reset"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/transcript.rs"
 other = "Transcript::reset"
 other_path = "STAR/source/Transcript.cpp"
 other_line = 8
 
 [[entries]]
 rust = "transcript_l28_transcript_add"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/transcript.rs"
 other = "Transcript::add"
 other_path = "STAR/source/Transcript.cpp"
 other_line = 28
 
 [[entries]]
 rust = "transcript_l38_transcript_extractsplicejunctions"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/transcript.rs"
 other = "Transcript::extractSpliceJunctions"
 other_path = "STAR/source/Transcript.cpp"
 other_line = 38
 
 [[entries]]
 rust = "transcript_l53_transcript_chrstartlengthextended"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/transcript.rs"
 other = "Transcript::chrStartLengthExtended"
 other_path = "STAR/source/Transcript.cpp"
 other_line = 53
 
 [[entries]]
 rust = "readalign_maponereadsplicegraph_l6_readalign_maponereadsplicegraph"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/read_align_map_one_read_splice_graph.rs"
 other = "ReadAlign::mapOneReadSpliceGraph"
 other_path = "STAR/source/ReadAlign_mapOneReadSpliceGraph.cpp"
 other_line = 6
 
 [[entries]]
 rust = "chimericdetection_chimericdetectionmult_l6_chimericalignscore"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/chimeric_detection_chimeric_detection_mult.rs"
 other = "chimericAlignScore"
 other_path = "STAR/source/ChimericDetection_chimericDetectionMult.cpp"
 other_line = 6
 
 [[entries]]
 rust = "chimericdetection_chimericdetectionmult_l23_chimericdetection_chimericdetectionmult"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/chimeric_detection_chimeric_detection_mult.rs"
 other = "ChimericDetection::chimericDetectionMult"
 other_path = "STAR/source/ChimericDetection_chimericDetectionMult.cpp"
 other_line = 23
 
 [[entries]]
 rust = "soloreadbarcode_getcbandumi_l9_soloreadbarcode_matchcbtowl"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/solo_read_barcode_get_cb_and_umi.rs"
 other = "SoloReadBarcode::matchCBtoWL"
 other_path = "STAR/source/SoloReadBarcode_getCBandUMI.cpp"
 other_line = 9
 
 [[entries]]
 rust = "soloreadbarcode_getcbandumi_l93_soloreadbarcode_addstats"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/solo_read_barcode_get_cb_and_umi.rs"
 other = "SoloReadBarcode::addStats"
 other_path = "STAR/source/SoloReadBarcode_getCBandUMI.cpp"
 other_line = 93
 
 [[entries]]
 rust = "soloreadbarcode_getcbandumi_l133_soloreadbarcode_convertcheckumi"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/solo_read_barcode_get_cb_and_umi.rs"
 other = "SoloReadBarcode::convertCheckUMI"
 other_path = "STAR/source/SoloReadBarcode_getCBandUMI.cpp"
 other_line = 133
 
 [[entries]]
 rust = "soloreadbarcode_getcbandumi_l147_soloreadbarcode_getcbandumi"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/solo_read_barcode_get_cb_and_umi.rs"
 other = "SoloReadBarcode::getCBandUMI"
 other_path = "STAR/source/SoloReadBarcode_getCBandUMI.cpp"
 other_line = 147
 
 [[entries]]
 rust = "threadcontrol_l3_threadcontrol_threadcontrol"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/thread_control.rs"
 other = "ThreadControl::ThreadControl"
 other_path = "STAR/source/ThreadControl.cpp"
 other_line = 3
 
 [[entries]]
 rust = "readalign_stitchwindowseeds_l12_readalign_stitchwindowseeds"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/read_align_stitch_window_seeds.rs"
 other = "ReadAlign::stitchWindowSeeds"
 other_path = "STAR/source/ReadAlign_stitchWindowSeeds.cpp"
 other_line = 12
 
 [[entries]]
 rust = "solofeature_statsoutput_l6_solofeature_statsoutput"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/solo_feature_stats_output.rs"
 other = "SoloFeature::statsOutput"
 other_path = "STAR/source/SoloFeature_statsOutput.cpp"
 other_line = 6
 
 [[entries]]
 rust = "readalign_multmapselect_l8_readalign_multmapselect"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/read_align_mult_map_select.rs"
 other = "ReadAlign::multMapSelect"
 other_path = "STAR/source/ReadAlign_multMapSelect.cpp"
 other_line = 8
 
 [[entries]]
 rust = "insertseqsa_l18_insertseqsa"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/insert_seq_sa.rs"
 other = "insertSeqSA"
 other_path = "STAR/source/insertSeqSA.cpp"
 other_line = 18
 
 [[entries]]
 rust = "clipmate_initialize_l5_clipmate_initialize"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/clip_mate_initialize.rs"
 other = "ClipMate::initialize"
 other_path = "STAR/source/ClipMate_initialize.cpp"
 other_line = 5
 
 [[entries]]
 rust = "solofeature_redistributereadsbycb_l8_solofeature_redistributereadsbycb"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/solo_feature_redistribute_reads_by_cb.rs"
 other = "SoloFeature::redistributeReadsByCB"
 other_path = "STAR/source/SoloFeature_redistributeReadsByCB.cpp"
 other_line = 8
 
 [[entries]]
 rust = "splicegraph_swscorespliced_l8_splicegraph_swscorespliced"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/splice_graph_sw_score_spliced.rs"
 other = "SpliceGraph::swScoreSpliced"
 other_path = "STAR/source/SpliceGraph_swScoreSpliced.cpp"
 other_line = 8
 
 [[entries]]
 rust = "genome_genomegenerate_l29_funcomparesuffixes"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/genome_genome_generate.rs"
 other = "funCompareSuffixes"
 other_path = "STAR/source/Genome_genomeGenerate.cpp"
 other_line = 29
 
 [[entries]]
 rust = "genome_genomegenerate_l91_fung2strlocus"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/genome_genome_generate.rs"
 other = "funG2strLocus"
 other_path = "STAR/source/Genome_genomeGenerate.cpp"
 other_line = 91
 
 [[entries]]
 rust = "genome_genomegenerate_l98_genome_genomegenerate"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/genome_genome_generate.rs"
 other = "Genome::genomeGenerate"
 other_path = "STAR/source/Genome_genomeGenerate.cpp"
 other_line = 98
 
 [[entries]]
 rust = "genome_genomegenerate_l417_genome_writechrinfo"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/genome_genome_generate.rs"
 other = "Genome::writeChrInfo"
 other_path = "STAR/source/Genome_genomeGenerate.cpp"
 other_line = 417
 
 [[entries]]
 rust = "genome_genomegenerate_l433_genome_writegenomesequence"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/genome_genome_generate.rs"
 other = "Genome::writeGenomeSequence"
 other_path = "STAR/source/Genome_genomeGenerate.cpp"
 other_line = 433
 
 [[entries]]
 rust = "gtf_supertranscript_l9_gtf_supertranscript"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/gtf_super_transcript.rs"
 other = "GTF::superTranscript"
 other_path = "STAR/source/GTF_superTranscript.cpp"
 other_line = 9
 
 [[entries]]
 rust = "gtf_supertranscript_l232_genome_concatenatechromosomes"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/gtf_super_transcript.rs"
 other = "Genome::concatenateChromosomes"
 other_path = "STAR/source/GTF_superTranscript.cpp"
 other_line = 232
 
 [[entries]]
 rust = "chimericsegment_l3_chimericsegment_chimericsegment"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/chimeric_segment.rs"
 other = "ChimericSegment::ChimericSegment"
 other_path = "STAR/source/ChimericSegment.cpp"
 other_line = 3
 
 [[entries]]
 rust = "chimericsegment_l19_chimericsegment_segmentcheck"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/chimeric_segment.rs"
 other = "ChimericSegment::segmentCheck"
 other_path = "STAR/source/ChimericSegment.cpp"
 other_line = 19
 
 [[entries]]
 rust = "readalign_maxmappablelength2strands_l5_readalign_maxmappablelength2strands"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/read_align_max_mappable_length2strands.rs"
 other = "ReadAlign::maxMappableLength2strands"
 other_path = "STAR/source/ReadAlign_maxMappableLength2strands.cpp"
 other_line = 5
 
 [[entries]]
 rust = "gtf_l7_gtf_gtf"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/gtf.rs"
 other = "GTF::GTF"
 other_path = "STAR/source/GTF.cpp"
 other_line = 7
 
 [[entries]]
 rust = "genomescanfastafiles_l5_genomescanfastafiles"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/genome_scan_fasta_files.rs"
 other = "genomeScanFastaFiles"
 other_path = "STAR/source/genomeScanFastaFiles.cpp"
 other_line = 5
 
 [[entries]]
 rust = "solofeature_cellfiltering_l5_solofeature_cellfiltering"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/solo_feature_cell_filtering.rs"
 other = "SoloFeature::cellFiltering"
 other_path = "STAR/source/SoloFeature_cellFiltering.cpp"
 other_line = 5
 
 [[entries]]
 rust = "genome_insertsequences_l9_genome_insertsequences"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/genome_insert_sequences.rs"
 other = "Genome::insertSequences"
 other_path = "STAR/source/Genome_insertSequences.cpp"
 other_line = 9
 
 [[entries]]
 rust = "readalign_peoverlapmergemap_l4_readalign_peoverlapmergemap"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/read_align_pe_overlap_merge_map.rs"
 other = "ReadAlign::peOverlapMergeMap"
 other_path = "STAR/source/ReadAlign_peOverlapMergeMap.cpp"
 other_line = 4
 
 [[entries]]
 rust = "readalign_peoverlapmergemap_l79_readalign_pemergemates"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/read_align_pe_overlap_merge_map.rs"
 other = "ReadAlign::peMergeMates"
 other_path = "STAR/source/ReadAlign_peOverlapMergeMap.cpp"
 other_line = 79
 
 [[entries]]
 rust = "readalign_peoverlapmergemap_l136_transcript_peoverlapsetope"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/read_align_pe_overlap_merge_map.rs"
 other = "Transcript::peOverlapSEtoPE"
 other_path = "STAR/source/ReadAlign_peOverlapMergeMap.cpp"
 other_line = 136
 
 [[entries]]
 rust = "readalign_peoverlapmergemap_l266_readalign_peoverlapsetope"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/read_align_pe_overlap_merge_map.rs"
 other = "ReadAlign::peOverlapSEtoPE"
 other_path = "STAR/source/ReadAlign_peOverlapMergeMap.cpp"
 other_line = 266
 
 [[entries]]
 rust = "readalign_peoverlapmergemap_l308_readalign_peoverlapchimericsetope"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/read_align_pe_overlap_merge_map.rs"
 other = "ReadAlign::peOverlapChimericSEtoPE"
 other_path = "STAR/source/ReadAlign_peOverlapMergeMap.cpp"
 other_line = 308
 
 [[entries]]
 rust = "transcriptome_quantalign_l5_aligntotranscript"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/transcriptome_quant_align.rs"
 other = "alignToTranscript"
 other_path = "STAR/source/Transcriptome_quantAlign.cpp"
 other_line = 5
 
 [[entries]]
 rust = "transcriptome_quantalign_l91_transcriptome_quantalign"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/transcriptome_quant_align.rs"
 other = "Transcriptome::quantAlign"
 other_path = "STAR/source/Transcriptome_quantAlign.cpp"
 other_line = 91
 
 [[entries]]
 rust = "twopassrunpass1_l9_twopassrunpass1"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/two_pass_run_pass1.rs"
 other = "twoPassRunPass1"
 other_path = "STAR/source/twoPassRunPass1.cpp"
 other_line = 9
 
 [[entries]]
 rust = "outputsj_l7_compareuint"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/output_sj.rs"
 other = "compareUint"
 other_path = "STAR/source/outputSJ.cpp"
 other_line = 7
 
 [[entries]]
 rust = "outputsj_l20_outputsj"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/output_sj.rs"
 other = "outputSJ"
 other_path = "STAR/source/outputSJ.cpp"
 other_line = 20
 
 [[entries]]
 rust = "clipmate_clipchunk_l7_clipmate_clipchunk"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/clip_mate_clip_chunk.rs"
 other = "ClipMate::clipChunk"
 other_path = "STAR/source/ClipMate_clipChunk.cpp"
 other_line = 7
 
 [[entries]]
 rust = "clipmate_clipchunk_l55_findchar"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/clip_mate_clip_chunk.rs"
 other = "findChar"
 other_path = "STAR/source/ClipMate_clipChunk.cpp"
 other_line = 55
 
 [[entries]]
 rust = "star_l36_usage"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/star.rs"
 other = "usage"
 other_path = "STAR/source/STAR.cpp"
 other_line = 36
 
 [[entries]]
 rust = "star_l58_main"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/star.rs"
 other = "main"
 other_path = "STAR/source/STAR.cpp"
 other_line = 58
 
 [[entries]]
 rust = "soloreadfeature_l5_soloreadfeature_soloreadfeature"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/solo_read_feature.rs"
 other = "SoloReadFeature::SoloReadFeature"
 other_path = "STAR/source/SoloReadFeature.cpp"
 other_line = 5
 
 [[entries]]
 rust = "soloreadfeature_l29_soloreadfeature_addcounts"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/solo_read_feature.rs"
 other = "SoloReadFeature::addCounts"
 other_path = "STAR/source/SoloReadFeature.cpp"
 other_line = 29
 
 [[entries]]
 rust = "soloreadfeature_l47_soloreadfeature_addstats"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/solo_read_feature.rs"
 other = "SoloReadFeature::addStats"
 other_path = "STAR/source/SoloReadFeature.cpp"
 other_line = 47
 
 [[entries]]
 rust = "soloreadfeature_l56_soloreadfeature_statsout"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/solo_read_feature.rs"
 other = "SoloReadFeature::statsOut"
 other_path = "STAR/source/SoloReadFeature.cpp"
 other_line = 56
 
 [[entries]]
 rust = "parameters_samattributes_l4_parameters_samattributes"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/parameters_sam_attributes.rs"
 other = "Parameters::samAttributes"
 other_path = "STAR/source/Parameters_samAttributes.cpp"
 other_line = 4
 
 [[entries]]
 rust = "parameters_samattributes_l251_parameters_samattrrequiresbam"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/parameters_sam_attributes.rs"
 other = "Parameters:: samAttrRequiresBAM"
 other_path = "STAR/source/Parameters_samAttributes.cpp"
 other_line = 251
 
 [[entries]]
 rust = "samheaders_l5_samheaders"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/sam_headers.rs"
 other = "samHeaders"
 other_path = "STAR/source/samHeaders.cpp"
 other_line = 5
 
 [[entries]]
 rust = "readalign_outputtranscriptcigarp_l4_readalign_outputtranscriptcigarp"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/read_align_output_transcript_cigar_p.rs"
 other = "ReadAlign::outputTranscriptCIGARp"
 other_path = "STAR/source/ReadAlign_outputTranscriptCIGARp.cpp"
 other_line = 4
 
 [[entries]]
 rust = "readalign_calccigar_l3_readalign_calccigar"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/read_align_calc_cigar.rs"
 other = "ReadAlign::calcCIGAR"
 other_path = "STAR/source/ReadAlign_calcCIGAR.cpp"
 other_line = 3
 
 [[entries]]
 rust = "signalfrombam_l5_signalfrombam"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/signal_from_bam.rs"
 other = "signalFromBAM"
 other_path = "STAR/source/signalFromBAM.cpp"
 other_line = 5
 
 [[entries]]
 rust = "solofeature_quanttranscript_l12_solofeature_quanttranscript"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/solo_feature_quant_transcript.rs"
 other = "SoloFeature::quantTranscript"
 other_path = "STAR/source/SoloFeature_quantTranscript.cpp"
 other_line = 12
 
 [[entries]]
 rust = "solofeature_processrecords_l8_solofeature_processrecords"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/solo_feature_process_records.rs"
 other = "SoloFeature::processRecords"
 other_path = "STAR/source/SoloFeature_processRecords.cpp"
 other_line = 8
 
 [[entries]]
 rust = "blocksoverlap_l3_blocksoverlap"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/blocks_overlap.rs"
 other = "blocksOverlap"
 other_path = "STAR/source/blocksOverlap.cpp"
 other_line = 3
 
 [[entries]]
 rust = "soloreadfeature_record_l20_soloreadfeature_record"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/solo_read_feature_record.rs"
 other = "SoloReadFeature::record"
 other_path = "STAR/source/SoloReadFeature_record.cpp"
 other_line = 20
 
 [[entries]]
 rust = "soloreadfeature_record_l206_outputreadcb"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/solo_read_feature_record.rs"
 other = "outputReadCB"
 other_path = "STAR/source/SoloReadFeature_record.cpp"
 other_line = 206
 
 [[entries]]
 rust = "bamfunctions_l5_bam_cigarstring"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/bam_functions.rs"
 other = "bam_cigarString"
 other_path = "STAR/source/BAMfunctions.cpp"
 other_line = 5
 
 [[entries]]
 rust = "bamfunctions_l30_bam_read1_fromarray"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/bam_functions.rs"
 other = "bam_read1_fromArray"
 other_path = "STAR/source/BAMfunctions.cpp"
 other_line = 30
 
 [[entries]]
 rust = "bamfunctions_l77_outbamwriteheader"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/bam_functions.rs"
 other = "outBAMwriteHeader"
 other_path = "STAR/source/BAMfunctions.cpp"
 other_line = 77
 
 [[entries]]
 rust = "bamfunctions_l95_reg2bin"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/bam_functions.rs"
 other = "reg2bin"
 other_path = "STAR/source/BAMfunctions.cpp"
 other_line = 95
 
 [[entries]]
 rust = "bamfunctions_l106_bamattrarraywrite"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/bam_functions.rs"
 other = "bamAttrArrayWrite"
 other_path = "STAR/source/BAMfunctions.cpp"
 other_line = 106
 
 [[entries]]
 rust = "bamfunctions_l112_bamattrarraywrite"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/bam_functions.rs"
 other = "bamAttrArrayWrite"
 other_path = "STAR/source/BAMfunctions.cpp"
 other_line = 112
 
 [[entries]]
 rust = "bamfunctions_l118_bamattrarraywrite"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/bam_functions.rs"
 other = "bamAttrArrayWrite"
 other_path = "STAR/source/BAMfunctions.cpp"
 other_line = 118
 
 [[entries]]
 rust = "bamfunctions_l124_bamattrarraywrite"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/bam_functions.rs"
 other = "bamAttrArrayWrite"
 other_path = "STAR/source/BAMfunctions.cpp"
 other_line = 124
 
 [[entries]]
 rust = "bamfunctions_l130_bamattrarraywrite"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/bam_functions.rs"
 other = "bamAttrArrayWrite"
 other_path = "STAR/source/BAMfunctions.cpp"
 other_line = 130
 
 [[entries]]
 rust = "bamfunctions_l138_bamattrarraywrite"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/bam_functions.rs"
 other = "bamAttrArrayWrite"
 other_path = "STAR/source/BAMfunctions.cpp"
 other_line = 138
 
 [[entries]]
 rust = "bamfunctions_l147_bamattrarraywritesamtags"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/bam_functions.rs"
 other = "bamAttrArrayWriteSAMtags"
 other_path = "STAR/source/BAMfunctions.cpp"
 other_line = 147
 
 [[entries]]
 rust = "sjdbloadfromfiles_l6_sjdbloadfromfiles"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/sjdb_load_from_files.rs"
 other = "sjdbLoadFromFiles"
 other_path = "STAR/source/sjdbLoadFromFiles.cpp"
 other_line = 6
 
 [[entries]]
 rust = "transcriptome_l7_transcriptome_transcriptome"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/transcriptome.rs"
 other = "Transcriptome::Transcriptome"
 other_path = "STAR/source/Transcriptome.cpp"
 other_line = 7
 
 [[entries]]
 rust = "transcriptome_l150_transcriptome_quantsallocate"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/transcriptome.rs"
 other = "Transcriptome::quantsAllocate"
 other_path = "STAR/source/Transcriptome.cpp"
 other_line = 150
 
 [[entries]]
 rust = "transcriptome_l156_transcriptome_quantsoutput"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/transcriptome.rs"
 other = "Transcriptome::quantsOutput"
 other_path = "STAR/source/Transcriptome.cpp"
 other_line = 156
 
 [[entries]]
 rust = "soloread_record_l3_soloread_record"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/solo_read_record.rs"
 other = "SoloRead::record"
 other_path = "STAR/source/SoloRead_record.cpp"
 other_line = 3
 
 [[entries]]
 rust = "solobarcode_l9_solobarcode_sortwhitelist"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/solo_barcode.rs"
 other = "SoloBarcode::sortWhiteList"
 other_path = "STAR/source/SoloBarcode.cpp"
 other_line = 9
 
 [[entries]]
 rust = "solobarcode_l37_solobarcode_extractpositionsfromstring"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/solo_barcode.rs"
 other = "SoloBarcode::extractPositionsFromString"
 other_path = "STAR/source/SoloBarcode.cpp"
 other_line = 37
 
 [[entries]]
 rust = "solobarcode_l47_wladdmismatches"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/solo_barcode.rs"
 other = "wlAddMismatches"
 other_path = "STAR/source/SoloBarcode.cpp"
 other_line = 47
 
 [[entries]]
 rust = "readalign_outputsplicegraphsam_l5_readalign_outputsplicegraphsam"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/read_align_output_splice_graph_sam.rs"
 other = "ReadAlign::outputSpliceGraphSAM"
 other_path = "STAR/source/ReadAlign_outputSpliceGraphSAM.cpp"
 other_line = 5
 
 [[entries]]
 rust = "readalignchunk_l5_readalignchunk_readalignchunk"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/read_align_chunk.rs"
 other = "ReadAlignChunk::ReadAlignChunk"
 other_path = "STAR/source/ReadAlignChunk.cpp"
 other_line = 5
 
 [[entries]]
 rust = "readalignchunk_l116_readalignchunk_chunkfstreamopen"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/read_align_chunk.rs"
 other = "ReadAlignChunk::chunkFstreamOpen"
 other_path = "STAR/source/ReadAlignChunk.cpp"
 other_line = 116
 
 [[entries]]
 rust = "readalignchunk_l137_readalignchunk_chunkfstreamcat"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/read_align_chunk.rs"
 other = "ReadAlignChunk::chunkFstreamCat"
 other_path = "STAR/source/ReadAlignChunk.cpp"
 other_line = 137
 
 [[entries]]
 rust = "readalignchunk_l151_readalignchunk_chunkfilescat"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/read_align_chunk.rs"
 other = "ReadAlignChunk::chunkFilesCat"
 other_path = "STAR/source/ReadAlignChunk.cpp"
 other_line = 151
 
 [[entries]]
 rust = "sequencefuns_l4_complementseqnumbers"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/sequence_funs.rs"
 other = "complementSeqNumbers"
 other_path = "STAR/source/SequenceFuns.cpp"
 other_line = 4
 
 [[entries]]
 rust = "sequencefuns_l16_revcomplementnucleotides"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/sequence_funs.rs"
 other = "revComplementNucleotides"
 other_path = "STAR/source/SequenceFuns.cpp"
 other_line = 16
 
 [[entries]]
 rust = "sequencefuns_l56_revcomplementnucleotides"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/sequence_funs.rs"
 other = "revComplementNucleotides"
 other_path = "STAR/source/SequenceFuns.cpp"
 other_line = 56
 
 [[entries]]
 rust = "sequencefuns_l99_nucltonumbam"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/sequence_funs.rs"
 other = "nuclToNumBAM"
 other_path = "STAR/source/SequenceFuns.cpp"
 other_line = 99
 
 [[entries]]
 rust = "sequencefuns_l122_nuclpackbam"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/sequence_funs.rs"
 other = "nuclPackBAM"
 other_path = "STAR/source/SequenceFuns.cpp"
 other_line = 122
 
 [[entries]]
 rust = "sequencefuns_l131_convertnucleotidestonumbers"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/sequence_funs.rs"
 other = "convertNucleotidesToNumbers"
 other_path = "STAR/source/SequenceFuns.cpp"
 other_line = 131
 
 [[entries]]
 rust = "sequencefuns_l148_convertcapitalbasestonum"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/sequence_funs.rs"
 other = "convertCapitalBasesToNum"
 other_path = "STAR/source/SequenceFuns.cpp"
 other_line = 148
 
 [[entries]]
 rust = "sequencefuns_l170_convertnucleotidestonumbersremovecontrols"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/sequence_funs.rs"
 other = "convertNucleotidesToNumbersRemoveControls"
 other_path = "STAR/source/SequenceFuns.cpp"
 other_line = 170
 
 [[entries]]
 rust = "sequencefuns_l195_convertnt01234"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/sequence_funs.rs"
 other = "convertNt01234"
 other_path = "STAR/source/SequenceFuns.cpp"
 other_line = 195
 
 [[entries]]
 rust = "sequencefuns_l219_convertnuclstrtoint32"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/sequence_funs.rs"
 other = "convertNuclStrToInt32"
 other_path = "STAR/source/SequenceFuns.cpp"
 other_line = 219
 
 [[entries]]
 rust = "sequencefuns_l237_convertnuclint32tostring"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/sequence_funs.rs"
 other = "convertNuclInt32toString"
 other_path = "STAR/source/SequenceFuns.cpp"
 other_line = 237
 
 [[entries]]
 rust = "sequencefuns_l249_convertnuclstrtoint64"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/sequence_funs.rs"
 other = "convertNuclStrToInt64"
 other_path = "STAR/source/SequenceFuns.cpp"
 other_line = 249
 
 [[entries]]
 rust = "sequencefuns_l267_convertnuclint64tostring"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/sequence_funs.rs"
 other = "convertNuclInt64toString"
 other_path = "STAR/source/SequenceFuns.cpp"
 other_line = 267
 
 [[entries]]
 rust = "sequencefuns_l280_chrfind"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/sequence_funs.rs"
 other = "chrFind"
 other_path = "STAR/source/SequenceFuns.cpp"
 other_line = 280
 
 [[entries]]
 rust = "sequencefuns_l293_localsearch"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/sequence_funs.rs"
 other = "localSearch"
 other_path = "STAR/source/SequenceFuns.cpp"
 other_line = 293
 
 [[entries]]
 rust = "sequencefuns_l317_localsearchnismm"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/sequence_funs.rs"
 other = "localSearchNisMM"
 other_path = "STAR/source/SequenceFuns.cpp"
 other_line = 317
 
 [[entries]]
 rust = "sequencefuns_l341_localalignhammingdist"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/sequence_funs.rs"
 other = "localAlignHammingDist"
 other_path = "STAR/source/SequenceFuns.cpp"
 other_line = 341
 
 [[entries]]
 rust = "sequencefuns_l411_qualitysplit"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/sequence_funs.rs"
 other = "qualitySplit"
 other_path = "STAR/source/SequenceFuns.cpp"
 other_line = 411
 
 [[entries]]
 rust = "solofeature_countsmartseq_l9_solofeature_countsmartseq"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/solo_feature_count_smart_seq.rs"
 other = "SoloFeature::countSmartSeq"
 other_path = "STAR/source/SoloFeature_countSmartSeq.cpp"
 other_line = 9
 
 [[entries]]
 rust = "readalign_outputalignments_l5_readalign_outputalignments"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/read_align_output_alignments.rs"
 other = "ReadAlign::outputAlignments"
 other_path = "STAR/source/ReadAlign_outputAlignments.cpp"
 other_line = 5
 
 [[entries]]
 rust = "readalign_outputalignments_l76_readalign_recordsj"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/read_align_output_alignments.rs"
 other = "ReadAlign::recordSJ"
 other_path = "STAR/source/ReadAlign_outputAlignments.cpp"
 other_line = 76
 
 [[entries]]
 rust = "readalign_outputalignments_l90_readalign_outfilterbysjout"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/read_align_output_alignments.rs"
 other = "ReadAlign::outFilterBySJout"
 other_path = "STAR/source/ReadAlign_outputAlignments.cpp"
 other_line = 90
 
 [[entries]]
 rust = "readalign_outputalignments_l132_readalign_writesam"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/read_align_output_alignments.rs"
 other = "ReadAlign::writeSAM"
 other_path = "STAR/source/ReadAlign_outputAlignments.cpp"
 other_line = 132
 
 [[entries]]
 rust = "readalign_outputalignments_l259_readalign_outreadsunmapped"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/read_align_output_alignments.rs"
 other = "ReadAlign::outReadsUnmapped"
 other_path = "STAR/source/ReadAlign_outputAlignments.cpp"
 other_line = 259
 
 [[entries]]
 rust = "readalign_outputalignments_l277_readalign_splicegraphwritesam"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/read_align_output_alignments.rs"
 other = "ReadAlign::spliceGraphWriteSAM"
 other_path = "STAR/source/ReadAlign_outputAlignments.cpp"
 other_line = 277
 
 [[entries]]
 rust = "readalign_outputalignments_l298_readalign_alignedannotation"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/read_align_output_alignments.rs"
 other = "ReadAlign::alignedAnnotation"
 other_path = "STAR/source/ReadAlign_outputAlignments.cpp"
 other_line = 298
 
 [[entries]]
 rust = "readalign_stitchpieces_l12_readalign_stitchpieces"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/read_align_stitch_pieces.rs"
 other = "ReadAlign::stitchPieces"
 other_path = "STAR/source/ReadAlign_stitchPieces.cpp"
 other_line = 12
 
 [[entries]]
 rust = "errorwarning_l8_exitwitherror"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/error_warning.rs"
 other = "exitWithError"
 other_path = "STAR/source/ErrorWarning.cpp"
 other_line = 8
 
 [[entries]]
 rust = "errorwarning_l25_warningmessage"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/error_warning.rs"
 other = "warningMessage"
 other_path = "STAR/source/ErrorWarning.cpp"
 other_line = 25
 
 [[entries]]
 rust = "readalign_outputtranscriptsj_l4_readalign_outputtranscriptsj"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/read_align_output_transcript_sj.rs"
 other = "ReadAlign::outputTranscriptSJ"
 other_path = "STAR/source/ReadAlign_outputTranscriptSJ.cpp"
 other_line = 4
 
 [[entries]]
 rust = "parameters_closereadsfiles_l5_parameters_closereadsfiles"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/parameters_close_reads_files.rs"
 other = "Parameters::closeReadsFiles"
 other_path = "STAR/source/Parameters_closeReadsFiles.cpp"
 other_line = 5
 
 [[entries]]
 rust = "genome_l15_genome_genome"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/genome.rs"
 other = "Genome::Genome"
 other_path = "STAR/source/Genome.cpp"
 other_line = 15
 
 [[entries]]
 rust = "genome_l33_genome_freememory"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/genome.rs"
 other = "Genome::freeMemory"
 other_path = "STAR/source/Genome.cpp"
 other_line = 33
 
 [[entries]]
 rust = "genome_l48_genome_openstream"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/genome.rs"
 other = "Genome::OpenStream"
 other_path = "STAR/source/Genome.cpp"
 other_line = 48
 
 [[entries]]
 rust = "genome_l83_genome_handlesharedmemoryexception"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/genome.rs"
 other = "Genome::HandleSharedMemoryException"
 other_path = "STAR/source/Genome.cpp"
 other_line = 83
 
 [[entries]]
 rust = "genome_l139_genome_chrinfoload"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/genome.rs"
 other = "Genome::chrInfoLoad"
 other_path = "STAR/source/Genome.cpp"
 other_line = 139
 
 [[entries]]
 rust = "genome_l209_genome_chrbinfill"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/genome.rs"
 other = "Genome::chrBinFill"
 other_path = "STAR/source/Genome.cpp"
 other_line = 209
 
 [[entries]]
 rust = "genome_l219_genome_genomesequenceallocate"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/genome.rs"
 other = "Genome::genomeSequenceAllocate"
 other_path = "STAR/source/Genome.cpp"
 other_line = 219
 
 [[entries]]
 rust = "soloread_l3_soloread_soloread"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/solo_read.rs"
 other = "SoloRead::SoloRead"
 other_path = "STAR/source/SoloRead.cpp"
 other_line = 3
 
 [[entries]]
 rust = "soloread_l18_soloread_readflagreset"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/solo_read.rs"
 other = "SoloRead::readFlagReset"
 other_path = "STAR/source/SoloRead.cpp"
 other_line = 18
 
 [[entries]]
 rust = "solofeature_collapseumi_graph_l16_solofeature_umiarraycorrect_graph"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/solo_feature_collapse_umi_graph.rs"
 other = "SoloFeature::umiArrayCorrect_Graph"
 other_path = "STAR/source/SoloFeature_collapseUMI_Graph.cpp"
 other_line = 16
 
 [[entries]]
 rust = "solofeature_collapseumi_graph_l80_collapseumiwith1mmlowhalf"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/solo_feature_collapse_umi_graph.rs"
 other = "collapseUMIwith1MMlowHalf"
 other_path = "STAR/source/SoloFeature_collapseUMI_Graph.cpp"
 other_line = 80
 
 [[entries]]
 rust = "solofeature_collapseumi_graph_l132_graphdepthfirstsearch"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/solo_feature_collapse_umi_graph.rs"
 other = "graphDepthFirstSearch"
 other_path = "STAR/source/SoloFeature_collapseUMI_Graph.cpp"
 other_line = 132
 
 [[entries]]
 rust = "solofeature_collapseumi_graph_l142_graphnumberofconnectedcomponents"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/solo_feature_collapse_umi_graph.rs"
 other = "graphNumberOfConnectedComponents"
 other_path = "STAR/source/SoloFeature_collapseUMI_Graph.cpp"
 other_line = 142
 
 [[entries]]
 rust = "solofeature_addbamtags_l5_solofeature_addbamtags"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/solo_feature_add_bam_tags.rs"
 other = "SoloFeature::addBAMtags"
 other_path = "STAR/source/SoloFeature_addBAMtags.cpp"
 other_line = 5
 
 [[entries]]
 rust = "chimericdetection_l3_chimericdetection_chimericdetection"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/chimeric_detection.rs"
 other = "ChimericDetection::ChimericDetection"
 other_path = "STAR/source/ChimericDetection.cpp"
 other_line = 3
 
 [[entries]]
 rust = "transcriptome_genecountsaddalign_l4_transcriptome_genecountsaddalign"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/transcriptome_gene_counts_add_align.rs"
 other = "Transcriptome::geneCountsAddAlign"
 other_path = "STAR/source/Transcriptome_geneCountsAddAlign.cpp"
 other_line = 4
 
 [[entries]]
 rust = "transcriptome_genefullalignoverlap_l5_transcriptome_genefullalignoverlap"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/transcriptome_gene_full_align_overlap.rs"
 other = "Transcriptome::geneFullAlignOverlap"
 other_path = "STAR/source/Transcriptome_geneFullAlignOverlap.cpp"
 other_line = 5
 
 [[entries]]
 rust = "splicegraph_findsupertr_l5_splicegraph_findsupertr"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/splice_graph_find_super_tr.rs"
 other = "SpliceGraph::findSuperTr"
 other_path = "STAR/source/SpliceGraph_findSuperTr.cpp"
 other_line = 5
 
 [[entries]]
 rust = "timefunctions_l4_timemonthdaytime"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/time_functions.rs"
 other = "timeMonthDayTime"
 other_path = "STAR/source/TimeFunctions.cpp"
 other_line = 4
 
 [[entries]]
 rust = "timefunctions_l14_timemonthdaytime"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/time_functions.rs"
 other = "timeMonthDayTime"
 other_path = "STAR/source/TimeFunctions.cpp"
 other_line = 14
 
 [[entries]]
 rust = "readload_l4_readload"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/read_load.rs"
 other = "readLoad"
 other_path = "STAR/source/readLoad.cpp"
 other_line = 4
 
 [[entries]]
 rust = "readalign_oneread_l8_readalign_oneread"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/read_align_one_read.rs"
 other = "ReadAlign::oneRead"
 other_path = "STAR/source/ReadAlign_oneRead.cpp"
 other_line = 8
 
 [[entries]]
 rust = "transcript_convertgenomecigar_l2_transcript_convertgenomecigar"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/transcript_convert_genome_cigar.rs"
 other = "Transcript::convertGenomeCigar"
 other_path = "STAR/source/Transcript_convertGenomeCigar.cpp"
 other_line = 2
 
 [[entries]]
 rust = "funcompareuintandsuffixesmemcmp_l7_funcompareuintandsuffixesmemcmp"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/fun_compare_uint_and_suffixes_memcmp.rs"
 other = "funCompareUintAndSuffixesMemcmp"
 other_path = "STAR/source/funCompareUintAndSuffixesMemcmp.cpp"
 other_line = 7
 
 [[entries]]
 rust = "stitchaligntotranscript_l9_stitchaligntotranscript"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/stitch_align_to_transcript.rs"
 other = "stitchAlignToTranscript"
 other_path = "STAR/source/stitchAlignToTranscript.cpp"
 other_line = 9
 
 [[entries]]
 rust = "sjdbinsertjunctions_l11_sjdbinsertjunctions"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/sjdb_insert_junctions.rs"
 other = "sjdbInsertJunctions"
 other_path = "STAR/source/sjdbInsertJunctions.cpp"
 other_line = 11
 
 [[entries]]
 rust = "bambinsortunmapped_l5_bambinsortunmapped"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/bam_bin_sort_unmapped.rs"
 other = "BAMbinSortUnmapped"
 other_path = "STAR/source/BAMbinSortUnmapped.cpp"
 other_line = 5
 
 [[entries]]
 rust = "chimericalign_chimericbamoutput_l7_chimericalign_chimericbamoutput"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/chimeric_align_chimeric_bam_output.rs"
 other = "ChimericAlign::chimericBAMoutput"
 other_path = "STAR/source/ChimericAlign_chimericBAMoutput.cpp"
 other_line = 7
 
 [[entries]]
 rust = "extendalign_l6_extendalign"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/extend_align.rs"
 other = "extendAlign"
 other_path = "STAR/source/extendAlign.cpp"
 other_line = 6
 
 [[entries]]
 rust = "transcript_transformgenome_l4_transcript_transformgenome"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/transcript_transform_genome.rs"
 other = "Transcript::transformGenome"
 other_path = "STAR/source/Transcript_transformGenome.cpp"
 other_line = 4
 
 [[entries]]
 rust = "mapthreadsspawn_l6_mapthreadsspawn"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/map_threads_spawn.rs"
 other = "mapThreadsSpawn"
 other_path = "STAR/source/mapThreadsSpawn.cpp"
 other_line = 6
 
 [[entries]]
 rust = "readalignchunk_mapchunk_l7_readalignchunk_mapchunk"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/read_align_chunk_map_chunk.rs"
 other = "ReadAlignChunk::mapChunk"
 other_path = "STAR/source/ReadAlignChunk_mapChunk.cpp"
 other_line = 7
 
 [[entries]]
 rust = "transcript_variationadjust_l4_transcript_variationadjust"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/transcript_variation_adjust.rs"
 other = "Transcript::variationAdjust"
 other_path = "STAR/source/Transcript_variationAdjust.cpp"
 other_line = 4
 
 [[entries]]
 rust = "genome_genomeload_l18_genome_genomeload"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/genome_genome_load.rs"
 other = "Genome::genomeLoad"
 other_path = "STAR/source/Genome_genomeLoad.cpp"
 other_line = 18
 
 [[entries]]
 rust = "genome_genomeload_l471_genome_loadsjdb"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/genome_genome_load.rs"
 other = "Genome::loadSJDB"
 other_path = "STAR/source/Genome_genomeLoad.cpp"
 other_line = 471
 
 [[entries]]
 rust = "transcriptome_classifyalign_l8_aligntotranscript"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/transcriptome_classify_align.rs"
 other = "alignToTranscript"
 other_path = "STAR/source/Transcriptome_classifyAlign.cpp"
 other_line = 8
 
 [[entries]]
 rust = "transcriptome_classifyalign_l93_aligntotranscriptminoverlap"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/transcriptome_classify_align.rs"
 other = "alignToTranscriptMinOverlap"
 other_path = "STAR/source/Transcriptome_classifyAlign.cpp"
 other_line = 93
 
 [[entries]]
 rust = "transcriptome_classifyalign_l177_transcriptome_classifyalign"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/transcriptome_classify_align.rs"
 other = "Transcriptome::classifyAlign"
 other_path = "STAR/source/Transcriptome_classifyAlign.cpp"
 other_line = 177
 
 [[entries]]
 rust = "sharedmemory_l22_sharedmemory_sharedmemory"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/shared_memory.rs"
 other = "SharedMemory::SharedMemory"
 other_path = "STAR/source/SharedMemory.cpp"
 other_line = 22
 
 [[entries]]
 rust = "sharedmemory_l37_sharedmemory_sharedmemory"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/shared_memory.rs"
 other = "SharedMemory::~SharedMemory"
 other_path = "STAR/source/SharedMemory.cpp"
 other_line = 37
 
 [[entries]]
 rust = "sharedmemory_l68_sharedmemory_allocate"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/shared_memory.rs"
 other = "SharedMemory::Allocate"
 other_path = "STAR/source/SharedMemory.cpp"
 other_line = 68
 
 [[entries]]
 rust = "sharedmemory_l87_sharedmemory_getposixobjectkey"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/shared_memory.rs"
 other = "SharedMemory::GetPosixObjectKey"
 other_path = "STAR/source/SharedMemory.cpp"
 other_line = 87
 
 [[entries]]
 rust = "sharedmemory_l94_sharedmemory_countername"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/shared_memory.rs"
 other = "SharedMemory::CounterName"
 other_path = "STAR/source/SharedMemory.cpp"
 other_line = 94
 
 [[entries]]
 rust = "sharedmemory_l102_sharedmemory_createandinitsharedobject"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/shared_memory.rs"
 other = "SharedMemory::CreateAndInitSharedObject"
 other_path = "STAR/source/SharedMemory.cpp"
 other_line = 102
 
 [[entries]]
 rust = "sharedmemory_l134_sharedmemory_openifexists"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/shared_memory.rs"
 other = "SharedMemory::OpenIfExists"
 other_path = "STAR/source/SharedMemory.cpp"
 other_line = 134
 
 [[entries]]
 rust = "sharedmemory_l157_sharedmemory_getsharedobjectinfo"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/shared_memory.rs"
 other = "SharedMemory::GetSharedObjectInfo"
 other_path = "STAR/source/SharedMemory.cpp"
 other_line = 157
 
 [[entries]]
 rust = "sharedmemory_l168_sharedmemory_mapsharedobjecttomemory"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/shared_memory.rs"
 other = "SharedMemory::MapSharedObjectToMemory"
 other_path = "STAR/source/SharedMemory.cpp"
 other_line = 168
 
 [[entries]]
 rust = "sharedmemory_l191_sharedmemory_close"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/shared_memory.rs"
 other = "SharedMemory::Close"
 other_path = "STAR/source/SharedMemory.cpp"
 other_line = 191
 
 [[entries]]
 rust = "sharedmemory_l219_sharedmemory_unlink"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/shared_memory.rs"
 other = "SharedMemory::Unlink"
 other_path = "STAR/source/SharedMemory.cpp"
 other_line = 219
 
 [[entries]]
 rust = "sharedmemory_l237_sharedmemory_clean"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/shared_memory.rs"
 other = "SharedMemory::Clean"
 other_path = "STAR/source/SharedMemory.cpp"
 other_line = 237
 
 [[entries]]
 rust = "sharedmemory_l244_sharedmemory_ensurecounter"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/shared_memory.rs"
 other = "SharedMemory::EnsureCounter"
 other_path = "STAR/source/SharedMemory.cpp"
 other_line = 244
 
 [[entries]]
 rust = "sharedmemory_l269_sharedmemory_removesharedcounter"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/shared_memory.rs"
 other = "SharedMemory::RemoveSharedCounter"
 other_path = "STAR/source/SharedMemory.cpp"
 other_line = 269
 
 [[entries]]
 rust = "sharedmemory_l277_sharedmemory_sharedobjectsusecount"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/shared_memory.rs"
 other = "SharedMemory::SharedObjectsUseCount"
 other_path = "STAR/source/SharedMemory.cpp"
 other_line = 277
 
 [[entries]]
 rust = "transcriptome_alignexonoverlap_l10_transcriptome_alignexonoverlap"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/transcriptome_align_exon_overlap.rs"
 other = "Transcriptome::alignExonOverlap"
 other_path = "STAR/source/Transcriptome_alignExonOverlap.cpp"
 other_line = 10
 
 [[entries]]
 rust = "transcriptome_alignexonoverlap_l236_alignblocksoverlapexons"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/transcriptome_align_exon_overlap.rs"
 other = "alignBlocksOverlapExons"
 other_path = "STAR/source/Transcriptome_alignExonOverlap.cpp"
 other_line = 236
 
 [[entries]]
 rust = "sysremovedir_l7_removefileordir"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/sys_remove_dir.rs"
 other = "removeFileOrDir"
 other_path = "STAR/source/sysRemoveDir.cpp"
 other_line = 7
 
 [[entries]]
 rust = "sysremovedir_l25_sysremovedir"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/sys_remove_dir.rs"
 other = "sysRemoveDir"
 other_path = "STAR/source/sysRemoveDir.cpp"
 other_line = 25
 
 [[entries]]
 rust = "stitchwindowaligns_l8_stitchwindowaligns"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/stitch_window_aligns.rs"
 other = "stitchWindowAligns"
 other_path = "STAR/source/stitchWindowAligns.cpp"
 other_line = 8
 
 [[entries]]
 rust = "soloinputfeatureumi_l5_soloinputfeatureumi"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/solo_input_feature_umi.rs"
 other = "soloInputFeatureUMI"
 other_path = "STAR/source/soloInputFeatureUMI.cpp"
 other_line = 5
 
 [[entries]]
 rust = "transcript_alignscore_l4_transcript_alignscore"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/transcript_align_score.rs"
 other = "Transcript::alignScore"
 other_path = "STAR/source/Transcript_alignScore.cpp"
 other_line = 4
 
 [[entries]]
 rust = "sjdbprepare_l5_sjdbprepare"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/sjdb_prepare.rs"
 other = "sjdbPrepare"
 other_path = "STAR/source/sjdbPrepare.cpp"
 other_line = 5
 
 [[entries]]
 rust = "binarysearch2_l3_binarysearch2"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/binary_search2.rs"
 other = "binarySearch2"
 other_path = "STAR/source/binarySearch2.cpp"
 other_line = 3
 
 [[entries]]
 rust = "clipmate_clip_l5_clipmate_clip"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/clip_mate_clip.rs"
 other = "ClipMate::clip"
 other_path = "STAR/source/ClipMate_clip.cpp"
 other_line = 5
 
 [[entries]]
 rust = "opal_l87_simdisallzeroes"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/opal/opal.rs"
 other = "simdIsAllZeroes"
 other_path = "STAR/source/opal/opal.cpp"
 other_line = 87
 
 [[entries]]
 rust = "opal_l103_add"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/opal/opal.rs"
 other = "add"
 other_path = "STAR/source/opal/opal.cpp"
 other_line = 103
 
 [[entries]]
 rust = "opal_l104_sub"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/opal/opal.rs"
 other = "sub"
 other_path = "STAR/source/opal/opal.cpp"
 other_line = 104
 
 [[entries]]
 rust = "opal_l105_min"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/opal/opal.rs"
 other = "min"
 other_path = "STAR/source/opal/opal.cpp"
 other_line = 105
 
 [[entries]]
 rust = "opal_l106_max"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/opal/opal.rs"
 other = "max"
 other_path = "STAR/source/opal/opal.cpp"
 other_line = 106
 
 [[entries]]
 rust = "opal_l107_cmpgt"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/opal/opal.rs"
 other = "cmpgt"
 other_path = "STAR/source/opal/opal.cpp"
 other_line = 107
 
 [[entries]]
 rust = "opal_l108_set1"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/opal/opal.rs"
 other = "set1"
 other_path = "STAR/source/opal/opal.cpp"
 other_line = 108
 
 [[entries]]
 rust = "opal_l117_add"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/opal/opal.rs"
 other = "add"
 other_path = "STAR/source/opal/opal.cpp"
 other_line = 117
 
 [[entries]]
 rust = "opal_l118_sub"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/opal/opal.rs"
 other = "sub"
 other_path = "STAR/source/opal/opal.cpp"
 other_line = 118
 
 [[entries]]
 rust = "opal_l119_min"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/opal/opal.rs"
 other = "min"
 other_path = "STAR/source/opal/opal.cpp"
 other_line = 119
 
 [[entries]]
 rust = "opal_l120_max"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/opal/opal.rs"
 other = "max"
 other_path = "STAR/source/opal/opal.cpp"
 other_line = 120
 
 [[entries]]
 rust = "opal_l121_cmpgt"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/opal/opal.rs"
 other = "cmpgt"
 other_path = "STAR/source/opal/opal.cpp"
 other_line = 121
 
 [[entries]]
 rust = "opal_l122_set1"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/opal/opal.rs"
 other = "set1"
 other_path = "STAR/source/opal/opal.cpp"
 other_line = 122
 
 [[entries]]
 rust = "opal_l131_add"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/opal/opal.rs"
 other = "add"
 other_path = "STAR/source/opal/opal.cpp"
 other_line = 131
 
 [[entries]]
 rust = "opal_l132_sub"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/opal/opal.rs"
 other = "sub"
 other_path = "STAR/source/opal/opal.cpp"
 other_line = 132
 
 [[entries]]
 rust = "opal_l133_min"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/opal/opal.rs"
 other = "min"
 other_path = "STAR/source/opal/opal.cpp"
 other_line = 133
 
 [[entries]]
 rust = "opal_l134_max"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/opal/opal.rs"
 other = "max"
 other_path = "STAR/source/opal/opal.cpp"
 other_line = 134
 
 [[entries]]
 rust = "opal_l135_cmpgt"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/opal/opal.rs"
 other = "cmpgt"
 other_path = "STAR/source/opal/opal.cpp"
 other_line = 135
 
 [[entries]]
 rust = "opal_l136_set1"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/opal/opal.rs"
 other = "set1"
 other_path = "STAR/source/opal/opal.cpp"
 other_line = 136
 
 [[entries]]
 rust = "opal_l148_print_mmxxxi"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/opal/opal.rs"
 other = "print_mmxxxi"
 other_path = "STAR/source/opal/opal.cpp"
 other_line = 148
 
 [[entries]]
 rust = "opal_l167_searchdatabasesw"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/opal/opal.rs"
 other = "searchDatabaseSW_"
 other_path = "STAR/source/opal/opal.cpp"
 other_line = 167
 
 [[entries]]
 rust = "opal_l474_loadnextsequence"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/opal/opal.rs"
 other = "loadNextSequence"
 other_path = "STAR/source/opal/opal.cpp"
 other_line = 474
 
 [[entries]]
 rust = "opal_l498_searchdatabasesw"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/opal/opal.rs"
 other = "searchDatabaseSW"
 other_path = "STAR/source/opal/opal.cpp"
 other_line = 498
 
 [[entries]]
 rust = "opal_l558_add"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/opal/opal.rs"
 other = "add"
 other_path = "STAR/source/opal/opal.cpp"
 other_line = 558
 
 [[entries]]
 rust = "opal_l559_sub"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/opal/opal.rs"
 other = "sub"
 other_path = "STAR/source/opal/opal.cpp"
 other_line = 559
 
 [[entries]]
 rust = "opal_l560_min"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/opal/opal.rs"
 other = "min"
 other_path = "STAR/source/opal/opal.cpp"
 other_line = 560
 
 [[entries]]
 rust = "opal_l561_max"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/opal/opal.rs"
 other = "max"
 other_path = "STAR/source/opal/opal.cpp"
 other_line = 561
 
 [[entries]]
 rust = "opal_l562_cmpgt"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/opal/opal.rs"
 other = "cmpgt"
 other_path = "STAR/source/opal/opal.cpp"
 other_line = 562
 
 [[entries]]
 rust = "opal_l563_set1"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/opal/opal.rs"
 other = "set1"
 other_path = "STAR/source/opal/opal.cpp"
 other_line = 563
 
 [[entries]]
 rust = "opal_l571_add"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/opal/opal.rs"
 other = "add"
 other_path = "STAR/source/opal/opal.cpp"
 other_line = 571
 
 [[entries]]
 rust = "opal_l572_sub"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/opal/opal.rs"
 other = "sub"
 other_path = "STAR/source/opal/opal.cpp"
 other_line = 572
 
 [[entries]]
 rust = "opal_l573_min"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/opal/opal.rs"
 other = "min"
 other_path = "STAR/source/opal/opal.cpp"
 other_line = 573
 
 [[entries]]
 rust = "opal_l574_max"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/opal/opal.rs"
 other = "max"
 other_path = "STAR/source/opal/opal.cpp"
 other_line = 574
 
 [[entries]]
 rust = "opal_l575_cmpgt"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/opal/opal.rs"
 other = "cmpgt"
 other_path = "STAR/source/opal/opal.cpp"
 other_line = 575
 
 [[entries]]
 rust = "opal_l576_set1"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/opal/opal.rs"
 other = "set1"
 other_path = "STAR/source/opal/opal.cpp"
 other_line = 576
 
 [[entries]]
 rust = "opal_l584_add"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/opal/opal.rs"
 other = "add"
 other_path = "STAR/source/opal/opal.cpp"
 other_line = 584
 
 [[entries]]
 rust = "opal_l585_sub"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/opal/opal.rs"
 other = "sub"
 other_path = "STAR/source/opal/opal.cpp"
 other_line = 585
 
 [[entries]]
 rust = "opal_l586_min"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/opal/opal.rs"
 other = "min"
 other_path = "STAR/source/opal/opal.cpp"
 other_line = 586
 
 [[entries]]
 rust = "opal_l587_max"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/opal/opal.rs"
 other = "max"
 other_path = "STAR/source/opal/opal.cpp"
 other_line = 587
 
 [[entries]]
 rust = "opal_l588_cmpgt"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/opal/opal.rs"
 other = "cmpgt"
 other_path = "STAR/source/opal/opal.cpp"
 other_line = 588
 
 [[entries]]
 rust = "opal_l589_set1"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/opal/opal.rs"
 other = "set1"
 other_path = "STAR/source/opal/opal.cpp"
 other_line = 589
 
 [[entries]]
 rust = "opal_l597_searchdatabase"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/opal/opal.rs"
 other = "searchDatabase_"
 other_path = "STAR/source/opal/opal.cpp"
 other_line = 597
 
 [[entries]]
 rust = "opal_l986_searchdatabase"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/opal/opal.rs"
 other = "searchDatabase"
 other_path = "STAR/source/opal/opal.cpp"
 other_line = 986
 
 [[entries]]
 rust = "opal_l1031_arraymax"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/opal/opal.rs"
 other = "arrayMax"
 other_path = "STAR/source/opal/opal.cpp"
 other_line = 1031
 
 [[entries]]
 rust = "opal_l1048_gappenalty"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/opal/opal.rs"
 other = "gapPenalty"
 other_path = "STAR/source/opal/opal.cpp"
 other_line = 1048
 
 [[entries]]
 rust = "opal_l1059_calculatebottombandborderov"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/opal/opal.rs"
 other = "calculateBottomBandBorderOV"
 other_path = "STAR/source/opal/opal.cpp"
 other_line = 1059
 
 [[entries]]
 rust = "opal_l1074_calculatetopbandborderhw"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/opal/opal.rs"
 other = "calculateTopBandBorderHW"
 other_path = "STAR/source/opal/opal.cpp"
 other_line = 1074
 
 [[entries]]
 rust = "opal_l1089_calculatebottombandborderhw"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/opal/opal.rs"
 other = "calculateBottomBandBorderHW"
 other_path = "STAR/source/opal/opal.cpp"
 other_line = 1089
 
 [[entries]]
 rust = "opal_l1106_calculatebottombandbordernw"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/opal/opal.rs"
 other = "calculateBottomBandBorderNW"
 other_path = "STAR/source/opal/opal.cpp"
 other_line = 1106
 
 [[entries]]
 rust = "opal_l1153_calculatebandborders"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/opal/opal.rs"
 other = "calculateBandBorders"
 other_path = "STAR/source/opal/opal.cpp"
 other_line = 1153
 
 [[entries]]
 rust = "opal_l1188_createreversecopy"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/opal/opal.rs"
 other = "createReverseCopy"
 other_path = "STAR/source/opal/opal.cpp"
 other_line = 1188
 
 [[entries]]
 rust = "opal_l1197_revertarray"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/opal/opal.rs"
 other = "revertArray"
 other_path = "STAR/source/opal/opal.cpp"
 other_line = 1197
 
 [[entries]]
 rust = "opal_l1238_findalignment"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/opal/opal.rs"
 other = "findAlignment"
 other_path = "STAR/source/opal/opal.cpp"
 other_line = 1238
 
 [[entries]]
 rust = "opal_l1437_opalsearchdatabase"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/opal/opal.rs"
 other = "opalSearchDatabase"
 other_path = "STAR/source/opal/opal.cpp"
 other_line = 1437
 
 [[entries]]
 rust = "opal_l1526_opalsearchdatabasecharsw"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/opal/opal.rs"
 other = "opalSearchDatabaseCharSW"
 other_path = "STAR/source/opal/opal.cpp"
 other_line = 1526
 
 [[entries]]
 rust = "opal_l1553_opalinitsearchresult"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/opal/opal.rs"
 other = "opalInitSearchResult"
 other_path = "STAR/source/opal/opal.cpp"
 other_line = 1553
 
 [[entries]]
 rust = "opal_l1561_opalsearchresultisempty"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/opal/opal.rs"
 other = "opalSearchResultIsEmpty"
 other_path = "STAR/source/opal/opal.cpp"
 other_line = 1561
 
 [[entries]]
 rust = "opal_l1565_opalsearchresultsetscore"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/opal/opal.rs"
 other = "opalSearchResultSetScore"
 other_path = "STAR/source/opal/opal.cpp"
 other_line = 1565
 
 [[entries]]
 rust = "variation_l8_variation_variation"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/variation.rs"
 other = "Variation::Variation"
 other_path = "STAR/source/Variation.cpp"
 other_line = 8
 
 [[entries]]
 rust = "variation_l23_scanvcf"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/variation.rs"
 other = "scanVCF"
 other_path = "STAR/source/Variation.cpp"
 other_line = 23
 
 [[entries]]
 rust = "variation_l81_variation_loadvcf"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/variation.rs"
 other = "Variation::loadVCF"
 other_path = "STAR/source/Variation.cpp"
 other_line = 81
 
 [[entries]]
 rust = "variation_l124_snp_snponblocks"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/variation.rs"
 other = "SNP::snpOnBlocks"
 other_path = "STAR/source/Variation.cpp"
 other_line = 124
 
 [[entries]]
 rust = "variation_l139_variation_sjdbsnp"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/variation.rs"
 other = "Variation::sjdbSnp"
 other_path = "STAR/source/Variation.cpp"
 other_line = 139
 
 [[entries]]
 rust = "readalign_outputtranscriptsam_l5_readalign_outputtranscriptsam"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/read_align_output_transcript_sam.rs"
 other = "ReadAlign::outputTranscriptSAM"
 other_path = "STAR/source/ReadAlign_outputTranscriptSAM.cpp"
 other_line = 5
 
 [[entries]]
 rust = "genome_transformgenome_l10_appendvector"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/genome_transform_genome.rs"
 other = "appendVector"
 other_path = "STAR/source/Genome_transformGenome.cpp"
 other_line = 10
 
 [[entries]]
 rust = "genome_transformgenome_l17_concatenatevectors"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/genome_transform_genome.rs"
 other = "concatenateVectors"
 other_path = "STAR/source/Genome_transformGenome.cpp"
 other_line = 17
 
 [[entries]]
 rust = "genome_transformgenome_l26_appendstring"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/genome_transform_genome.rs"
 other = "appendString"
 other_path = "STAR/source/Genome_transformGenome.cpp"
 other_line = 26
 
 [[entries]]
 rust = "genome_transformgenome_l33_genome_transformgenome"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/genome_transform_genome.rs"
 other = "Genome::transformGenome"
 other_path = "STAR/source/Genome_transformGenome.cpp"
 other_line = 33
 
 [[entries]]
 rust = "genome_transformgenome_l171_genome_transformchrlenstart"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/genome_transform_genome.rs"
 other = "Genome::transformChrLenStart"
 other_path = "STAR/source/Genome_transformGenome.cpp"
 other_line = 171
 
 [[entries]]
 rust = "genome_transformgenome_l215_genome_transformgandblocks"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/genome_transform_genome.rs"
 other = "Genome::transformGandBlocks"
 other_path = "STAR/source/Genome_transformGenome.cpp"
 other_line = 215
 
 [[entries]]
 rust = "genome_transformgenome_l271_genome_transformblockswrite"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/genome_transform_genome.rs"
 other = "Genome::transformBlocksWrite"
 other_path = "STAR/source/Genome_transformGenome.cpp"
 other_line = 271
 
 [[entries]]
 rust = "genome_transformgenome_l282_genome_transformexonloci"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/genome_transform_genome.rs"
 other = "Genome::transformExonLoci"
 other_path = "STAR/source/Genome_transformGenome.cpp"
 other_line = 282
 
 [[entries]]
 rust = "readalign_quanttranscriptome_l7_readalign_quanttranscriptome"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/read_align_quant_transcriptome.rs"
 other = "ReadAlign::quantTranscriptome"
 other_path = "STAR/source/ReadAlign_quantTranscriptome.cpp"
 other_line = 7
 
 [[entries]]
 rust = "readalign_maponeread_l6_readalign_maponeread"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/read_align_map_one_read.rs"
 other = "ReadAlign::mapOneRead"
 other_path = "STAR/source/ReadAlign_mapOneRead.cpp"
 other_line = 6
 
 [[entries]]
 rust = "readalign_createextendwindowswithalign_l7_readalign_createextendwindowswithalign"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/read_align_create_extend_windows_with_align.rs"
 other = "ReadAlign::createExtendWindowsWithAlign"
 other_path = "STAR/source/ReadAlign_createExtendWindowsWithAlign.cpp"
 other_line = 7
 
 [[entries]]
 rust = "parameters_openreadsfiles_l5_parameters_openreadsfiles"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/parameters_open_reads_files.rs"
 other = "Parameters::openReadsFiles"
 other_path = "STAR/source/Parameters_openReadsFiles.cpp"
 other_line = 5
 
 [[entries]]
 rust = "systemfunctions_l6_linuxprocmemory"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/system_functions.rs"
 other = "linuxProcMemory"
 other_path = "STAR/source/systemFunctions.cpp"
 other_line = 6
 
 [[entries]]
 rust = "solo_l5_solo_solo"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/solo.rs"
 other = "Solo::Solo"
 other_path = "STAR/source/Solo.cpp"
 other_line = 5
 
 [[entries]]
 rust = "solo_l23_solo_solo"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/solo.rs"
 other = "Solo::Solo"
 other_path = "STAR/source/Solo.cpp"
 other_line = 23
 
 [[entries]]
 rust = "solo_l48_solo_processandoutput"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/solo.rs"
 other = "Solo::processAndOutput"
 other_path = "STAR/source/Solo.cpp"
 other_line = 48
 
 [[entries]]
 rust = "supertranscriptome_l4_supertranscriptome_sjcollapse"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/super_transcriptome.rs"
 other = "SuperTranscriptome::sjCollapse"
 other_path = "STAR/source/SuperTranscriptome.cpp"
 other_line = 4
 
 [[entries]]
 rust = "supertranscriptome_l32_supertranscriptome_load"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/super_transcriptome.rs"
 other = "SuperTranscriptome::load"
 other_path = "STAR/source/SuperTranscriptome.cpp"
 other_line = 32
 
 [[entries]]
 rust = "readalign_chimericdetectionoldoutput_l5_readalign_chimericdetectionoldoutput"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/read_align_chimeric_detection_old_output.rs"
 other = "ReadAlign::chimericDetectionOldOutput"
 other_path = "STAR/source/ReadAlign_chimericDetectionOldOutput.cpp"
 other_line = 5
 
 [[entries]]
 rust = "bambinsortbycoordinate_l7_bambinsortbycoordinate"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/bam_bin_sort_by_coordinate.rs"
 other = "BAMbinSortByCoordinate"
 other_path = "STAR/source/BAMbinSortByCoordinate.cpp"
 other_line = 7
 
 [[entries]]
 rust = "funprimaryalignmark_l3_funprimaryalignmark"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/fun_primary_align_mark.rs"
 other = "funPrimaryAlignMark"
 other_path = "STAR/source/funPrimaryAlignMark.cpp"
 other_line = 3
 
 [[entries]]
 rust = "readalign_l6_readalign_readalign"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/read_align.rs"
 other = "ReadAlign::ReadAlign"
 other_path = "STAR/source/ReadAlign.cpp"
 other_line = 6
 
 [[entries]]
 rust = "readalign_l113_readalign_resetn"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/read_align.rs"
 other = "ReadAlign::resetN"
 other_path = "STAR/source/ReadAlign.cpp"
 other_line = 113
 
 [[entries]]
 rust = "packedarray_l3_packedarray_packedarray"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/packed_array.rs"
 other = "PackedArray::PackedArray"
 other_path = "STAR/source/PackedArray.cpp"
 other_line = 3
 
 [[entries]]
 rust = "packedarray_l8_packedarray_definebits"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/packed_array.rs"
 other = "PackedArray::defineBits"
 other_path = "STAR/source/PackedArray.cpp"
 other_line = 8
 
 [[entries]]
 rust = "packedarray_l17_packedarray_writepacked"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/packed_array.rs"
 other = "PackedArray::writePacked"
 other_path = "STAR/source/PackedArray.cpp"
 other_line = 17
 
 [[entries]]
 rust = "packedarray_l27_packedarray_pointarray"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/packed_array.rs"
 other = "PackedArray::pointArray"
 other_path = "STAR/source/PackedArray.cpp"
 other_line = 27
 
 [[entries]]
 rust = "packedarray_l31_packedarray_allocatearray"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/packed_array.rs"
 other = "PackedArray::allocateArray"
 other_path = "STAR/source/PackedArray.cpp"
 other_line = 31
 
 [[entries]]
 rust = "packedarray_l37_packedarray_deallocatearray"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/packed_array.rs"
 other = "PackedArray::deallocateArray"
 other_path = "STAR/source/PackedArray.cpp"
 other_line = 37
 
 [[entries]]
 rust = "genomeparameterswrite_l4_genomeparameterswrite"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/genome_parameters_write.rs"
 other = "genomeParametersWrite"
 other_path = "STAR/source/genomeParametersWrite.cpp"
 other_line = 4
 
 [[entries]]
 rust = "solofeature_countcbgeneumi_l7_solofeature_countcbgeneumi"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/solo_feature_count_cb_gene_umi.rs"
 other = "SoloFeature::countCBgeneUMI"
 other_path = "STAR/source/SoloFeature_countCBgeneUMI.cpp"
 other_line = 7
 
 [[entries]]
 rust = "chimericalign_chimericjunctionoutput_l4_chimericalign_chimericjunctionoutput"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/chimeric_align_chimeric_junction_output.rs"
 other = "ChimericAlign::chimericJunctionOutput"
 other_path = "STAR/source/ChimericAlign_chimericJunctionOutput.cpp"
 other_line = 4
 
 [[entries]]
 rust = "parameters_l19_parameters_parameters"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/parameters.rs"
 other = "Parameters::Parameters"
 other_path = "STAR/source/Parameters.cpp"
 other_line = 19
 
 [[entries]]
 rust = "parameters_l310_parameters_inputparameters"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/parameters.rs"
 other = "Parameters::inputParameters"
 other_path = "STAR/source/Parameters.cpp"
 other_line = 310
 
 [[entries]]
 rust = "parameters_l1197_parameters_scanalllines"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/parameters.rs"
 other = "Parameters::scanAllLines"
 other_path = "STAR/source/Parameters.cpp"
 other_line = 1197
 
 [[entries]]
 rust = "parameters_l1205_parameters_scanoneline"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/parameters.rs"
 other = "Parameters::scanOneLine"
 other_path = "STAR/source/Parameters.cpp"
 other_line = 1205
 
 [[entries]]
 rust = "servicefuns_l7_sum1d"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/service_funs.rs"
 other = "sum1D"
 other_path = "STAR/source/serviceFuns.cpp"
 other_line = 7
 
 [[entries]]
 rust = "servicefuns_l13_funcomparenumbers"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/service_funs.rs"
 other = "funCompareNumbers"
 other_path = "STAR/source/serviceFuns.cpp"
 other_line = 13
 
 [[entries]]
 rust = "servicefuns_l26_funcomparenumbersreverse"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/service_funs.rs"
 other = "funCompareNumbersReverse"
 other_path = "STAR/source/serviceFuns.cpp"
 other_line = 26
 
 [[entries]]
 rust = "servicefuns_l39_funcomparenumbersreverseshift"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/service_funs.rs"
 other = "funCompareNumbersReverseShift"
 other_path = "STAR/source/serviceFuns.cpp"
 other_line = 39
 
 [[entries]]
 rust = "servicefuns_l53_funcompareuint1"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/service_funs.rs"
 other = "funCompareUint1"
 other_path = "STAR/source/serviceFuns.cpp"
 other_line = 53
 
 [[entries]]
 rust = "servicefuns_l66_funcompareuint2"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/service_funs.rs"
 other = "funCompareUint2"
 other_path = "STAR/source/serviceFuns.cpp"
 other_line = 66
 
 [[entries]]
 rust = "servicefuns_l84_funcomparearrays"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/service_funs.rs"
 other = "funCompareArrays"
 other_path = "STAR/source/serviceFuns.cpp"
 other_line = 84
 
 [[entries]]
 rust = "servicefuns_l101_funcomparearraysreverse"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/service_funs.rs"
 other = "funCompareArraysReverse"
 other_path = "STAR/source/serviceFuns.cpp"
 other_line = 101
 
 [[entries]]
 rust = "servicefuns_l118_funcomparearraysshift"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/service_funs.rs"
 other = "funCompareArraysShift"
 other_path = "STAR/source/serviceFuns.cpp"
 other_line = 118
 
 [[entries]]
 rust = "servicefuns_l135_funcomparetypesecondfirst"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/service_funs.rs"
 other = "funCompareTypeSecondFirst"
 other_path = "STAR/source/serviceFuns.cpp"
 other_line = 135
 
 [[entries]]
 rust = "servicefuns_l153_funcomparetypeshift"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/service_funs.rs"
 other = "funCompareTypeShift"
 other_path = "STAR/source/serviceFuns.cpp"
 other_line = 153
 
 [[entries]]
 rust = "servicefuns_l167_splitstring"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/service_funs.rs"
 other = "splitString"
 other_path = "STAR/source/serviceFuns.cpp"
 other_line = 167
 
 [[entries]]
 rust = "servicefuns_l192_binarysearch1"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/service_funs.rs"
 other = "binarySearch1"
 other_path = "STAR/source/serviceFuns.cpp"
 other_line = 192
 
 [[entries]]
 rust = "servicefuns_l212_binarysearch_leleft"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/service_funs.rs"
 other = "binarySearch_leLeft"
 other_path = "STAR/source/serviceFuns.cpp"
 other_line = 212
 
 [[entries]]
 rust = "servicefuns_l239_binarysearch1a"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/service_funs.rs"
 other = "binarySearch1a"
 other_path = "STAR/source/serviceFuns.cpp"
 other_line = 239
 
 [[entries]]
 rust = "servicefuns_l266_binarysearch1b"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/service_funs.rs"
 other = "binarySearch1b"
 other_path = "STAR/source/serviceFuns.cpp"
 other_line = 266
 
 [[entries]]
 rust = "servicefuns_l294_binarysearchexact"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/service_funs.rs"
 other = "binarySearchExact"
 other_path = "STAR/source/serviceFuns.cpp"
 other_line = 294
 
 [[entries]]
 rust = "stats_l4_stats_resetn"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/stats.rs"
 other = "Stats::resetN"
 other_path = "STAR/source/Stats.cpp"
 other_line = 4
 
 [[entries]]
 rust = "stats_l16_stats_stats"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/stats.rs"
 other = "Stats::Stats"
 other_path = "STAR/source/Stats.cpp"
 other_line = 16
 
 [[entries]]
 rust = "stats_l21_stats_addstats"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/stats.rs"
 other = "Stats::addStats"
 other_path = "STAR/source/Stats.cpp"
 other_line = 21
 
 [[entries]]
 rust = "stats_l35_stats_transcriptstats"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/stats.rs"
 other = "Stats::transcriptStats"
 other_path = "STAR/source/Stats.cpp"
 other_line = 35
 
 [[entries]]
 rust = "stats_l62_stats_progressreportheader"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/stats.rs"
 other = "Stats::progressReportHeader"
 other_path = "STAR/source/Stats.cpp"
 other_line = 62
 
 [[entries]]
 rust = "stats_l73_stats_progressreport"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/stats.rs"
 other = "Stats::progressReport"
 other_path = "STAR/source/Stats.cpp"
 other_line = 73
 
 [[entries]]
 rust = "stats_l99_stats_reportfinal"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/stats.rs"
 other = "Stats::reportFinal"
 other_path = "STAR/source/Stats.cpp"
 other_line = 99
 
 [[entries]]
 rust = "stats_l147_stats_writelines"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/stats.rs"
 other = "Stats::writeLines"
 other_path = "STAR/source/Stats.cpp"
 other_line = 147
 
 [[entries]]
 rust = "sjdbloadfromstream_l2_sjdbloadfromstream"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/sjdb_load_from_stream.rs"
 other = "sjdbLoadFromStream"
 other_path = "STAR/source/sjdbLoadFromStream.cpp"
 other_line = 2
 
 [[entries]]
 rust = "readalign_outputvariation_l3_readalign_outputvariation"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/read_align_output_variation.rs"
 other = "ReadAlign::outputVariation"
 other_path = "STAR/source/ReadAlign_outputVariation.cpp"
 other_line = 3
 
 [[entries]]
 rust = "solofeature_collapseumiall_l11_solofeature_collapseumiall"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/solo_feature_collapse_umi_all.rs"
 other = "SoloFeature::collapseUMIall"
 other_path = "STAR/source/SoloFeature_collapseUMIall.cpp"
 other_line = 11
 
 [[entries]]
 rust = "solofeature_collapseumiall_l30_solofeature_collapseumipercb"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/solo_feature_collapse_umi_all.rs"
 other = "SoloFeature::collapseUMIperCB"
 other_path = "STAR/source/SoloFeature_collapseUMIall.cpp"
 other_line = 30
 
 [[entries]]
 rust = "solofeature_collapseumiall_l540_funcomparesolo1"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/solo_feature_collapse_umi_all.rs"
 other = "funCompareSolo1"
 other_path = "STAR/source/SoloFeature_collapseUMIall.cpp"
 other_line = 540
 
 [[entries]]
 rust = "solofeature_collapseumiall_l557_funcompare_uint32_1_2_0"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/solo_feature_collapse_umi_all.rs"
 other = "funCompare_uint32_1_2_0"
 other_path = "STAR/source/SoloFeature_collapseUMIall.cpp"
 other_line = 557
 
 [[entries]]
 rust = "solofeature_collapseumiall_l580_solofeature_umiarraycorrect_cr"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/solo_feature_collapse_umi_all.rs"
 other = "SoloFeature::umiArrayCorrect_CR"
 other_path = "STAR/source/SoloFeature_collapseUMIall.cpp"
 other_line = 580
 
 [[entries]]
 rust = "solofeature_collapseumiall_l617_solofeature_umiarraycorrect_directional"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/solo_feature_collapse_umi_all.rs"
 other = "SoloFeature::umiArrayCorrect_Directional"
 other_path = "STAR/source/SoloFeature_collapseUMIall.cpp"
 other_line = 617
 
 [[entries]]
 rust = "outsj_l4_outsj_outsj"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/out_sj.rs"
 other = "OutSJ::OutSJ"
 other_path = "STAR/source/OutSJ.cpp"
 other_line = 4
 
 [[entries]]
 rust = "outsj_l15_comparesj"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/out_sj.rs"
 other = "compareSJ"
 other_path = "STAR/source/OutSJ.cpp"
 other_line = 15
 
 [[entries]]
 rust = "outsj_l36_outsj_collapsesj"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/out_sj.rs"
 other = "OutSJ::collapseSJ"
 other_path = "STAR/source/OutSJ.cpp"
 other_line = 36
 
 [[entries]]
 rust = "outsj_l62_outsj_datasizeincrease"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/out_sj.rs"
 other = "OutSJ::dataSizeIncrease"
 other_path = "STAR/source/OutSJ.cpp"
 other_line = 62
 
 [[entries]]
 rust = "outsj_l68_junction_junction"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/out_sj.rs"
 other = "Junction::Junction"
 other_path = "STAR/source/OutSJ.cpp"
 other_line = 68
 
 [[entries]]
 rust = "outsj_l72_junction_junctionpointer"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/out_sj.rs"
 other = "Junction::junctionPointer"
 other_path = "STAR/source/OutSJ.cpp"
 other_line = 72
 
 [[entries]]
 rust = "outsj_l85_junction_outputstream"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/out_sj.rs"
 other = "Junction::outputStream"
 other_path = "STAR/source/OutSJ.cpp"
 other_line = 85
 
 [[entries]]
 rust = "outsj_l92_junction_collapseonesj"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/out_sj.rs"
 other = "Junction::collapseOneSJ"
 other_path = "STAR/source/OutSJ.cpp"
 other_line = 92
 
 [[entries]]
 rust = "parameterschimeric_initialize_l6_parameterschimeric_initialize"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/parameters_chimeric_initialize.rs"
 other = "ParametersChimeric::initialize"
 other_path = "STAR/source/ParametersChimeric_initialize.cpp"
 other_line = 6
 
 [[entries]]
 rust = "chimericalign_chimericstitching_l3_chimericalign_chimericstitching"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/chimeric_align_chimeric_stitching.rs"
 other = "ChimericAlign::chimericStitching"
 other_path = "STAR/source/ChimericAlign_chimericStitching.cpp"
 other_line = 3
 
 [[entries]]
 rust = "genome_genomeoutload_l8_genome_genomeoutload"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/genome_genome_out_load.rs"
 other = "Genome::genomeOutLoad"
 other_path = "STAR/source/Genome_genomeOutLoad.cpp"
 other_line = 8
 
 [[entries]]
 rust = "chain_l5_chain_chain"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/chain.rs"
 other = "Chain::Chain"
 other_path = "STAR/source/Chain.cpp"
 other_line = 5
 
 [[entries]]
 rust = "chain_l10_chain_chainload"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/chain.rs"
 other = "Chain::chainLoad"
 other_path = "STAR/source/Chain.cpp"
 other_line = 10
 
 [[entries]]
 rust = "chain_l58_chain_liftovergtf"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/chain.rs"
 other = "Chain::liftOverGTF"
 other_path = "STAR/source/Chain.cpp"
 other_line = 58
 
 [[entries]]
 rust = "soloreadbarcode_l4_soloreadbarcode_soloreadbarcode"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/solo_read_barcode.rs"
 other = "SoloReadBarcode::SoloReadBarcode"
 other_path = "STAR/source/SoloReadBarcode.cpp"
 other_line = 4
 
 [[entries]]
 rust = "soloreadbarcode_l26_soloreadbarcode_addcounts"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/solo_read_barcode.rs"
 other = "SoloReadBarcode::addCounts"
 other_path = "STAR/source/SoloReadBarcode.cpp"
 other_line = 26
 
 [[entries]]
 rust = "soloreadbarcode_l38_soloreadbarcode_addstats"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/solo_read_barcode.rs"
 other = "SoloReadBarcode::addStats"
 other_path = "STAR/source/SoloReadBarcode.cpp"
 other_line = 38
 
 [[entries]]
 rust = "soloreadbarcode_l44_soloreadbarcode_statsout"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/solo_read_barcode.rs"
 other = "SoloReadBarcode::statsOut"
 other_path = "STAR/source/SoloReadBarcode.cpp"
 other_line = 44
 
 [[entries]]
 rust = "readalign_storealigns_l10_readalign_storealigns"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/read_align_store_aligns.rs"
 other = "ReadAlign::storeAligns"
 other_path = "STAR/source/ReadAlign_storeAligns.cpp"
 other_line = 10
 
 [[entries]]
 rust = "stitchgapindel_l4_stitchgapindel"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/stitch_gap_indel.rs"
 other = "stitchGapIndel"
 other_path = "STAR/source/stitchGapIndel.cpp"
 other_line = 4
 
 [[entries]]
 rust = "parameters_readfilesinit_l8_parameters_readfilesinit"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/parameters_read_files_init.rs"
 other = "Parameters::readFilesInit"
 other_path = "STAR/source/Parameters_readFilesInit.cpp"
 other_line = 8
 
 [[entries]]
 rust = "solobarcode_extractbarcode_l4_solobarcode_extractbarcode"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/solo_barcode_extract_barcode.rs"
 other = "SoloBarcode::extractBarcode"
 other_path = "STAR/source/SoloBarcode_extractBarcode.cpp"
 other_line = 4
 
 [[entries]]
 rust = "readalign_transformgenome_l5_readalign_transformgenome"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/read_align_transform_genome.rs"
 other = "ReadAlign::transformGenome"
 other_path = "STAR/source/ReadAlign_transformGenome.cpp"
 other_line = 5
 
 [[entries]]
 rust = "suffixarrayfuns_l4_medianuint2"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/suffix_array_funs.rs"
 other = "medianUint2"
 other_path = "STAR/source/SuffixArrayFuns.cpp"
 other_line = 4
 
 [[entries]]
 rust = "suffixarrayfuns_l10_compareseqtogenome"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/suffix_array_funs.rs"
 other = "compareSeqToGenome"
 other_path = "STAR/source/SuffixArrayFuns.cpp"
 other_line = 10
 
 [[entries]]
 rust = "suffixarrayfuns_l106_findmultrange"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/suffix_array_funs.rs"
 other = "findMultRange"
 other_path = "STAR/source/SuffixArrayFuns.cpp"
 other_line = 106
 
 [[entries]]
 rust = "suffixarrayfuns_l133_maxmappablelength"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/suffix_array_funs.rs"
 other = "maxMappableLength"
 other_path = "STAR/source/SuffixArrayFuns.cpp"
 other_line = 133
 
 [[entries]]
 rust = "suffixarrayfuns_l210_comparerefends"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/suffix_array_funs.rs"
 other = "compareRefEnds"
 other_path = "STAR/source/SuffixArrayFuns.cpp"
 other_line = 210
 
 [[entries]]
 rust = "suffixarrayfuns_l221_compareseqtogenome1"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/suffix_array_funs.rs"
 other = "compareSeqToGenome1"
 other_path = "STAR/source/SuffixArrayFuns.cpp"
 other_line = 221
 
 [[entries]]
 rust = "suffixarrayfuns_l297_suffixarraysearch1"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/suffix_array_funs.rs"
 other = "suffixArraySearch1"
 other_path = "STAR/source/SuffixArrayFuns.cpp"
 other_line = 297
 
 [[entries]]
 rust = "suffixarrayfuns_l353_funcalcsaifromsa"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/suffix_array_funs.rs"
 other = "funCalcSAiFromSA"
 other_path = "STAR/source/SuffixArrayFuns.cpp"
 other_line = 353
 
 [[entries]]
 rust = "suffixarrayfuns_l397_funcalcsai"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/suffix_array_funs.rs"
 other = "funCalcSAi"
 other_path = "STAR/source/SuffixArrayFuns.cpp"
 other_line = 397
 
 [[entries]]
 rust = "readalign_chimericdetection_l16_readalign_chimericdetection"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/read_align_chimeric_detection.rs"
 other = "ReadAlign::chimericDetection"
 other_path = "STAR/source/ReadAlign_chimericDetection.cpp"
 other_line = 16
 
 [[entries]]
 rust = "parameterssolo_l10_parameterssolo_initialize"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/parameters_solo.rs"
 other = "ParametersSolo::initialize"
 other_path = "STAR/source/ParametersSolo.cpp"
 other_line = 10
 
 [[entries]]
 rust = "parameterssolo_l496_parameterssolo_umiswaphalves"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/parameters_solo.rs"
 other = "ParametersSolo::umiSwapHalves"
 other_path = "STAR/source/ParametersSolo.cpp"
 other_line = 496
 
 [[entries]]
 rust = "parameterssolo_l503_parameterssolo_complexwlstrings"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/parameters_solo.rs"
 other = "ParametersSolo::complexWLstrings"
 other_path = "STAR/source/ParametersSolo.cpp"
 other_line = 503
 
 [[entries]]
 rust = "parameterssolo_l533_parameterssolo_cellfiltering"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/parameters_solo.rs"
 other = "ParametersSolo::cellFiltering"
 other_path = "STAR/source/ParametersSolo.cpp"
 other_line = 533
 
 [[entries]]
 rust = "parameterssolo_l585_umidedup_initialize"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/parameters_solo.rs"
 other = "UMIdedup::initialize"
 other_path = "STAR/source/ParametersSolo.cpp"
 other_line = 585
 
 [[entries]]
 rust = "parameterssolo_l624_multimappers_initialize"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/parameters_solo.rs"
 other = "MultiMappers::initialize"
 other_path = "STAR/source/ParametersSolo.cpp"
 other_line = 624
 
 [[entries]]
 rust = "parameterssolo_l675_parameterssolo_init_cbmatchwl"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/parameters_solo.rs"
 other = "ParametersSolo::init_CBmatchWL"
 other_path = "STAR/source/ParametersSolo.cpp"
 other_line = 675
 
 [[entries]]
 rust = "splicegraph_l8_splicegraph_splicegraph"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/splice_graph.rs"
 other = "SpliceGraph::SpliceGraph"
 other_path = "STAR/source/SpliceGraph.cpp"
 other_line = 8
 
 [[entries]]
 rust = "splicegraph_l28_splicegraph_splicegraph"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/splice_graph.rs"
 other = "SpliceGraph::~SpliceGraph"
 other_path = "STAR/source/SpliceGraph.cpp"
 other_line = 28
 
 [[entries]]
 rust = "quantifications_l3_quantifications_quantifications"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/quantifications.rs"
 other = "Quantifications::Quantifications"
 other_path = "STAR/source/Quantifications.cpp"
 other_line = 3
 
 [[entries]]
 rust = "quantifications_l25_quantifications_addquants"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/quantifications.rs"
 other = "Quantifications::addQuants"
 other_path = "STAR/source/Quantifications.cpp"
 other_line = 25
 
 [[entries]]
 rust = "funcompareuintandsuffixes_l6_funcompareuintandsuffixes"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/fun_compare_uint_and_suffixes.rs"
 other = "funCompareUintAndSuffixes"
 other_path = "STAR/source/funCompareUintAndSuffixes.cpp"
 other_line = 6
 
 [[entries]]
 rust = "readalignchunk_processchunks_l11_readalignchunk_processchunks"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/read_align_chunk_process_chunks.rs"
 other = "ReadAlignChunk::processChunks"
 other_path = "STAR/source/ReadAlignChunk_processChunks.cpp"
 other_line = 11
 
 [[entries]]
 rust = "readalignchunk_processchunks_l284_fastqreadoneline"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/read_align_chunk_process_chunks.rs"
 other = "fastqReadOneLine"
 other_path = "STAR/source/ReadAlignChunk_processChunks.cpp"
 other_line = 284
 
 [[entries]]
 rust = "readalignchunk_processchunks_l298_removestringendcontrol"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/read_align_chunk_process_chunks.rs"
 other = "removeStringEndControl"
 other_path = "STAR/source/ReadAlignChunk_processChunks.cpp"
 other_line = 298
 
 [[entries]]
 rust = "transcriptome_genefullalignoverlap_exonoverintron_l5_transcriptome_genefullalignoverlap_exonoverintron"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/transcriptome_gene_full_align_overlap_exon_over_intron.rs"
 other = "Transcriptome::geneFullAlignOverlap_ExonOverIntron"
 other_path = "STAR/source/Transcriptome_geneFullAlignOverlap_ExonOverIntron.cpp"
 other_line = 5
 
 [[entries]]
 rust = "sjalignsplit_l3_sjalignsplit"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/sj_align_split.rs"
 other = "sjAlignSplit"
 other_path = "STAR/source/sjAlignSplit.cpp"
 other_line = 3
 
 [[entries]]
 rust = "readalign_waspmap_l3_readalign_waspmap"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/read_align_wasp_map.rs"
 other = "ReadAlign::waspMap"
 other_path = "STAR/source/ReadAlign_waspMap.cpp"
 other_line = 3
 
 [[entries]]
 rust = "readalign_waspmap_l115_readalign_copyread"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/read_align_wasp_map.rs"
 other = "ReadAlign::copyRead"
 other_path = "STAR/source/ReadAlign_waspMap.cpp"
 other_line = 115
 
 [[entries]]
 rust = "streamfuns_l10_createdirectory"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/stream_funs.rs"
 other = "createDirectory"
 other_path = "STAR/source/streamFuns.cpp"
 other_line = 10
 
 [[entries]]
 rust = "streamfuns_l39_fstreamreadbig"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/stream_funs.rs"
 other = "fstreamReadBig"
 other_path = "STAR/source/streamFuns.cpp"
 other_line = 39
 
 [[entries]]
 rust = "streamfuns_l51_fstreamwritebig"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/stream_funs.rs"
 other = "fstreamWriteBig"
 other_path = "STAR/source/streamFuns.cpp"
 other_line = 51
 
 [[entries]]
 rust = "streamfuns_l91_ofstropen"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/stream_funs.rs"
 other = "ofstrOpen"
 other_path = "STAR/source/streamFuns.cpp"
 other_line = 91
 
 [[entries]]
 rust = "streamfuns_l102_fstropen"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/stream_funs.rs"
 other = "fstrOpen"
 other_path = "STAR/source/streamFuns.cpp"
 other_line = 102
 
 [[entries]]
 rust = "streamfuns_l124_ifstropen"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/stream_funs.rs"
 other = "ifstrOpen"
 other_path = "STAR/source/streamFuns.cpp"
 other_line = 124
 
 [[entries]]
 rust = "streamfuns_l139_ifstropengenomefile"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/stream_funs.rs"
 other = "ifstrOpenGenomeFile"
 other_path = "STAR/source/streamFuns.cpp"
 other_line = 139
 
 [[entries]]
 rust = "streamfuns_l144_copyfile"
-rust_path = "src/generated/functions.rs"
+rust_path = "src/stream_funs.rs"
 other = "copyFile"
 other_path = "STAR/source/streamFuns.cpp"
 other_line = 144
@@ -2966,30 +2966,30 @@ other_line = 144
 
 [[entries]]
 rust = "Simd_char_"
-rust_path = "src/generated/structs.rs"
+rust_path = "src/opal/opal.rs"
 other = "Simd<char>"
 
 [[entries]]
 rust = "Simd_int_"
-rust_path = "src/generated/structs.rs"
+rust_path = "src/opal/opal.rs"
 other = "Simd<int>"
 
 [[entries]]
 rust = "Simd_short_"
-rust_path = "src/generated/structs.rs"
+rust_path = "src/opal/opal.rs"
 other = "Simd<short>"
 
 [[entries]]
 rust = "SimdSW_char_"
-rust_path = "src/generated/structs.rs"
+rust_path = "src/opal/opal.rs"
 other = "SimdSW<char>"
 
 [[entries]]
 rust = "SimdSW_int_"
-rust_path = "src/generated/structs.rs"
+rust_path = "src/opal/opal.rs"
 other = "SimdSW<int>"
 
 [[entries]]
 rust = "SimdSW_short_"
-rust_path = "src/generated/structs.rs"
+rust_path = "src/opal/opal.rs"
 other = "SimdSW<short>"

@@ -1,8 +1,8 @@
 use star_rs::cli::{existing_read_files_from_args, run_cli};
-use star_rs::generated::functions::{
+use star_rs::{
     quantifications_l3_quantifications_quantifications, star_l58_main, SOLO_TYPE_CB_SAM_TAG_OUT,
 };
-use star_rs::generated::structs::{
+use star_rs::{
     Genome, Parameters, ParametersSolo, ReadAlign, ReadAlignChunk, SoloRead, SoloReadBarcode,
     SoloReadBarcodeStats, Transcriptome,
 };
