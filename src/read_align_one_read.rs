@@ -11,7 +11,7 @@ pub fn readalign_oneread_l8_readalign_oneread(
     p: &mut crate::parameters_chimeric::Parameters,
     map_gen: &crate::genome::Genome,
     transcriptome: &mut crate::transcriptome::Transcriptome,
-    mut splice_graph: Option<&mut crate::splice_graph::SpliceGraph>,
+    splice_graph: Option<&mut crate::splice_graph::SpliceGraph>,
     mapped_standard_ra: Option<&crate::read_align::ReadAlign>,
     mapped_pe_merge_ra: Option<&crate::read_align::ReadAlign>,
     pe_merge_ra: &mut crate::read_align::ReadAlign,
@@ -111,6 +111,60 @@ pub fn readalign_oneread_l8_readalign_oneread(
         return Ok(result);
     }
 
+    readalign_oneread_l8_readalign_oneread_loaded(
+        read_align,
+        p,
+        map_gen,
+        transcriptome,
+        splice_graph,
+        mapped_standard_ra,
+        mapped_pe_merge_ra,
+        pe_merge_ra,
+        wasp_ra,
+        gen_out,
+        wasp_remap_outcomes,
+        chunk_out_sj,
+        chunk_out_sj1,
+        chunk_out_filter_by_sjout_files,
+        chunk_out_unmapped_reads_stream,
+        out_sam_stream,
+        primary_pick_fraction,
+        chim_detector_result,
+        read0,
+        qual0,
+        read_name_mates,
+        read_status[0],
+    )
+}
+
+#[doc = "STAR direct API helper: map/output one read after caller has loaded ReadAlign scratch fields."]
+pub fn readalign_oneread_l8_readalign_oneread_loaded(
+    read_align: &mut crate::read_align::ReadAlign,
+    p: &mut crate::parameters_chimeric::Parameters,
+    map_gen: &crate::genome::Genome,
+    transcriptome: &mut crate::transcriptome::Transcriptome,
+    mut splice_graph: Option<&mut crate::splice_graph::SpliceGraph>,
+    mapped_standard_ra: Option<&crate::read_align::ReadAlign>,
+    mapped_pe_merge_ra: Option<&crate::read_align::ReadAlign>,
+    pe_merge_ra: &mut crate::read_align::ReadAlign,
+    wasp_ra: &mut crate::read_align::ReadAlign,
+    gen_out: Option<&crate::genome::Genome>,
+    wasp_remap_outcomes: &[crate::quantifications::WaspMapOutcome],
+    chunk_out_sj: &mut crate::out_sj::OutSJ,
+    chunk_out_sj1: &mut crate::out_sj::OutSJ,
+    chunk_out_filter_by_sjout_files: &mut [String],
+    chunk_out_unmapped_reads_stream: &mut [String],
+    out_sam_stream: &mut String,
+    primary_pick_fraction: f64,
+    chim_detector_result: Option<bool>,
+    read0: Vec<String>,
+    qual0: Vec<String>,
+    read_name_mates: Vec<String>,
+    read_status: i32,
+) -> Result<crate::quantifications::ReadAlignOneReadResult, String> {
+    let mut result = crate::quantifications::ReadAlignOneReadResult::default();
+    let read_nends = p.read_nends as usize;
+
     read_align.read_name.clear();
     if let Some(first) = read_name_mates.first() {
         read_align.read_name.push_str(first);
@@ -175,7 +229,7 @@ pub fn readalign_oneread_l8_readalign_oneread(
         read_align.read_length[1] = 0;
     }
 
-    read_align.read_file_type = read_status[0];
+    read_align.read_file_type = read_status;
     if read_align.read1[1].len() < read_align.l_read as usize {
         read_align.read1[1].resize(read_align.l_read as usize, 0);
     }

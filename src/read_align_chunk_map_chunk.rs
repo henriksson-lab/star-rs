@@ -10,8 +10,8 @@ pub fn readalignchunk_mapchunk_l7_readalignchunk_mapchunk<F>(
     p: &crate::parameters_chimeric::Parameters,
     stats_all: &mut crate::stats::Stats,
     time_current: libc::time_t,
-    mut one_read: F,
-    mut real_context: Option<(
+    one_read: F,
+    real_context: Option<(
         &crate::genome::Genome,
         &mut crate::transcriptome::Transcriptome,
     )>,
@@ -35,6 +35,124 @@ where
         )?;
     }
 
+    let chunk_inputs: Vec<&[u8]> = chunk
+        .chunk_in
+        .iter()
+        .map(|input| {
+            let ptr = input.as_ptr();
+            let len = input.len();
+            // SAFETY: the cursors below only read from chunk_in while mapChunk
+            // mutates disjoint output/alignment fields. The existing STAR chunk
+            // input buffers are not resized or written after this point.
+            unsafe { std::slice::from_raw_parts(ptr, len) }
+        })
+        .collect();
+    let mut real_read_inputs: Vec<std::io::Cursor<&[u8]>> = chunk_inputs
+        .iter()
+        .map(|input| std::io::Cursor::new(*input))
+        .collect();
+    let mut read_streams: Vec<&mut dyn std::io::BufRead> = real_read_inputs
+        .iter_mut()
+        .map(|input| input as &mut dyn std::io::BufRead)
+        .collect();
+    readalignchunk_mapchunk_l7_readalignchunk_mapchunk_with_read_streams(
+        chunk,
+        p,
+        stats_all,
+        time_current,
+        one_read,
+        real_context,
+        &mut read_streams,
+    )
+}
+
+#[doc = "STAR direct API helper: map a chunk using caller-supplied FASTQ-like read streams instead of chunk_in buffers."]
+pub fn readalignchunk_mapchunk_l7_readalignchunk_mapchunk_with_read_streams<F>(
+    chunk: &mut crate::read_align_chunk::ReadAlignChunk,
+    p: &crate::parameters_chimeric::Parameters,
+    stats_all: &mut crate::stats::Stats,
+    time_current: libc::time_t,
+    one_read: F,
+    real_context: Option<(
+        &crate::genome::Genome,
+        &mut crate::transcriptome::Transcriptome,
+    )>,
+    read_streams: &mut [&mut dyn std::io::BufRead],
+) -> Result<crate::read_align_chunk::ReadAlignChunkMapChunkResult, String>
+where
+    F: FnMut(&mut crate::read_align::ReadAlign) -> i32,
+{
+    readalignchunk_mapchunk_l7_readalignchunk_mapchunk_with_next_read(
+        chunk,
+        p,
+        stats_all,
+        time_current,
+        one_read,
+        real_context,
+        |ra,
+         p_one_read,
+         map_gen,
+         transcriptome,
+         pe_merge_ra,
+         wasp_ra,
+         chunk_out_sj,
+         chunk_out_sj1,
+         chunk_out_filter_by_sjout_files,
+         chunk_out_unmapped_reads_stream,
+         out_sam_stream| {
+            readalign_oneread_l8_readalign_oneread(
+                ra,
+                read_streams,
+                p_one_read,
+                map_gen,
+                transcriptome,
+                None,
+                None,
+                None,
+                pe_merge_ra,
+                wasp_ra,
+                None,
+                &[],
+                chunk_out_sj,
+                chunk_out_sj1,
+                chunk_out_filter_by_sjout_files,
+                chunk_out_unmapped_reads_stream,
+                out_sam_stream,
+                0.0,
+                None,
+            )
+        },
+    )
+}
+
+pub fn readalignchunk_mapchunk_l7_readalignchunk_mapchunk_with_next_read<F, N>(
+    chunk: &mut crate::read_align_chunk::ReadAlignChunk,
+    p: &crate::parameters_chimeric::Parameters,
+    stats_all: &mut crate::stats::Stats,
+    time_current: libc::time_t,
+    mut one_read: F,
+    mut real_context: Option<(
+        &crate::genome::Genome,
+        &mut crate::transcriptome::Transcriptome,
+    )>,
+    mut next_one_read: N,
+) -> Result<crate::read_align_chunk::ReadAlignChunkMapChunkResult, String>
+where
+    F: FnMut(&mut crate::read_align::ReadAlign) -> i32,
+    N: FnMut(
+        &mut crate::read_align::ReadAlign,
+        &mut crate::parameters_chimeric::Parameters,
+        &crate::genome::Genome,
+        &mut crate::transcriptome::Transcriptome,
+        &mut crate::read_align::ReadAlign,
+        &mut crate::read_align::ReadAlign,
+        &mut crate::out_sj::OutSJ,
+        &mut crate::out_sj::OutSJ,
+        &mut [String],
+        &mut [String],
+        &mut String,
+    ) -> Result<crate::quantifications::ReadAlignOneReadResult, String>,
+{
     stats_l4_stats_resetn(&mut chunk.ra.stats_ra);
 
     let paired_keep_input_order = p.out_sam_order == "PairedKeepInputOrder" && p.run_thread_n > 1;
@@ -48,11 +166,6 @@ where
     }
 
     let mut read_status = 0;
-    let mut real_read_inputs: Vec<std::io::Cursor<&[u8]>> = chunk
-        .chunk_in
-        .iter()
-        .map(|input| std::io::Cursor::new(input.as_slice()))
-        .collect();
     let mut pe_merge_ra = crate::read_align::ReadAlign::default();
     let mut wasp_ra = crate::read_align::ReadAlign::default();
     let mut chunk_out_unmapped_reads_stream = vec![String::new(); p.read_nends as usize];
@@ -60,36 +173,24 @@ where
     while read_status == 0 {
         chunk.ra.out_bam_bytes = 0;
         if let Some((map_gen, transcriptome)) = real_context.as_mut() {
-            let mut read_streams: Vec<&mut dyn std::io::BufRead> = real_read_inputs
-                .iter_mut()
-                .map(|input| input as &mut dyn std::io::BufRead)
-                .collect();
             if chunk.chunk_out_filter_by_sjout_files.len() < p.read_nends as usize {
                 chunk
                     .chunk_out_filter_by_sjout_files
                     .resize(p.read_nends as usize, String::new());
             }
             let mut out_sam_stream = String::new();
-            let one_read_result = readalign_oneread_l8_readalign_oneread(
+            let one_read_result = next_one_read(
                 &mut chunk.ra,
-                &mut read_streams,
                 &mut p_one_read,
                 *map_gen,
                 &mut **transcriptome,
-                None,
-                None,
-                None,
                 &mut pe_merge_ra,
                 &mut wasp_ra,
-                None,
-                &[],
                 &mut chunk.chunk_out_sj,
                 &mut chunk.chunk_out_sj1,
                 &mut chunk.chunk_out_filter_by_sjout_files,
                 &mut chunk_out_unmapped_reads_stream,
                 &mut out_sam_stream,
-                0.0,
-                None,
             )?;
             if one_read_result.status == 0 {
                 if let Some(chimeric_detection) = &one_read_result.pe_overlap.chimeric_detection {
