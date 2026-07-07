@@ -132,6 +132,19 @@ ratio_star_rs_over_original_wall    ...
 ratio_star_rs_over_original_rss     ...
 ```
 
+Current smoke result from this fixture, measured on 2026-07-07 with original
+STAR 2.7.11b and `cargo build --release --features binary` on Linux 6.8
+(`x86_64`, Intel Xeon Gold 6138):
+
+| benchmark | original STAR | star-rs | star-rs / original |
+| --- | ---: | ---: | ---: |
+| read mapping wall time, median of 5 | 0.125 s | 0.068 s | 0.537 |
+| read mapping peak RSS | 156,160 KB | 79,360 KB | 0.508 |
+
+The wall-time ratio varied from 0.387 to 0.580 across the five runs, so treat
+the numbers as a regression smoke signal rather than a stable throughput
+benchmark.
+
 Run a genome-generation comparison on a chosen FASTA with:
 
 ```sh
