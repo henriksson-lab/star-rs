@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import argparse
 import pathlib
+import re
 import shutil
 import subprocess
 import tempfile
@@ -106,10 +107,22 @@ FFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
 """
 
 
-def timed(cmd: list[str]) -> float:
+def timed(cmd: list[str], time_log: pathlib.Path) -> dict[str, float | int | None]:
+    full_cmd = ["/usr/bin/time", "-v", "-o", str(time_log), *cmd]
     start = time.perf_counter()
-    subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    return time.perf_counter() - start
+    subprocess.run(full_cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    elapsed = time.perf_counter() - start
+
+    rss_kb = None
+    if time_log.exists():
+        m = re.search(
+            r"Maximum resident set size \(kbytes\):\s+(\d+)",
+            time_log.read_text(),
+        )
+        if m:
+            rss_kb = int(m.group(1))
+
+    return {"elapsed_s": elapsed, "rss_kb": rss_kb}
 
 
 def main() -> None:
@@ -151,7 +164,8 @@ def main() -> None:
                 "5",
                 "--limitGenomeGenerateRAM",
                 "1000000",
-            ]
+            ],
+            work / "genome_generate.time",
         )
         common = [
             "--genomeDir",
@@ -173,11 +187,24 @@ def main() -> None:
             "--outSAMmultNmax",
             "20",
         ]
-        cpp_time = timed([str(star), *common, "--outFileNamePrefix", str(work / "cpp/")])
-        rust_time = timed([str(star_rs), *common, "--outFileNamePrefix", str(work / "rust/")])
+        cpp = timed(
+            [str(star), *common, "--outFileNamePrefix", str(work / "cpp/")],
+            work / "cpp.time",
+        )
+        rust = timed(
+            [str(star_rs), *common, "--outFileNamePrefix", str(work / "rust/")],
+            work / "rust.time",
+        )
+        cpp_time = float(cpp["elapsed_s"])
+        rust_time = float(rust["elapsed_s"])
         print(f"original_star_seconds\t{cpp_time:.6f}")
         print(f"star_rs_seconds\t{rust_time:.6f}")
         print(f"ratio_star_rs_over_original\t{rust_time / cpp_time:.3f}")
+        print(f"ratio_star_rs_over_original_wall\t{rust_time / cpp_time:.3f}")
+        print(f"original_star_rss_kb\t{cpp['rss_kb'] or '?'}")
+        print(f"star_rs_rss_kb\t{rust['rss_kb'] or '?'}")
+        if cpp["rss_kb"] and rust["rss_kb"]:
+            print(f"ratio_star_rs_over_original_rss\t{rust['rss_kb'] / cpp['rss_kb']:.3f}")
         print(f"work_dir\t{work if args.keep else '<removed; rerun with --keep to inspect>'}")
     finally:
         if not args.keep:

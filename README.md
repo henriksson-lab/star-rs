@@ -110,6 +110,41 @@ The preparation script uses original STAR to select real reads whose alignments
 contain splice-junction CIGARs, and the test requires at least one splice event
 unless `STAR_RS_REAL_MIN_SPLICES=0` is set.
 
+## Benchmarking
+
+The included benchmark helpers are smoke checks for translation work, not
+published performance claims. Build the release binary first:
+
+```sh
+cargo build --release --features binary
+```
+
+Run the small read-mapping baseline with:
+
+```sh
+tools/perf_baseline.py
+```
+
+The output includes both wall-time and peak RSS comparisons:
+
+```text
+ratio_star_rs_over_original_wall    ...
+ratio_star_rs_over_original_rss     ...
+```
+
+Run a genome-generation comparison on a chosen FASTA with:
+
+```sh
+tools/bench_genome_generate.py --fasta path/to/genome.fa
+```
+
+When both binaries finish successfully, it reports:
+
+```text
+ratio_rust_over_cpp_wall    ...
+ratio_rust_over_cpp_rss     ...
+```
+
 ## Citing
 
 Alexander Dobin, Carrie A. Davis, Felix Schlesinger, Jorg Drenkow, Chris Zaleski, Sonali Jha, Philippe Batut, Mark Chaisson, Thomas R. Gingeras, STAR: ultrafast universal RNA-seq aligner, Bioinformatics, Volume 29, Issue 1, January 2013, Pages 15–21, https://doi.org/10.1093/bioinformatics/bts635
