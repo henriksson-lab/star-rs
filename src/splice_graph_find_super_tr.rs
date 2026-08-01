@@ -148,6 +148,7 @@ pub fn splicegraph_findsupertr_l5_splicegraph_findsupertr(
             .as_ref()
             .map(|ra| ra.tr_best.clone())
             .unwrap_or_else(transcript_l3_transcript_transcript);
+        tr_a.read_name = read_name.to_string();
         tr_a.chr = sutr1 as u64;
         tr_a.str_ = str1 as u64;
         let sw_score = splicegraph_swscorespliced_l8_splicegraph_swscorespliced(

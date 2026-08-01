@@ -1688,7 +1688,7 @@ fn cli_align_reads_writes_unmapped_fastx_output() {
     assert!(unmapped.contains("\nTTTTTTTT\n+\nFFFFFFFF\n"));
     assert!(aligned
         .log_final_out
-        .contains("Number of reads unmapped: too short |\t1"));
+        .contains("Number of reads unmapped: other |\t1"));
 
     std::fs::remove_dir_all(dir).unwrap();
 }

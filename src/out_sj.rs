@@ -46,7 +46,7 @@ pub fn outsj_l4_outsj_outsj(n_sjmax: u64) -> crate::out_sj::OutSJ {
     crate::out_sj::OutSJ {
         n: 0,
         n_store: n_sjmax,
-        junctions: Vec::new(),
+        junctions: Vec::with_capacity(n_sjmax as usize),
     }
 }
 

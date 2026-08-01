@@ -29,6 +29,7 @@ pub fn readalign_maponereadsplicegraph_l6_readalign_maponereadsplicegraph(
     tr_init.g_length = 0;
     tr_init.i_read = read_align.i_read_all;
     tr_init.l_read = read_align.l_read;
+    tr_init.read_name = read_align.read_name.clone();
     tr_init.n_exons = 0;
     for (i, &v) in read_align
         .read_length_original

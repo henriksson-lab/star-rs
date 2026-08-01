@@ -661,14 +661,14 @@ fn stitch_align_to_transcript_uses_annotated_sjdb_fast_path() {
 #[test]
 fn stitch_window_aligns_records_single_window_alignment() {
     let wa = vec![{
-        let mut a = [0u32; WA_SIZE];
+        let mut a = [0u64; WA_SIZE];
         a[WA_LENGTH] = 4;
         a[WA_R_START] = 0;
         a[WA_G_START] = 10;
         a[WA_N_REP] = 1;
         a[WA_ANCHOR] = 1;
         a[WA_I_FRAG] = 0;
-        a[WA_SJ_A] = u32::MAX;
+        a[WA_SJ_A] = u64::MAX;
         a
     }];
     let mut incl = vec![false; 1];
@@ -698,7 +698,7 @@ fn stitch_window_aligns_records_single_window_alignment() {
 
     stitchwindowaligns_l8_stitchwindowaligns(
         0,
-        wa.len() as u32,
+        wa.len() as u64,
         0,
         &mut incl,
         0,
@@ -711,7 +711,9 @@ fn stitch_window_aligns_records_single_window_alignment() {
         &p,
         &mut w_tr,
         &mut n_win_tr,
-        &mut ra,
+        ra.out_filter_mismatch_nmax_total,
+        &ra.read_length,
+        &mut ra.max_score_mate,
     )
     .unwrap();
 
@@ -731,14 +733,14 @@ fn stitch_window_aligns_records_single_window_alignment() {
 #[test]
 fn stitch_window_aligns_updates_genomic_end_after_right_extension() {
     let wa = vec![{
-        let mut a = [0u32; WA_SIZE];
+        let mut a = [0u64; WA_SIZE];
         a[WA_LENGTH] = 3;
         a[WA_R_START] = 0;
         a[WA_G_START] = 10;
         a[WA_N_REP] = 1;
         a[WA_ANCHOR] = 1;
         a[WA_I_FRAG] = 0;
-        a[WA_SJ_A] = u32::MAX;
+        a[WA_SJ_A] = u64::MAX;
         a
     }];
     let mut incl = vec![false; 1];
@@ -767,7 +769,7 @@ fn stitch_window_aligns_updates_genomic_end_after_right_extension() {
 
     stitchwindowaligns_l8_stitchwindowaligns(
         0,
-        wa.len() as u32,
+        wa.len() as u64,
         0,
         &mut incl,
         0,
@@ -780,7 +782,9 @@ fn stitch_window_aligns_updates_genomic_end_after_right_extension() {
         &p,
         &mut w_tr,
         &mut n_win_tr,
-        &mut ra,
+        ra.out_filter_mismatch_nmax_total,
+        &ra.read_length,
+        &mut ra.max_score_mate,
     )
     .unwrap();
 
@@ -801,14 +805,14 @@ fn stitch_window_aligns_replaces_lower_scoring_subset() {
         ..Default::default()
     };
     let wa = vec![{
-        let mut a = [0u32; WA_SIZE];
+        let mut a = [0u64; WA_SIZE];
         a[WA_LENGTH] = 5;
         a[WA_R_START] = 0;
         a[WA_G_START] = 10;
         a[WA_N_REP] = 1;
         a[WA_ANCHOR] = 1;
         a[WA_I_FRAG] = 0;
-        a[WA_SJ_A] = u32::MAX;
+        a[WA_SJ_A] = u64::MAX;
         a
     }];
     let mut incl = vec![false; 1];
@@ -849,7 +853,9 @@ fn stitch_window_aligns_replaces_lower_scoring_subset() {
         &p,
         &mut w_tr,
         &mut n_win_tr,
-        &mut ra,
+        ra.out_filter_mismatch_nmax_total,
+        &ra.read_length,
+        &mut ra.max_score_mate,
     )
     .unwrap();
 
@@ -910,7 +916,9 @@ fn stitch_window_aligns_filters_noncanonical_introns_and_reports_bad_mode() {
         },
         &mut w_tr,
         &mut n_win_tr,
-        &mut ra,
+        ra.out_filter_mismatch_nmax_total,
+        &ra.read_length,
+        &mut ra.max_score_mate,
     )
     .unwrap();
     assert_eq!(n_win_tr, 0);
@@ -934,7 +942,9 @@ fn stitch_window_aligns_filters_noncanonical_introns_and_reports_bad_mode() {
         },
         &mut w_tr,
         &mut n_win_tr,
-        &mut ra,
+        ra.out_filter_mismatch_nmax_total,
+        &ra.read_length,
+        &mut ra.max_score_mate,
     )
     .unwrap_err();
     assert!(err.contains("unrecognized value of --outFilterIntronMotifs=BadMode"));
@@ -944,7 +954,7 @@ fn stitch_window_aligns_filters_noncanonical_introns_and_reports_bad_mode() {
 fn stitch_align_to_transcript_fills_same_fragment_gap_without_indel() {
     let mut tr = Transcript {
         n_exons: 1,
-        exons: tr_exons_arr(&[[0, 0, 3, 0, u32::MAX], [0; EX_SIZE]]),
+        exons: tr_exons_arr(&[[0, 0, 3, 0, u64::MAX], [0; EX_SIZE]]),
         canon_sj: tr_canon_sj_arr(&[0; 2]),
         sj_annot: tr_sj_u8_arr(&[0; 2]),
         shift_sj: tr_shift_sj_arr(&[[0; 2]; 2]),
@@ -968,7 +978,7 @@ fn stitch_align_to_transcript_fills_same_fragment_gap_without_indel() {
         5,
         2,
         0,
-        u32::MAX,
+        u64::MAX,
         &p,
         &read,
         &genome,
@@ -978,7 +988,7 @@ fn stitch_align_to_transcript_fills_same_fragment_gap_without_indel() {
 
     assert_eq!(score, -1_000_007);
     assert_eq!(tr.n_exons, 1);
-    assert_eq!(tr.exons[0], [0, 0, 3, 0, u32::MAX]);
+    assert_eq!(tr.exons[0], [0, 0, 3, 0, u64::MAX]);
     assert_eq!(tr.n_match, 0);
     assert_eq!(tr.n_mm, 0);
 }
@@ -987,7 +997,7 @@ fn stitch_align_to_transcript_fills_same_fragment_gap_without_indel() {
 fn stitch_align_to_transcript_records_same_fragment_insertion() {
     let mut tr = Transcript {
         n_exons: 1,
-        exons: tr_exons_arr(&[[0, 0, 3, 0, u32::MAX], [0; EX_SIZE]]),
+        exons: tr_exons_arr(&[[0, 0, 3, 0, u64::MAX], [0; EX_SIZE]]),
         canon_sj: tr_canon_sj_arr(&[0; 2]),
         sj_annot: tr_sj_u8_arr(&[0; 2]),
         shift_sj: tr_shift_sj_arr(&[[0; 2]; 2]),
@@ -1014,7 +1024,7 @@ fn stitch_align_to_transcript_records_same_fragment_insertion() {
         4,
         2,
         0,
-        u32::MAX,
+        u64::MAX,
         &p,
         &read,
         &genome,
@@ -1025,7 +1035,7 @@ fn stitch_align_to_transcript_records_same_fragment_insertion() {
     assert_eq!(score, -1);
     assert_eq!(tr.n_exons, 2);
     assert_eq!(tr.exons[0][EX_L], 3);
-    assert_eq!(tr.exons[1], [4, 3, 3, 0, u32::MAX]);
+    assert_eq!(tr.exons[1], [4, 3, 3, 0, u64::MAX]);
     assert_eq!(tr.canon_sj[0], -2);
     assert_eq!(tr.n_ins, 1);
     assert_eq!(tr.l_ins, 1);
@@ -1043,7 +1053,7 @@ fn read_align_stitch_window_seeds_records_single_seed_transcript() {
             ..Default::default()
         },
         n_wa: vec![1],
-        wa: vec![vec![[4, 0, 10, 1, 1, 0, u32::MAX]]],
+        wa: vec![vec![[4, 0, 10, 1, 1, 0, u64::MAX]]],
         tr_all: vec![Vec::new()],
         n_win_tr: vec![0],
         max_score_mate: vec![0],
@@ -1075,7 +1085,7 @@ fn read_align_stitch_window_seeds_records_single_seed_transcript() {
     assert_eq!(read_align.n_win_tr[0], 1);
     let tr = &read_align.tr_all[0][0];
     assert_eq!(tr.n_exons, 1);
-    assert_eq!(tr.exons[0], [0, 10, 4, 0, u32::MAX]);
+    assert_eq!(tr.exons[0], [0, 10, 4, 0, u64::MAX]);
     assert_eq!(tr.max_score, 4);
     assert_eq!(tr.n_match, 4);
     assert_eq!(tr.r_length, 4);
@@ -1095,8 +1105,8 @@ fn read_align_stitch_window_seeds_records_second_best_with_exclusion_mask() {
         },
         n_wa: vec![2],
         wa: vec![vec![
-            [4, 0, 10, 1, 1, 0, u32::MAX],
-            [3, 0, 20, 1, 1, 0, u32::MAX],
+            [4, 0, 10, 1, 1, 0, u64::MAX],
+            [3, 0, 20, 1, 1, 0, u64::MAX],
         ]],
         tr_all: vec![vec![Transcript::default()]],
         n_win_tr: vec![1],
@@ -1127,7 +1137,7 @@ fn read_align_stitch_window_seeds_records_second_best_with_exclusion_mask() {
     );
 
     assert_eq!(read_align.n_win_tr[0], 2);
-    assert_eq!(read_align.tr_all[0][1].exons[0], [0, 20, 3, 0, u32::MAX]);
+    assert_eq!(read_align.tr_all[0][1].exons[0], [0, 20, 3, 0, u64::MAX]);
     assert!(read_align.wa_incl[1]);
     assert!(!read_align.wa_incl[0]);
     assert_eq!(read_align.max_score_mate[0], 3);
@@ -1661,7 +1671,7 @@ fn read_align_mult_map_select_marks_nonfirst_tr_best_primary_after_coordinate_fi
         n_unique: 1,
         n_anchor: 1,
         n_exons: 1,
-        exons: tr_exons_arr(&[[1, 189665, 45, 0, u32::MAX]]),
+        exons: tr_exons_arr(&[[1, 189665, 45, 0, u64::MAX]]),
         canon_sj: tr_canon_sj_arr(&[-1]),
         shift_sj: tr_shift_sj_arr(&[[0, 0]]),
         sj_str: tr_sj_u8_arr(&[0]),
@@ -1684,7 +1694,7 @@ fn read_align_mult_map_select_marks_nonfirst_tr_best_primary_after_coordinate_fi
             n_match: 46,
             n_mm: 3,
             n_exons: 2,
-            exons: tr_exons_arr(&[[1, 165869, 29, 0, u32::MAX], [30, 165899, 20, 0, u32::MAX]]),
+            exons: tr_exons_arr(&[[1, 165869, 29, 0, u64::MAX], [30, 165899, 20, 0, u64::MAX]]),
             canon_sj: tr_canon_sj_arr(&[-1, 0]),
             shift_sj: tr_shift_sj_arr(&[[0, 1], [0, 0]]),
             sj_str: tr_sj_u8_arr(&[0, 0]),
@@ -2525,8 +2535,8 @@ fn read_align_align_bam_writes_mapped_single_end_record_bytes() {
         1,
         0,
         0,
-        u32::MAX,
-        u32::MAX,
+        u64::MAX,
+        u64::MAX,
         0,
         -1,
         None,
@@ -2603,8 +2613,8 @@ fn read_align_align_bam_writes_unmapped_mate_with_mapped_mate_info() {
         0,
         0,
         100,
-        u32::MAX,
-        u32::MAX,
+        u64::MAX,
+        u64::MAX,
         0,
         4,
         Some([true, false]),

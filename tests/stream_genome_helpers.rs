@@ -334,8 +334,9 @@ fn genome_generate_saindex_one_uses_sorted_suffix_array() {
         .expect("genomeSAindexNbases=1 should not produce a decreasing SA index");
 
     assert_eq!(genome.genome_sa_index_start, vec![0, 4]);
-    assert_eq!(genome.sai.len(), 4);
-    assert!(genome.sai.iter().any(|&v| v != 0));
+    assert_eq!(genome.sai_packed.length, 4);
+    assert!(genome.sai_packed.length_byte > 0);
+    assert!(genome.sai_packed.char_array.iter().any(|&v| v != 0));
 
     std::fs::remove_dir_all(dir).unwrap();
 }

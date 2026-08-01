@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::path::Path;
 
 use star_rs::*;
@@ -1161,13 +1162,14 @@ fn chimeric_detection_constructor_preserves_initializer_fields() {
         ra.clone(),
     );
 
-    assert_eq!(cd.p, p);
-    assert_eq!(cd.ra, Some(ra));
-    assert_eq!(cd.tr_all, tr_all);
+    assert_eq!(cd.p.as_ref(), &p);
+    assert_eq!(cd.ra.as_ref().map(|ra| ra.as_ref()), Some(&ra));
+    assert_eq!(cd.tr_all.as_ref(), tr_all.as_slice());
     assert_eq!(cd.n_w, 2);
     assert_eq!(cd.n_win_tr, vec![1, 1]);
-    assert_eq!(cd.read1, [vec![0, 1], vec![3, 2]]);
-    assert_eq!(cd.out_gen, out_gen);
+    assert_eq!(cd.read1[0].as_ref(), &[0, 1]);
+    assert_eq!(cd.read1[1].as_ref(), &[3, 2]);
+    assert_eq!(cd.out_gen.as_ref(), &out_gen);
     assert!(cd.ostream_chim_junction_attached);
     assert!(cd.chim_aligns.is_empty());
 }
@@ -3387,7 +3389,7 @@ fn chimeric_detection_mult_stitches_and_outputs_unique_candidate() {
         ..Default::default()
     };
     let mut chim_det = ChimericDetection {
-        p: Parameters {
+        p: Cow::Owned(Parameters {
             p_ch: ParametersChimeric {
                 segment_min: 3,
                 junction_overhang_min: 2,
@@ -3399,22 +3401,24 @@ fn chimeric_detection_mult_stitches_and_outputs_unique_candidate() {
                 ..Default::default()
             },
             ..Default::default()
-        },
-        ra: Some(ReadAlign {
+        }),
+        ra: Some(Cow::Owned(ReadAlign {
             read_name: "@chim1".to_string(),
             read_files_index: 0,
             ..Default::default()
-        }),
-        tr_all: vec![vec![left], vec![right]],
+        })),
+        tr_all: Cow::Owned(vec![vec![left], vec![right]]),
+        n_w: 2,
         n_win_tr: vec![1, 1],
-        read1: [vec![0; 21], vec![0; 21]],
-        out_gen: Genome {
+        read1: [Cow::Owned(vec![0; 21]), Cow::Owned(vec![0; 21])],
+        out_gen: Cow::Owned(Genome {
             chr_name: vec!["chr1".to_string(), "chr2".to_string()],
             chr_start: vec![0, 0],
             g: vec![0; 256],
             ..Default::default()
-        },
-        ..Default::default()
+        }),
+        chim_aligns: Vec::new(),
+        ostream_chim_junction_attached: false,
     };
 
     let result =
@@ -3461,7 +3465,7 @@ fn chimeric_detection_mult_rejects_candidates_below_score_floor() {
         ..Default::default()
     };
     let mut chim_det = ChimericDetection {
-        p: Parameters {
+        p: Cow::Owned(Parameters {
             p_ch: ParametersChimeric {
                 segment_min: 3,
                 junction_overhang_min: 2,
@@ -3471,15 +3475,18 @@ fn chimeric_detection_mult_rejects_candidates_below_score_floor() {
                 ..Default::default()
             },
             ..Default::default()
-        },
-        tr_all: vec![vec![tr(0, 100, 0, 8)], vec![tr(11, 200, 1, 9)]],
+        }),
+        ra: None,
+        tr_all: Cow::Owned(vec![vec![tr(0, 100, 0, 8)], vec![tr(11, 200, 1, 9)]]),
+        n_w: 2,
         n_win_tr: vec![1, 1],
-        read1: [vec![0; 21], vec![0; 21]],
-        out_gen: Genome {
+        read1: [Cow::Owned(vec![0; 21]), Cow::Owned(vec![0; 21])],
+        out_gen: Cow::Owned(Genome {
             g: vec![0; 256],
             ..Default::default()
-        },
-        ..Default::default()
+        }),
+        chim_aligns: Vec::new(),
+        ostream_chim_junction_attached: false,
     };
 
     let result =
@@ -10892,12 +10899,10 @@ fn read_align_assign_align_to_window_records_replaces_and_prunes_like_original()
 
     readalign_assignaligntowindow_l6_readalign_assignaligntowindow(
         &mut ra, 100, 10, 0, 1, 0, 20, false, 0, 10, 3,
-    )
-    .unwrap();
+    );
     readalign_assignaligntowindow_l6_readalign_assignaligntowindow(
         &mut ra, 90, 5, 0, 1, 0, 5, false, 0, 10, 3,
-    )
-    .unwrap();
+    );
     assert_eq!(ra.n_wa[0], 2);
     assert_eq!(ra.wa[0][0][WA_R_START], 5);
     assert_eq!(ra.wa[0][1][WA_R_START], 20);
@@ -10905,8 +10910,7 @@ fn read_align_assign_align_to_window_records_replaces_and_prunes_like_original()
 
     readalign_assignaligntowindow_l6_readalign_assignaligntowindow(
         &mut ra, 102, 15, 0, 2, 0, 22, false, 0, 10, 3,
-    )
-    .unwrap();
+    );
     assert_eq!(ra.n_wa[0], 2);
     assert_eq!(ra.wa[0][1][WA_R_START], 22);
     assert_eq!(ra.wa[0][1][WA_LENGTH], 15);
@@ -10914,13 +10918,11 @@ fn read_align_assign_align_to_window_records_replaces_and_prunes_like_original()
 
     readalign_assignaligntowindow_l6_readalign_assignaligntowindow(
         &mut ra, 130, 3, 0, 1, 0, 60, false, 0, 10, 3,
-    )
-    .unwrap();
+    );
     assert_eq!(ra.n_wa[0], 3);
     readalign_assignaligntowindow_l6_readalign_assignaligntowindow(
         &mut ra, 150, 7, 0, 1, 0, 80, false, 0, 10, 3,
-    )
-    .unwrap();
+    );
     assert_eq!(ra.wal_rec[0], 3);
     assert_eq!(ra.n_wa[0], 3);
     assert_eq!(ra.wa[0][0][WA_LENGTH], 5);
@@ -10949,8 +10951,7 @@ fn read_align_assign_align_to_window_prunes_all_anchor_overflow() {
 
     readalign_assignaligntowindow_l6_readalign_assignaligntowindow(
         &mut ra, 20, 7, 0, 1, 0, 3, true, 0, 10, 2,
-    )
-    .unwrap();
+    );
     assert_eq!(ra.map_marker, MARKER_TOO_MANY_ANCHORS_PER_WINDOW);
     assert_eq!(ra.n_w, 0);
     assert_eq!(ra.n_wa[0], 2);
