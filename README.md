@@ -3,6 +3,8 @@
 Rust translation of the STAR RNA-seq aligner 
 
 **more auditing needed; uint mistranslated**
+
+* 2026-08-01: CI added. More audit pending
 * 2026-05-16: Restructured code, fixed STAR index bug + multithreading
 * 2026-05-13: Automatically detects gzip files if provided by name (not piped, CLI). Binary is now an optional feature
 * 2026-05-02: Passes basic tests but a larger battery is needed before we can assert that this translation is fully functional
@@ -111,6 +113,8 @@ contain splice-junction CIGARs, and the test requires at least one splice event
 unless `STAR_RS_REAL_MIN_SPLICES=0` is set.
 
 ## Benchmarking
+
+Original benchmark baseline: vendored upstream STAR commit `b1edc1208d91` (`2.7.11b`).
 
 The included benchmark helpers are smoke checks for translation work, not
 published performance claims. Build the release binary first:
