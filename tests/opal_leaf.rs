@@ -1,10 +1,12 @@
 use star_rs::*;
 use star_rs::OpalSearchResult;
 
+#[cfg(unix)]
 unsafe extern "C" {
     fn tzset();
 }
 
+#[cfg(unix)]
 #[test]
 fn time_month_day_time_matches_star_format_for_epoch() {
     // STAR formats "%b %d %H:%M:%SS" and then erases the last byte.
